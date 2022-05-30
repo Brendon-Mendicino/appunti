@@ -624,14 +624,16 @@ Scomposizione in fratti semplici di Heaviside in presenza di readici del donomin
 
 \[ \boxed{ h(t) \underset{t \to \infty}{\longrightarrow} 0 \iff \forall i : \sigma_i < 0 } \]
 
-\begin{enumerate}
-    \item Stabilit\`a asintotica: \\
-        Un sistema LTI \`e asintoticamente stabile $\iff$ tutti gli autovalori della matrice $\vv{A}$ hanno parte reale strettamente negativa: $\forall i: \Re\left\{ \lambda_i \right\} < 0$.
-    \item Stabilit\`a interna (semplice): \\
-        Un sistema LTI \`e internamente stabile $\iff$ tutti gli autovalori della matrice $\vv{A}$ hanno parte reale minore o uguale a zero e quelli con parte reale nulla compaiono tra le radici del polinomio minimo $q_a$ con molteplcit\`a 1.
-    \item Instabilit\`a interna: \\
-        Un sistema LTI \`e internamnete instabile $ \implies $ non soddisfa le condizioni del risultato 2.
-\end{enumerate}
+\begin{definition}{Criteri di Stabilit\`a}{criteri-di-stabilita}
+    \begin{enumerate}
+        \item \textbf{Stabilit\`a asintotica:} \\
+            Un sistema LTI \`e asintoticamente stabile $\iff$ tutti gli autovalori della matrice $\vv{A}$ hanno parte reale strettamente negativa: $\forall i: \Re\left\{ \lambda_i \right\} < 0$.
+        \item \textbf{Stabilit\`a interna (semplice):} \\
+            Un sistema LTI \`e internamente stabile $\iff$ tutti gli autovalori della matrice $\vv{A}$ hanno parte reale minore o uguale a zero e quelli con parte reale nulla compaiono tra le radici del polinomio minimo $q_a$ con molteplcit\`a 1.
+        \item \textbf{Instabilit\`a interna:} \\
+            Un sistema LTI \`e internamnete instabile $ \implies $ non soddisfa le condizioni del risultato 2.
+    \end{enumerate}
+\end{definition}
 
 \newpage
 \subsection{Stabilit\`a BIBO}
@@ -1532,12 +1534,12 @@ Ora studiamo il il comportamento del sistema di controllo quando vogliamo imporr
 
 Nella struttura della \emph{f.d.t.} di un controllore, il denominatore deve avere grado maggiore o uguale a quello del numeratore, in caso contrario il sistema prevede il futuro. La \emph{f.d.t.} del controllare \`e possibile rappresentarla nella seguente forma:
 \begin{definition}{Controllore}{controllore}
-\[ G_c (s) = \frac{K_c}{s^{\nu}} \prod_{i}^{}   \underbrace{\left( \frac{1 + \frac{s}{z _{di}} }{1 + \frac{s}{m _{di} z _{di}} }   \right)}_{LID} \prod_{j}^{}   \underbrace{\left( \frac{ 1 + \frac{s}{m _{ij} p _{ij}} }{ 1 + \frac{s}{p _{ij}} }  \right)}_{LEG} \]
+\[ G_c (s) = \frac{K_c}{s^{\nu}} \prod_{i}^{}   \underbrace{\left( \frac{1 + \frac{s}{z _{di}} }{1 + \frac{s}{m _{di} z _{di}} }   \right)}_{LEAD} \prod_{j}^{}   \underbrace{\left( \frac{ 1 + \frac{s}{m _{ij} p _{ij}} }{ 1 + \frac{s}{p _{ij}} }  \right)}_{LAG} \]
 \end{definition}
 
-Il primo blocco della \emph{f.d.t.} \`e detta rete \textbf{derivativa} (o \textbf{anticipatrice} o \textbf{LID}), dove il coefficente $m _{di}$ \`e sempre $> 1$, la rete LID \`e una rete con la frequenza dei poli sempre maggiore di quella degli zeri.
+Il primo blocco della \emph{f.d.t.} \`e detta rete \textbf{derivativa} (o \textbf{anticipatrice} o \textbf{LEAD}), dove il coefficente $m _{di}$ \`e sempre $> 1$, la rete LEAD \`e una rete con la frequenza dei poli sempre maggiore di quella degli zeri.
 
-Il secondo blocco rappresenta una rete \textbf{integrativa} (o \textbf{attenuatrice} o \textbf{LEG}), nella quale lo zero \`e a frequenza pi\`u alta del polo, perch\`e $m _{ij}$ \`e sempre $> 1$.
+Il secondo blocco rappresenta una rete \textbf{integrativa} (o \textbf{attenuatrice} o \textbf{LAG}), nella quale lo zero \`e a frequenza pi\`u alta del polo, perch\`e $m _{ij}$ \`e sempre $> 1$.
 
 Si definiscono i guadagni:
 \begin{definition}{Guadagno Controllore}{guadagno-controllore}
@@ -1601,7 +1603,7 @@ e_r^{\infty} & = \lim_{s \to 0} s (y_r(s) - K_dr(s)) = \\
 \end{align*}
 Analizziamo chi sono $G_p$ e $G_c$.
 
-Quando $s$ tende a zero la parte LID e la parte LEG tendono a 1, dunque:
+Quando $s$ tende a zero la parte LEAD e la parte LAG tendono a 1, dunque:
 $G_p = \frac{K_c}{s^{\nu}} $.
 Ma anche $G_p$ ha una forma simile, dunque per $s$ che tende a 0: $G_p = \frac{K_p}{s^{p}} $.
 
@@ -1662,10 +1664,10 @@ Anche in questo caso usiamo il teorema del valore finale:
 
     \begin{align*}
         \left| e_r^{\infty} \right| & = \left|\lim_{t \to \infty}  y(t) - K_dr(t) \right| = \\
-        & = |\lim_{s \to 0} sy(s) - K_dr(s)| = \\
-        & = |\lim_{s \to 0} sG _{ry}(s)r(s) - K_dr(s)| = \\
-        & = \left|\lim_{s \to 0} s \frac{L}{1+L} \frac{1}{G_fG_s} r(s) - K_dr(s) \right| = \\
-        & = \left|\lim_{s \to 0} s \frac{K_d^{2}s^{\nu + 1}}{s^{\nu + 1}K_d + K_pK_cG_a } \frac{R_0}{s^{2}} \right| = \\
+        & = |\lim_{s \to 0} s\cdot[y(s) - K_dr(s)]| = \\
+        & = |\lim_{s \to 0} s\cdot[G _{ry}(s)r(s) - K_dr(s)]| = \\
+        & = \left|\lim_{s \to 0} s\cdot \left[\frac{L}{1+L} \frac{1}{G_fG_s} r(s) - K_dr(s)\right] \right| = \\
+        & = \left|\lim_{s \to 0} s\cdot\frac{K_d^{2}s^{\nu + 1}}{s^{\nu + 1}K_d + K_pK_cG_a } \frac{R_0}{s^{2}} \right| = \\
         & = \left| \frac{K_d^{2}R_0}{K_cK_dG_a}  \right|  \\
         \\
         \implies & \left| \frac{K_d^{2} R_0}{ K_c K_p G_a} \right|  < 0.15 \\
@@ -1750,7 +1752,7 @@ Il primo vincolo \`e quello su $\omega_c$, definta la $\omega_H$ potrei sceglire
 Un progetto fatto bene vuole che $L$ passi in $\omega_c$ esattamnte che una una pendenza di $-20dB/dec$. Il motivo per cui non si pu\`o scendere pi\`u velocemente \`e che se la pendenza \`e troppo ripida abbiamo pi\`u poli nell'origine, questo corrispode ad un contributo nella fase di $-90^{\circ}$ per ogni polo, come abiamo visto ad un certo punto ho bisogno di far salire la fase vicino all'intorno a $\omega_c$ con degli zeri, altrimenti il sitema non \`e stabile per il criterio di Nyquist (\ref{the:nyquists-criterion}), dunque \`e conveniente prendere i valori di $\nu$ pi\`u bassi.
 
 Per questa ragione \`e parsimonioso prendere come vincolo:
-\[ \omega_c < \frac{\omega_H}{2}  \]
+\[ \omega_c \leqslant \frac{\omega_H}{2}  \]
 A meno che non si arriva sullo spigolo con una fase minore, in quel caso si ha pi\`u margine per scegliere il vincolo.
 
 Consideriamo ora l'attenuazione di un disturbo sinusoidale che entra nella catena diretta. Consideriamo il disturbo $d_p = a_p\sin(\omega_pt),\quad \forall \omega_p < \omega_p^{+}$.
@@ -1762,9 +1764,13 @@ Allora:
 
 \[ \implies |L(j\omega_p)| > \frac{a_p}{\rho_p} \qquad \forall \omega_p < \omega_p^{+} \]
 
-
 Anche in questo caso possiamo trovare un costante $\omega_L$, tale che:
-\[ \omega_c > 2\cdot\omega_L \]
+\[ \omega_c \geqslant  2\cdot\omega_L \]
+
+In coclusione ho dei vincoli dati da $T$ e da $S$, che impongono di scegliere una $\omega_c$ all'interno di un intervallo, che sar\`a che avr\`a come esteremi i limiti sulle alte frequenza e sulle basse frequenze, tale frequenza sar\`a detta \textbf{frequenza di crossover desiderata}.
+\[ \omega_{c,des} \in \left[ 2\omega_L, \frac{\omega_H}{2}  \right] \]
+
+Se dovesse accadere che $2\omega_L > \frac{\omega_H}{2}$, le specifiche sono conflittuali, ci\`o vuol dire che il problema di controllo non ha soluzione.
 
 
 
@@ -1777,7 +1783,7 @@ Prendiamo in esame le specifiche per il transitorio. Come abbiamo gi\`a visto, i
     \caption{Transitorio Di Un Sistema}
     \label{fig:transitorio-di-un-sistema}
 \end{figure}
-
+Per analizzare il comportamento del transitorio si manda in entrata un segnale gradino unitario e si definiscono delle grandezze a partire dall'uscita:
 \begin{definition}{Maximum Overshoot}{maximum-overshoot}
     Anche detta \textbf{massima sovraelongazione}, \`e definita come:
     \[ \hat{s} = \frac{y _{max} - y _{\infty}}{ y _{\infty}}  \]
@@ -1798,9 +1804,220 @@ Prendiamo in esame le specifiche per il transitorio. Come abbiamo gi\`a visto, i
     \[  \| y(t) - y _{\infty} \|_{\infty}  < \alpha \cdot y _{\infty} \qquad \forall t > t _{s,\alpha\%} \]
 \end{definition}
 
+Si definiscono delle specifiche per ogni tipologia di segnale e durante il progetto si deve garantire il rispetto di tali costanti:
+\[ \boxed{ \hat{s} \leqslant \bar{\hat{s}};\qquad t_r \leqslant \bar{t}_r;\qquad t_{s,\alpha\%} \leqslant \bar{t}_{s,\alpha\%} } \]
+
+In generale non si conosce la struttura di $T$. Per studiare il i criteri sopra descritti facciamo un assunzione molto forte su quello che \`e la struttura di $T$. La assumiamo come una funzione a poli complessi coniugati, detta \textbf{funzione prototipo del secondo ordine}:
+\[ y(s) = T(s) \cdot \underbrace{\frac{1}{G_fG_s}}_{K_d} \cdot r(s) \]
+\[ T(s) = \frac{1}{\displaystyle 1 + \frac{2\zeta}{\omega_n} s + \frac{s^{2}}{\omega_n^{2}} }  \]
+I vantaggi di usare qeusta rappresentazoine sono:
+\begin{itemize}
+    \item guadagno stazionario;
+    \item non ha zeri, 2 poli complessi coniugati;
+        \[ 0 < \zeta \leqslant 1 \]
+\end{itemize}
+La risposta al gradino unitario \`e data da:
+\[ y(t) = 1 - \frac{e^{-\zeta\omega_n t}}{\sqrt{1-\zeta^{2}}} \sin\left( \omega_n t + \arctan \left( \frac{\sqrt{1-\zeta^{2}}}{\zeta}  \right)  \right)   \]
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{risposta-al-gradino-unitario-di-un-sistema-del-secondo-ordine.png}
+    \caption{Risposta Al Gradino Unitario Di Un Sistema Del Secondo Ordine}
+    \label{fig:risposta-al-gradino-unitario-di-un-sistema-del-secondo-ordine}
+\end{figure}
+Posso ricavare che:
+\[ \boxed{\hat{s} = e^{ -\frac{ \pi\zeta }{ \sqrt{1 - \zeta^{2}} } } } \]
+\[ \boxed{ t_r = \frac{1}{\omega_n\sqrt{1-\zeta^{2}}} \cdot (\pi - \arccos(\zeta)) } \]
+\[ \boxed{ t_{s,\alpha\%} = - \frac{\log(\alpha)}{\omega_n\zeta}  } \]
+Questi sono idealmente i vincoli per $T$, nella realt\`a $T$ sar\`a diversa, anche se i vincoli risultanti da questo metodo saranno molto approssimati a quelli reali. Per diverse $T(s)$ mi servono:
+\begin{itemize}
+    \item \textbf{picco di risonanza} $T_p$:
+        \[ T_p \triangleq \frac{\max\{|T(j\omega)|\}}{|T(j0)|}  \]
+        \[ S_p \triangleq \max\{|S(j\omega)|\} \]
+    \item \textbf{banda passante del sistema di controllo} $\omega _{BS}$:
+        \[ \omega_{B}: |T(j\omega_{B})| = \frac{\sqrt{2}}{2} |T(j0)| \]
+        \[ \omega _{BS}:  |S(j\omega_{BS})| = \frac{\sqrt{2}}{2} \text{ (non si usa) } \]
+        Ovvero quando il modulo del guadagno diminuisce di $3dB$ (infatti $\frac{\sqrt{2}}{2} = -3dB$)
+\end{itemize}
+Il motivo per cui si studia anche la $S(s)$ \`e dato dal fatto che, alla fine dello studio del progetto, ci piacerebbe avere come risultato una funzione prototipo del secondo ordine, infatti se come risultato avessimo tale funzione $T_p$ e $S_p$ sarebbero equivalenti, ma cos\`i non sar\`a (nella maggior parte dei casi), per cui rafforziamo i nostri vincoli imponendoli anche su $S$ per fare in modo che, le specifiche del sistema siano quanto pi\`u vicine alle stesse specifiche di una funzione prototipo del secondo ordine.
+
+Avendo una funzione prototipo del secondo tipo, la funzione ad anello pu\`o essere calcolata come:
+\[ T(s): L(s) = \frac{T}{1 - T} \implies L(s) = \frac{\frac{\omega_n}{2\zeta} }{s \left( 1 + \frac{s}{2\zeta\omega_n}  \right) }  \]
+La frequenza di crossover pu\`o essere espressa in funzione di $\zeta$ ed $\omega_n$:
+\[ \boxed{ \omega_c = \omega_n \sqrt{\sqrt{1 + 4\zeta^{2}} - 2\zeta^{2}}  } \]
+Possiamo allora esprimere il picco di risonanza e la banda in termini dei parametri:
+\[ \boxed{T_p = \frac{1}{2\zeta\sqrt{1-\zeta^{2}}} } \]
+\[ \boxed{S_p = \frac{2\zeta \sqrt{2 + 4\zeta^{2} + 2 \sqrt{1 + 8\zeta^{2}}}}{\sqrt{1 + 8\zeta^{2}} + 4\zeta^{2} - 1} } \]
+\[ \boxed{\omega_B = \omega_n \sqrt{1 - 2\zeta^{2} + \sqrt{2 - 4\zeta^{2} + 4\zeta^{4}}}} \]
+
+
+\begin{example}{}{}
+    \[ \hat{s} \leqslant 10\%;\qquad t_r \leqslant 0.5s;\qquad t_{s,1\%} \leqslant 1.5s; \]
+    Parto da $\hat{s}$, che dipende solo da un parametro:
+\[ \hat{s} = e^{-\frac{\pi\zeta}{\sqrt{1 - \zeta^{2}}} } \implies \zeta = \frac{|\log(\hat{s})|}{\sqrt{\pi^{2} + \log^{2}(\hat{s})}} = 0.59 \implies \boxed{\zeta \geqslant  0.59 } \]
+    Ricavo lo smorzamento, impongo $T_p$ ed $S_p$:
+    \[ \boxed{T_p \leqslant \frac{1}{2\zeta\sqrt{1-\zeta^{2}}} \underset{\zeta = 0.59}{=} 1.05} \] 
+    \[ \boxed{S_p \leqslant \frac{2\zeta \sqrt{2 + 4\zeta^{2} + 2 \sqrt{1 + 8\zeta^{2}}}}{\sqrt{1 + 8\zeta^{2}} + 4\zeta^{2} - 1} \underset{\zeta = 0.59}{=} 1.36} \]
+    Consideriamo ora i requisiti sul tempo di salita:
+    \[  t_r = \frac{1}{\omega_n\sqrt{1-\zeta^{2}}} \cdot (\pi - \arccos(\zeta))  \]
+    \[   \omega_c = \omega_n \sqrt{\sqrt{1 + 4\zeta^{2}} - 2\zeta^{2}}  \]
+    Otteniamo che:
+    \[ t_r\omega_c =  \frac{1}{\sqrt{1-\zeta^{2}}} \cdot (\pi - \arccos(\zeta)) \cdot \sqrt{\sqrt{1 + 4\zeta^{2}} - 2\zeta^{2}} \]
+    Quindi:
+    \[ \boxed{\omega_c \geqslant \frac{1.97}{t_r} \underset{t_r = 0.5}{=} 3.94 rad/s} \]
+    Similmente possiamo ottenere i requisiti per il tempo di settling:
+    \[ t_{s,1\%} = \frac{4.61}{\omega_n\zeta}  \]
+    Si ottiene:
+    \[ t_{s,1\%}\omega_c \underset{\zeta = 0.59}{=} 5.64 \]
+    Quindi:
+    \[ \boxed{\omega_c \geqslant  \frac{5.64}{t_{s,1\%}} \underset{t_{s,1\%} = 1.5}{=} 3.76 rad/s} \]
+    La traduzione delle specifiche porta a due valori delle frequnza di crossover diversi, per scegliere quella corretta si procede nel seguente modo:
+    \[ \boxed{ \omega _{c,des} = \max\{ \underbrace{\omega_c}_{t_r}, \underbrace{\omega_c}_{t_{s,1\%}} \} \implies \omega_{c,des} = 3.94 rad/s } \]
+\end{example}
+
+\subsection{Luoghi di Magnitudo Costante}
+Che valori deve assumere la $L(j\omega)$ per fare in modo che $|T(j\omega)|$ non superi mai $T _{p,max}$?
+
+Per fare questa analisi,  usiamo una rappresentazine per il modulo di $T$.
+\[ T = \frac{L}{1 + L} = \frac{u + jv}{1 + u + jv} = Me^{j\phi} \implies \begin{system} 
+M^{2} = \frac{u^{2}+v^{2}}{(1 + u)^{2} + v^{2}} \\
+\phi = \arctan\left( \frac{v}{u}  \right) - \arctan\left( \frac{v}{1+u}  \right) 
+\end{system}  \]
+Voglio trovare dei valori della parte reale e della parte immaginario di $L$ per cui $M^{2}$ ha gli stessi valori, dunque voglio trovare una formula per rappresentare un valore costante del modulo di $T$ al quadrato $M_T^{2}$. Facendo delle riscritture algebriche trovo che il luogo di punti che rispettano questa condizione sono:
+\[ \implies \left( u - \frac{M_T^{2}}{1-M_T^{2}}  \right)^{2} +v^{2} = \left( \frac{M_T}{1-M_T^{2}}  \right)^{2}  \]
+Questa rappresenta l'equazione di un cerchio:
+\[ (u - C_u)^{2} + (v - C_v)^{2} = R^{2} \]
+Infatti viene detto \textbf{cerchio $M_T$}:
+\[ \implies M_T \text{ circle }: \begin{system}
+    \displaystyle C  = \left( \frac{M_T^{2}}{1 - M_T^{2}}, 0 \right) & \text{,(centro)} \\
+    \\
+    \displaystyle R = \left| \frac{M_T}{1 - M_T^{2}}  \right|  & \text{,(raggio)}
+\end{system}  \]
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{luogo-dei-punti-del-cerchio-mt.png}
+    \caption{Luogo Dei Punti Del Cerchio Mt}
+    \label{fig:luogo-dei-punti-del-cerchio-mt}
+\end{figure}
+Supponiamo quindi di avere un vincolo sulla massima sovraelongazione, ad esempio $T_p \leqslant 6$. Non deve mai accadere che il Diagramma Polare della funzione ad anello attraversi la regione contenuta all'interno del cerchio di raggio $M_T = 6$, ci\`o significherebbe che il valore di $T_p$ viene superato da $|T(j\omega)|$ e ci\`o non deve accadere. Plottando queste condizioni, si possono modificare apportunamente gli zeri i poli della funzione ad anello per far si che vengano rispettati i vincoli, per far ci\`o si usano i Diagrammi di Nichols, che rendono pi\`u comoda la visualizzazione della funzione, dove le regioni formate dai cerchi verranno deformate come delle ellissi.
+
+
+
+\begin{problem}{}{}
+    4. $|e _{d_p}^{\infty}| \leqslant 5\cdot 10^{-4}$, $d_p(t) = a_p\cdot \sin(\omega_p t), |a_p| \leqslant 2\cdot 10^{-2}, \omega_p \leqslant 0.02 rad/s$.
+    \[ |e _{d_p}^{\infty}| = |y^{\infty} _{d_p}| = |a_p |G(j\omega_p)| \sin(\omega_p t + \phi)| \leqslant |a_p| |G(j\omega_p)| \]
+
+    ...
+
+5. $e _{d_s}^{\infty}$
+
+% TODO:  <24-05-22, da finire> %
+\end{problem}
+
+
+
+\subsection{Scelta di Kc}
+Quando si \`e trovato il modulo di $K_c$ minimo si prende un valore leggermente pi\`u grande dei requisiti minimi. Per \textbf{scegliere il segno del modulo di $K_c$}, e quindi di garantire la stabilit\`a, \`e necessario vedere il numero di encircolamenti di $L$ intorno a $-1+j0$, assegnamo un valore arbitrario tra positivo e negativo, se $P_{cl}$ \`e un numero pari allora il segno va bene, altrimenti il segno va invertito. 
+
+\subsection{Progetto di LEAD e LAG}
+Ogni rete \`e un filtro del primo ordine, come si vede in (\ref{def:controllore}). Per progettare questa rete si usa un metodo detto \textbf{loop-shaping design}.
+
+Per garantire le specifiche del transitorio, si deve garantire che, inserendo le reti LEAD e LAG, il Diagramma di Nichols di $L$ non entri all'interno delle regioni proibite, anche se questa condizione non \`e necessario n\'e sufficente a garantire le specifiche sulla sovraelongazione, qusto \`e dato dal fatto che la $T$, in generale, non \`e equivalente alla funzione prototipo, dunque il suo comportamento si discosta leggermente da quello che ci aspettiamo, ci\`o nonostante, rispettare le zone \`e comunque un buon indicatore per il rispetto delle specifiche. Stare al di fuori delle regioni proibite garantisce un livello di robustezza: il progetto del controllore comporta degli errori, dati dalla differenza tra modello matematico e quella che \`e la realt\`a, sono presenti anche errori dati dalla linearizzazione, allora la funzione ad anello nella realt\`a sar\`a diversa da quella trovata, e se si trova vicino al punto ciritico ($-1 + j0$), data la presenza di errori, si rischia di attraversarlo. Uscendo dalle regioni proibite spostiamo la fase ed il modulo lontano dal punto critico (in molti libri di testo vengono definite delle distanze dette \textbf{margine di fase } e \textbf{margine di guadagno}, per garantire la robustazza, ma questo non garantisce che  in un intorno non ci si possa avicinare al punto critico, \`e anche per questo motivo che si usano le regioni proibite).
+
+\textbf{Criteri per scegliere la frequenza di cross-over desiderata} (durante l'esame la scelta va motivata):
+\begin{itemize}
+    \item se la prendo vicino al limite superiore, si ha il comportamento pi\`u veloce per il transitorio;
+    \item se la prendo vicino al limite inferiore, si ottiene un attenuzazione maggiore dei disturbi;
+\end{itemize}
+
+
+Guardo l'intervallo e scelgo una $\omega _{c,des}$ e vado a vedere dove viene mappato il punto sul diagramma di Nichols. Quel punto, essendo la frequenza di crossover, deve avere un guadagno di $0dB$. Per fare questo potrei semplicemente aumentare il guadagno e quindi traslare il grafico in alto, ma in contemporanea devo traslare anche orizzontalmente, altrimeti si rischia di far diventare instabile il sistema. Per fare ci\`o si pu\`o semplicemente aggiungere uno zero al controllore, ma ogni volta che si aggiunge uno zero, si deve anche aggiungere un polo, questo \`e dovuto al fatto che il controllore deve sempre essere realizzabile, dunque il grado del numeratore deve sempre essere minore o uguale al grado del denominatore, il polo che si aggiunge cacella la fase che viene aggiunta dallo zero. Per evitare che il contributo venga completamente annullato nell'intorno in cui si vuole applicare lo zero, il polo avr\`a una fase maggiore dello zero, il comportamento di tale \`e detto di \textbf{compana di fase}, che avr\`a un'effetto di diminuire il gudagno e di aumentare la fase alla frequenza di crossover.
+\begin{figure}[H]
+    \centering
+    \subfloat[Rete LEAD Su Nichols]{%
+        \includegraphics[width=0.4\textwidth]{rete-LEAD-su-nichols.png}%
+        \label{rete-LEAD-su-nichols}%
+        }%
+    \hfill%
+    \subfloat[Bode Rete LEAD]{%
+        \includegraphics[width=0.4\textwidth]{guadagno-e-fase-rete-LEAD.png}%
+        \label{guadagno-e-fase-rete-LEAD}%
+        }%
+    \caption{Effetto rete LEAD}
+\end{figure}
+
+\[ R_d(s) = \frac{\displaystyle 1 + \frac{s}{z_d} }{\displaystyle 1 + \frac{s}{m_dz_d} }\;,\quad m_d > 1  \]
+\begin{itemize}
+    \item $m_d$ determina quanto sar\`a grande la compana di fase;
+    \item $z_d$ detemina in frequenza dove sar\`a posizionata la compana di fase.
+\end{itemize}
+
+Si pu\`o mostrare che partendo una fuznione prototipo del secondo ordine $T_2$, e ricavando $L_2$ da essa, il diagramma di Nichols di $L_2$ passa tangente a entrambe le regioni proibite. Quello che vorremmo ottenere \`e che:
+\[ T \simeq T_2 \implies L \simeq L_2 \]
+Se definisce una fascia di valori in cui si vuole che il comportamento della funzione ad anello ricavata sia simile a quello della funzione prototipo.
+
+% TODO:  <25-05-22, mettere figure delle T che si approssima a T_2> %
+
+
+Consideriamo una situazione differente, per introdurre la rete LAG. Ad esemio la mia $\omega _{c,des}$ si trova al di sopra dei $0dB$, per fare in modo di abbassare il suo modulo si inserisce un modulo nel controllore. Inserendo un polo, qeusto va a deteriorare la fase, che mi comporta nella maggior parte dei casi un attraversamento della zona proibita, aggiungendo uno zero a fase maggiore del polo si reisce avere un comportamento sulla fase simila quello precdente in un introrno della frequnza a cui si \`e diminuito il modulo.
+\begin{figure}[H]
+    \centering
+    \subfloat[Rete LAG Su Nichols]{%
+        \includegraphics[width=0.4\textwidth]{rete-LAG-su-nichols.png}%
+        \label{rete-LAG-su-nichols}%
+        }%
+    \hfill%
+    \subfloat[Bode Rete LAG]{%
+        \includegraphics[width=0.4\textwidth]{bode-rete-LAG.png}%
+        \label{bode-rete-LAG}%
+        }%
+    \caption{Effetto rete LAG}
+\end{figure}
+
+\[ R_i(s) = \frac{\displaystyle 1 + \frac{s}{m_ip_i} }{\displaystyle 1 + \frac{s}{p_i} }\;,\quad m_i > 1  \]
+
+Considerazioni:
+\begin{itemize}
+    \item Non ci sono effetti negativi nell'introduzione di una rete LEAD;
+    \item Progettando una rete LAG si vuole ottenere solo uno dei due effetti che provoca, ovvere un abbassamento del modulo senza la perdita di fase, che \`e indesiderata, inoltre, una consegunza provocata dall'inserimento dalle reti LAG \`e l'\textbf{effetto coda};
+\end{itemize}
+
+...
+
+
+Rete derivativa: prendo la differenza tra la fase alla frequenza di $\omega_{c,des}$ e la fase che si trova al di fuori delle regioni proibite.
+
+Quindi trovo la 
+
+"Progetto una rete LEAD con $\omega$ normalizzata = 1.2 e m = .. al fine di recuperare $\deg{45}$ all $\omega_{c,des} = 0.8 rad/s$",
+
+La $\omega_{norm} \triangleq \frac{\omega _{c,des}}{z_d} \iff 1.2 = \frac{0.8}{z_d}$
+
+
+Per la reta LAG si prende sempre un valore della $\omega _{norm}$ di 100
+Il modula deve scendere di (pu\`o essere calcolato analiticamente):
+\[ \lim_{s \to \infty} R_i(s) = \lim_{s \to \infty} \frac{1 + \frac{s}{m_ip_i} }{1 + \frac{s}{p_i} } = \frac{p_i}{m_ip_i} = \frac{1}{m_i}   \]
+
+...
+
+Valuto le prestazioni del sistema, valutando con una prestazione che tutte esse siano verificate.
+
+...
+
+Le reti LAG causano l'\textbf{effetto coda}: progettando una rete di tipo LAG, andiamo a inserire una frequenza normalizzata che diventer\`a uguale alla frequnza di crossover. Utilizzando la rete LAG, avr\`o uno zero ed un polo a bassa frequnza. La funzione $T$ \`e uguale a $\frac{L}{1 + L}$, questo comporta che gli zeri di $T$ sono coincidenti con gli zeri di $L$, questo implica che gli zeri del controllore sono zeri di $T$. Ma deve rimanere vero il fatto che $T$, a bassa frequenza deve essere 1, dunque vicino allo zero, per forza di cose, deve comparire un polo (dato da $1 + L$ al denominatore), si pu\`o provare che il residuo di quel polo \`e motlo basso, quindi avremmo un'esponenziale in uscita che decresce lentamente (dato dal fatto che il polo si trova a bassa frequenza), ed ha un ampiezza molto ridotta, questo effetto non si nota perch\`e il modello utilizzato per la $T$ era quello di una fuznione prototipo del secondo tipo, nella quela non era presente nessun polo a basso frequenza. Questo problema non si pone nelle reti LEAD, perch\`e il polo si trova ad alta frequenza, perch\`e gli eventuali esponenziali decrescono molto velocemente ed il modulo di $T$ scnende molto velocemnte.
+
+
 
 
 % TODO:  <15-05-22, rifare la parte sui diagrammi che fa schifo> %
+
+
+
+\newpage
+\section{Problemi d'Esame}
+Qua verranno svolti i passaggi su matlab di esempi di temi di esame.
+
+\subsection{Problema 1}
+
 
 
 
