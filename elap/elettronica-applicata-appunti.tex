@@ -15,11 +15,17 @@
 \newpage
 \section{Circuiti Logici}
 I circuiti logici si alimentano tramite una tensione continua, i circuiti odierni usano una tensione al di sotto del Volt, il motivo \`e che la potenza generata dipende principalmente dalla tensione di alimentazione. Una volta i transistor venivano alimentati con circa $5V$.
-Gli stati logici di uscita devono prensentare il minor rumore possibile, sono codificati con una tensione alta (vero; $1$) o tensione bassa (falso; $0$). L'uscita a livello alto di solito si approssima alla tensione di alimentazione $V_{dd}$ e l'uscita bassa al $GND$. Le tensioni all'interno di un circuito logico al di sopra o al di sotto di una certa soglia $V_T$ vengono assegnate ad un livello basso o ad un livello alto, a differenza si trovano al di sopra o al di sotto di tale soglia. Il motivo di questa scelta \`e dovuta al rumore, che porterebbe ad un errore nel passaggio delle informazioni. \\
-Le soglie non sono ben definite per tutte le porte logiche, la soluzione che viene adottata all'interno di un circuito integrato \`e di definire degli intervalli in cui le soglie dei vari transistor si trovano all'interno, questi intevalli compresi nell'intevallo $(V_{dd}, GND)$. Per motivi simili l'uscita di una porta non \`e detto che sia sempre a $V_{dd}$ o $GND$ (una causa pu\`o essre il rumore), si definiscono allora dei valori limite in cui la tensione non po\`o essere pi\`u bassa o pi\`u alta di questa soglia. \\
-Per le uscite di sefiniscono $V_{OH}$ e $V_{OL}$, metre per le entrate si definisce $V_{IH}$ e $V_{IL}$, garantire queste soglie viene dette \textbf{contrratto statico}, in cui il parlatore e l'ascoltore riescono a comunicare. \`E sempre vero che: $V_{OH} > V_{IH}$, $V_{OL} < V_{IL}$. \\
-A causa del rumore le uscite possono variare, per questo le soglie di uscita devono avere dei margini di rumore, per evitare che le tensioni vadano a finire nella zona non definita in cui lo stato logico \`e indefinito. \\
-All'interno di ogni porta logica c'\`e un comparatore che avr\`a una soglia (non ben definita), che converte un segnale analogico in un segnale digitale. \\
+
+Gli stati logici di uscita devono prensentare il minor rumore possibile, sono codificati con una tensione alta (vero; $1$) o tensione bassa (falso; $0$). L'uscita a livello alto di solito si approssima alla tensione di alimentazione $V_{dd}$ e l'uscita bassa al $GND$. Le tensioni all'interno di un circuito logico al di sopra o al di sotto di una certa soglia $V_T$ vengono assegnate ad un livello basso o ad un livello alto, a differenza si trovano al di sopra o al di sotto di tale soglia. Il motivo di questa scelta \`e dovuta al rumore, che porterebbe ad un errore nel passaggio delle informazioni.
+
+Le soglie non sono ben definite per tutte le porte logiche, la soluzione che viene adottata all'interno di un circuito integrato \`e di definire degli intervalli in cui le soglie dei vari transistor si trovano all'interno, questi intevalli compresi nell'intevallo $(V_{dd}, GND)$. Per motivi simili l'uscita di una porta non \`e detto che sia sempre a $V_{dd}$ o $GND$ (una causa pu\`o essre il rumore), si definiscono allora dei valori limite in cui la tensione non po\`o essere pi\`u bassa o pi\`u alta di questa soglia.
+
+Per le uscite di sefiniscono $V_{OH}$ e $V_{OL}$, metre per le entrate si definisce $V_{IH}$ e $V_{IL}$, garantire queste soglie viene dette \textbf{contrratto statico}, in cui il parlatore e l'ascoltore riescono a comunicare. \`E sempre vero che: $V_{OH} > V_{IH}$, $V_{OL} < V_{IL}$.
+ 
+A causa del rumore le uscite possono variare, per questo le soglie di uscita devono avere dei margini di rumore, per evitare che le tensioni vadano a finire nella zona non definita in cui lo stato logico \`e indefinito.
+
+All'interno di ogni porta logica c'\`e un comparatore che avr\`a una soglia (non ben definita), che converte un segnale analogico in un segnale digitale.
+
 L'esmpio di porta logica pi\`u facile \`e l'\textbf{inverter}: porta un segnale da basso ad alto o da alto a basso. Andando in laboratorio e facendo delle misurazioni non si potr\`a mai trovare con precisione la soglia $V_T$ ma \`e possibile farsi un'idea abbastanza precisa di essa possa trovarsi.
 
 \subsection{Transistor MOS}
@@ -1113,9 +1119,9 @@ Si pu\`o definire la capacit\`a e l'induttanza per metro di linea:
 Il \textbf{parametri elettrici}:
 \begin{itemize}
     \item impedenza caratteristica:
-        \[ Z _{\infty} sqrt{\frac{L_u}{C_u} } \]
+        \[ Z _{\infty} = \sqrt{\frac{L_u}{C_u} } \]
     \item velocit\`a di propagazione:
-        \[ P = \frac{1}{sqrt{L_uC_u}}  \]
+        \[ P = \frac{1}{\sqrt{L_uC_u}}  \]
     \item tempo di propagazione (tempo che impiega il segnale per spostarsi lungo la linea):
         \[ t_P = \frac{L}{P}  \]
 \end{itemize}
@@ -1445,6 +1451,9 @@ La distribuzione del clock comporta dei disturbi. O
 
 
 
+\section{Sistemi di Conversione A/D/A}
+I segnali analogici (continui nel tempo e nell'ampiezza), sono campionati in segnali digitali. Si hanno due discretizzazioni 
+
 
 
 
@@ -1513,6 +1522,12 @@ La distribuzione del clock comporta dei disturbi. O
         \label{fig:logica-programmabile-1-png}
     \end{figure}
 \end{problem}
+
+
+\newpage
+\section{Esami}
+
+Il tempo di propagazione L-H di una porta CMOS NAND a 2 ingressi con una capacita di carico $C_G = 0.1fF$ collegata all'uscita $t_P = 200ps$. 
 
 
 \end{document}

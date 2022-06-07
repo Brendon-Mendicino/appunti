@@ -1,19 +1,13 @@
 
-*
+/*
 !/.gitignore
 
 !/elap/
-/elpap/*
+/elap/*
 !/controlli/
 /controlli/*
 
-!/elap/*.tex
-!/elap/notestyle.sty
-!/elap/img/
-!/elap/img/*
-
-!/controlli/*.tex
-!/controlli/notestyle.sty
-!/controlli/img/
-!/controlli/img/*
-
+!/**/*.tex
+!/**/*.pdf
+!/**/*.sty
+!/**/img/*

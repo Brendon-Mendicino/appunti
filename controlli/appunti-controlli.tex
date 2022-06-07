@@ -2004,6 +2004,33 @@ Valuto le prestazioni del sistema, valutando con una prestazione che tutte esse 
 
 Le reti LAG causano l'\textbf{effetto coda}: progettando una rete di tipo LAG, andiamo a inserire una frequenza normalizzata che diventer\`a uguale alla frequnza di crossover. Utilizzando la rete LAG, avr\`o uno zero ed un polo a bassa frequnza. La funzione $T$ \`e uguale a $\frac{L}{1 + L}$, questo comporta che gli zeri di $T$ sono coincidenti con gli zeri di $L$, questo implica che gli zeri del controllore sono zeri di $T$. Ma deve rimanere vero il fatto che $T$, a bassa frequenza deve essere 1, dunque vicino allo zero, per forza di cose, deve comparire un polo (dato da $1 + L$ al denominatore), si pu\`o provare che il residuo di quel polo \`e motlo basso, quindi avremmo un'esponenziale in uscita che decresce lentamente (dato dal fatto che il polo si trova a bassa frequenza), ed ha un ampiezza molto ridotta, questo effetto non si nota perch\`e il modello utilizzato per la $T$ era quello di una fuznione prototipo del secondo tipo, nella quela non era presente nessun polo a basso frequenza. Questo problema non si pone nelle reti LEAD, perch\`e il polo si trova ad alta frequenza, perch\`e gli eventuali esponenziali decrescono molto velocemente ed il modulo di $T$ scnende molto velocemnte.
 
+Esiste un altro tipo di rete derivativa, detta \textbf{rete zero}, composta da un singolo zero. Questa rete \`e utilizzabile solo nul caso in cui $\nu$ sia maggiore di 0, infatti \`e possbile usare un numero $\nu$ di volte reti di tipo zero. La rete zero \`e la rete pi\`u raccomandata da utilizzare, nel caso in cui sia possibile farlo.
+
+
+
+\newpage
+\section{Sistemi a Tempo Discreto}
+
+...
+
+Il sistema \`e stabile quando valgono le condizini: $|\lambda_i| < 1,\; \forall i$
+
+\begin{definition}{D Stabilit\`a BIBO}{d-stabilita-bibo}
+    Un sistema \`e BIBO stabile se e solo tutti i poli della \emph{f.d.t.} hanno modulo strettamente minore di 1.
+\end{definition}
+
+La definizione del punto di equilibro \`e molto simile a quello a tempo continuo. Per valere la condizione di stabilit\`a deve valere che:
+\[ \boxed{x(k+1) = x(k)} \]
+Questo \`e dato dal fatto che in tempo discreto non esiste la derivata.
+Dunque per imporre il punto di equilibrio:
+\[ \begin{system} 
+\vv{f}(\bar{\vv{x}}, \bar{\vv{u}}) = \bar{\vv{x}} \\
+\vv{g}(\bar{\vv{x}}, \bar{\vv{u}}) = \bar{\vv{y}}
+\end{system}  \]
+Anche in questo caso, trovato il punto di equilibrio di un sistema, si pu\`o linearizzare il sistema, attraverso l'uso delle matrici Jacobiane.
+
+
+
 
 
 
@@ -2016,7 +2043,7 @@ Le reti LAG causano l'\textbf{effetto coda}: progettando una rete di tipo LAG, a
 Qua verranno svolti i passaggi su matlab di esempi di temi di esame.
 
 \subsection{Problema 1}
-
+hmm
 
 
 
