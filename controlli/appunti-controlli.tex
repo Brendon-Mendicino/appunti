@@ -2032,6 +2032,62 @@ Anche in questo caso, trovato il punto di equilibrio di un sistema, si pu\`o lin
 
 
 
+\newpage
+\section{Controlli Digitali}
+Il controllore digitale ha delle caratteristiche nella sua implementazione. L'uscita del controllore digitale \`e descritta da:
+\[ U(z) = G_{cd}(z) E(z) \]
+\[ U(z) = \frac{\beta_mz^{m}+\dots + \beta_0}{z^{n} +\dots+ \alpha_0}E(z)  \]
+\[ U(z) = \frac{\beta_n + \beta_{n-1}z^{-1} + \dots + \beta_0z^{-n}}{1 + \alpha_{n-1}z^{-1} + \dots + \alpha_0z^{-n}} E(z) \]
+\[ U(z) + \alpha_{n-1}z^{-1} U(z) + \dots + \alpha_0z^{-n}U(z) = \beta_nE(z) + \dots + \beta_0z^{-n}E(z) \]
+\[ \overset{\mathcal{Z}^{-1}}{\longrightarrow} \]
+\[ u(k) + \dots + \alpha_0 u(k-n) = \beta_n e(k) + \dots + \beta_0e(k-n) \]
+\[ u(k) = \alpha_{n-1}u(k-1) + \dots + \beta_0 e(k-n) \]
+
+Quando si costruisce un controllore digitale, uno dei paramentri fondamentali da scegliere \`e la \textbf{frequenza di campionamento}. Analizzando la trasformata di Fourier del segnale campionato possimo valutare la sua banda. Rispettare \`e la frequnza di Nyquist (il dobbio della banda del segnale), \`e importante perch\`e dopo l'elaborazione del segnale esso dovr\`a essere ricostruito, se la frequenza non viene rispettata il segnale non ricostruito non \`e preciso.
+
+\[ e(t) \longrightarrow |E(j\omega)|  \]
+\[ e(k) \overset{T_s \to \omega_s = \frac{2\pi}{T_s}}{\longleftarrow} \frac{1}{T_s} \sum \left| E \left( \omega + \frac{1}{T_s} \right)  \right| \]
+
+Se la $\omega_s$ non viene scelta correttamente, il segnale di uscita presenta il fenomeno dell'\textbf{aliasing}.
+
+Per ricostruire il segale analogico si usa la \textbf{zero-order hold} (ZOH): mantiene il valore del campione fino al prossimo. Lo ZOH usa un filtro di tenuta, rappresentato da:
+\[ e_0(t) = u(t) - u(t-T) \]
+\`E possibile mostrare che:
+\[ E_0(s) = \frac{1-e^{-Ts}}{s}  \]
+
+\`E possbile mostrare che esiste una relazione tra la $\omega_c$ e la $\omega_{samp}$ (primo vincolo sulla scelta della $\omega_{samp}$):
+\[ \boxed{ \omega_{samp} \geqslant 2\cdot\omega_B \to \omega_{samp} \geqslant 4\cdot\omega_c }  \]
+
+Quando $d_s$ appare nel problema allora (seconda specifica):
+\[ \omega_{samp} \geqslant  2\cdot\omega_s^{-} \]
+Dove $\omega_s^{-}$ \`e la frequenza dopo la quale il modulo della \emph{f.d.t.} della $d_s$ deve essere minore del valore $M^{HF}$. Il motivo per cui si prende una frequnza maggiore a $2\cdot\omega_s^{-}$ \`e per garantire che nessun valore campionato sia pi\`u grande di $M^{HF}$.
+
+La trasformata del filtro di tenuta \`e equivalente ad inserire un polo nel controllore, alla frequenza $\frac{2}{T}$:
+\[ \frac{1 - e^{-Ts}}{s} \simeq \frac{T}{1 + \frac{sT}{2} }  \]
+In modo da limitare i danni creati dall'inserimento di questo, come la perdita di fase nell'intorno della $\omega_c$, perdita di fase tra 3 e 6 gradi alla $\omega_{c,des}$ se e solo se $ 0.1 < \omega_{c,des}T_s < 0.2 $.
+\[ \boxed{\frac{0.1}{\omega_{c,des}} < T_s < \frac{0.2}{\omega_{c,des}} } \]
+
+Il passo successivo \`e passare dal controllore continuo al controllore discreto.
+\[ G_{cd} = c2d(G_c, T_s, '...') \]
+Le $...$ rappresentano i \textbf{metodi di discretizzazione}:
+\begin{itemize}
+    \item ZOH: migliore rappresentazione della risposta al gradino;
+    \item TUSTIN: migliore rappresentazione della risposta in frequenza;
+    \item MATCHED: mappa poli e zeri con un algoritmo;
+\end{itemize}
+
+Per considerare l'effetto della digitalizzazione, si deve inserire nella fuzione ad anello il contributo della ZOH:
+\[ L(s) = G_c(s)\cdot G_a\cdot G_p(s)\cdot G_s\cdot G_f\cdot  \underbrace{\frac{1}{\displaystyle 1 + \frac{sT}{2} }}_{ZOH}  \]
+
+
+
+
+
+
+
+
+
+
 
 
 % TODO:  <15-05-22, rifare la parte sui diagrammi che fa schifo> %
