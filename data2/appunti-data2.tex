@@ -1,0 +1,133 @@
+\documentclass[12pt]{article}
+
+\usepackage{notestyle}
+
+\graphicspath{{./img/}}
+
+
+\title{Appunti Database}
+\author{Brendon Mendicino}
+
+
+
+\begin{document}
+
+\maketitle
+\newpage
+\tableofcontents
+\newpage
+
+
+\section{Introduzione}\label{sec:introduzione}
+
+
+KDD: Knowledge Discovery from Data
+
+Tecniche di data mining.
+
+Regole di associazione: usate per trovare delle relazioni frequenti all'interno del database. Ad esempio: chi compra pannolini compra anche birra, il 2$\%$ delle transazioni contegono entrambe gli oggetti, il 30$\%$ delle transaioni che contengono pannalini contengono anche birra.
+
+Grazie alle regole di associazione si possono fare dei tipi di analisi come la basket analisys, ma puo essere utile anche per le raccomanadazioni.
+
+Classificazione: i classificatori predicono etichette discrete, esempio: nella posta elettronica alcune mail vengono demoninati spam. La classificazione \`e  definisce un modello per definire le predizioni, a volte non \`e sempre possibile creare dei modelli interpretabili ovvero dare una ragione per una determinata scelta.
+
+Clustering: gli algoritmi danno gruppi di oggetti, senza per\`o dare delle motivazioni.
+
+
+...
+
+\begin{itemize}
+    \item Fatto: fenomeno di studio;
+    \item Misure: attributi del fatto;
+    \item Dimensioni: tabelle collegate al fatto;
+\end{itemize}
+
+
+\textbf{Schema a stella}:
+
+
+\textbf{Snoflawke scheme}: si esplicitano le dipendenze funzionali, questo per\`o comporta un aumento delle operazioni di join.
+
+Nella realt\`a lo snowflake \`e raramente utilizzato, il motivo \`e che il costo delle join pu\`o diventare oneroso. Un caso di utilizzo dello snowflake \`e quando si hanno dei dati condivisi.
+
+\textbf{Archi multipli}:
+
+
+\textbf{Dimensioni degeneri}: sono delle dimensioni con un solo attributo, questo si perch\`e nello stato attuale non si hanno delle specifiche per quell'attributo ma nel futuro si potrebbe facilmente estendere. Un'altra soluzione potrebbe essere un push down delle dimensioni degeri nella tabella dei fatti.
+
+\textbf{Junk Dimension}: si pu\`o creare una dimensione che contenga tutte le dimensioni degeneri, le informazioni sono collegate semanticamente, \`e anche possibile unire delle informazioni scorrelate ma non \`e una scelta poco corretta, una soluzione potrebbe essere avere pi\`u junk dimensions.
+
+
+\section{Analisi}
+Sfruttando solo l'SQL \`e molto difficile fare delle analisi su un dw, infatti volendo calcolare delle operazioni per due argomenti diversi si devono fare pi\`u query. Estendendo il SQL si pu\`o, ad esempio, effettuare pi\`u operazioni leggendo una sola volta la tabella, ed effettuando il minor numero di join possibile.
+
+\paragraph{Analisi OLAP}
+I tipi di operazione sono:
+\begin{itemize}
+    \item roll up: riducendo il livello di dettaglio del dato, ovvero eliminare una o pi\`u clausole della groupby o navigare la gerarchia verso l'esterno;
+    \item drill down: si aumenta il livello di dettaglio oppure si aggiunge una dimensione di analisi;
+    \item slice and dice: consentono di ridurre il volume dei dati selezionando un sottogruppo dei dati di partenza;
+    \item tabelle pivot: come viene mostrato il dato;
+    \item ordinamento: 
+\end{itemize}
+Queste operazioni possono essere fatte con pi\`u o una query.
+
+\paragraph{Finestra di calcolo}
+Una finestra di calcolo fa dei calcoli a partire da una query sottostante, la finestra ha 3 operazioni sottostanti:
+\begin{itemize}
+    \item partizionamento (\textbf{partition by}): partizionamnto dei dati, divide i record in gruppi a partire dall'attributo selezionato;
+    \item ordinamento (\textbf{order by}): si definisce il criterio di ordinamento delle righe all'interno dei partizionamenti;
+    \item finestra di aggregazione (\textbf{over}): porzione di dati, specifica per ogni riga di dato, su cui effettuare dei calcoli;
+\end{itemize}
+\begin{example}{}{}
+    Data la tabella Vendite(\underline{Citt\`a}, \underline{Mese}, Importo), calcolare per ogni citt\`a la media delle vendite per il mese corrente ed i due precedenti.
+
+    \begin{lstlisting}[language=sql]
+    SELECT Citta, Mese, Importo,
+        AVG(Importo) OVER (PARTITION BY Citta)
+                            ORDER BY Mese
+                            ROWS 2 PRECEDING)
+        AS MediaMobile
+    FROM Vendite
+    \end{lstlisting}
+\end{example}
+Quando la finestra \`e incompleta il calcolo \`e effettuato sulla parte presente, \`e possibile specificare che se la riga non \`e presente il risultato deve essere NULL.
+
+Si pu\`o definire un intervallo fisico, superiore o inferiore. 
+\begin{lstlisting}[language=sql]
+    ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING
+\end{lstlisting}
+\`E possibile definire la tupla currente e quella che la precedono e che la seguono
+\begin{lstlisting}[language=sql]
+    ROWS UNBOUNDED PRECEDING (o FOLLOWING)
+\end{lstlisting}
+Il rggruppamento fisico \`e specifico per quando i dati non hanno delle interruzioni.
+
+
+Per definire un intervallo logico si utilizza il costrutto \textbf{range}.
+
+\begin{lstlisting}[language=SQL]
+    SELECT Citta, Mese, Importo,
+        Importo DIV SUM(Importo) OVER () AS PerOverMax,
+        Importo DIV SUM(Importo) OVER (PARTITION BY Citta) AS Boh2,
+        Importo DIV SUM(Importo) OVER (PARTITION BY Mese) AS Boh3
+    FROM Vendite
+\end{lstlisting}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}

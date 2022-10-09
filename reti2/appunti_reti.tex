@@ -1,0 +1,42 @@
+\documentclass[12pt]{article}
+
+\usepackage{notestyle}
+
+\graphicspath{{./img/}}
+
+
+\title{Appunti Reti2}
+\author{Brendon Mendicino}
+
+
+
+\begin{document}
+
+\maketitle
+\newpage
+\tableofcontents
+\newpage
+
+
+\section{Introduzione}\label{sec:introduzione}
+...
+
+
+\section{Multicast}
+Gli indirizzi che identificano dei gruppi multicast sono quelli di tipo D, iniziano con 1110 ($224.0.0.0 - 239.255.255.255$).
+
+Si prendono i 23 bit bassi dell'IP e vengono assegnati ai 23 bit bassi dell'indirizzo MAC multicast, questa operazione si chiama di \textbf{join} ad un gruppo multicast. Questo approccio potrebbe portare a dei conflitti, la probalit\`a che una collisione avvenga \`e molto bassa ma non \`e zero, i conflitti comportano ricevere il traffico di un altro gruppo multicast anche se non abbiamo fatto un join con quello.
+
+Esempio: viene usato l'indirizzo 224.0.0.0 come un gruppo multicast, gli host che vogliono connettersi a questo gruppo dovranno fare il join, e quindi impostare la loro scheda di rete (solitamente una scheda di rete virtuale, in cui viene aggiunto il MAC multicast) con il MAC multicast, in questo caso gli ultimi 23 bit saranno a 0.
+
+
+
+
+
+
+
+
+
+
+
+\end{document}

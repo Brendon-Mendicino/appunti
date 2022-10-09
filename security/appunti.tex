@@ -1,0 +1,138 @@
+\documentclass[12pt]{article}
+
+\usepackage{notestyle}
+
+\graphicspath{{./img/}}
+
+
+\title{Appunti Information System Security}
+\author{Brendon Mendicino}
+
+
+
+\begin{document}
+
+\maketitle
+\newpage
+\tableofcontents
+\newpage
+
+
+\section{Introduzione}\label{sec:introduzione}
+
+
+
+
+Security Principles:
+\begin{itemize}
+    \item security in depth: there must be more layers in security;
+    \item security by design: you design the system to be secure;
+    \item security by default: the security feature are turned on even if you don't want to;
+    \item least privilege: when someone operates in the system, that program must have the minimun permession to allow the basic work;
+    \item need-to-know: which data can be accessed by a program or by a huan, a program must operate only on the sufficient data it needs;
+\end{itemize}
+
+
+Security propreties:
+
+\textbf{Peer authentication}: when a person tries to perform an operation on system it has to proof it's identity to the system, but even the system hhas to authenticate itself to the accessing user, this is called mutual authentication (when both peer have to authenticate).
+
+\textbf{Data authentication}: Non-repudiation: undeniable proof of the data creator; there needs to be several facetes:
+\begin{itemize}
+    \item authentication;
+    \item integrity of the data;
+    \item identification;
+    \item ...
+\end{itemize}
+
+\textbf{Authorization (access control)}: someone has to give you the Authorization to perfrom some kind of action.
+
+\textbf{Privacy (communication)}: someone listening to a conversation means to vilate the privacy.
+
+\textbf{Privacy (data, actions, position)}: keeping some data encrypted inside a disk to protect them from someone accessing them. By law the internet provider are required to keep track of all the visited websites up to some years in the past, those can be accessed in case of an investigation. The internet provider needs to keep track at any time of the position of the connected device.
+
+\textbf{Integrity (data modification)}: the manager of the network can in some way modify the data shared by the systems, it can also cancel some parts of the data or filtering specific ones.
+
+\textbf{Replay attack}: if the data is encrypted they can no longer be modified by an external actor. The data cannot be changed but it can be send more that once, a \textbf{replay attack}. This can be solved by giving an ID to every transaction.
+
+\textbf{Data protection}:
+\begin{itemize}
+    \item data in transit: data must be sucered while travelling between systems;
+    \item data at rest: even whene the data is parked on the disk is not modificated in any way;
+    \item data at work: data at some point is copyed in the RAM to perform some kind of action, and if an external program modify them inside the RAM it will be never kwnown;
+\end{itemize}
+
+
+\textbf{Basic Problems}: Networks are insecure:
+\begin{itemize}
+    \item most of the communication are in clear;
+    \item LANs operate in broadcast;
+    \item geographical connections are not made through end-to-end dedicated lines but through shared lines and third-party routers;
+    \item weak user authentication;
+    \item there is no server authentication;
+    \item the software contains many bugs;
+\end{itemize}
+
+\textbf{Some classes of attacks}:
+
+\textbf{IP spoofing}: creating an IP packet that contains a different address, typically the level 3 and level 2 address. It's a tecnique to hide somenes identiy. The attacks are: data forging a packet in someone else name, or currupting them. The countermeasures are: to never use an address-based authentication.
+
+\textbf{Packet sniffing}: the ability to read the packets addressed to another network node, this is very to do in broadcast area networks (all intranet networks are broadcast). This attack allows to read the payload of the packets sniffed, the countermeasures are: to don't use broadcast networks (not possible), to encrypt the payload of the packets.
+
+\textbf{Denial-of-Service (DoS)}: keeping an host busy so that it cannot perform any other relevant action. Some examples are:
+\begin{itemize}
+    \item mail or log saturation;
+    \item ping flooding;
+    \item SYN attack
+\end{itemize}
+The purpose of the attack is to block the use of a system. There are no countermeasures, the only possiblity is to monitor.
+
+\textbf{Distributed Dos}: the attacker is using many computers (deamons, zombie, ...), usally infected with a malware, those machines contrlled by another master are called \textbf{Botnet}. To control the machines the attacker may uses encrypted channels, using a CC structure (Command and Control).
+
+Attack: some of the deamons are turned into masters contrlling all the deamons, the attacker unplugs from the network avoind being monitored, some time later the masters give the command to the deamons and they start attacking all the vectim.
+
+\textbf{Shadow/fake server}: there are two kind of tecnique to fake a server:
+\begin{itemize}
+    \item being in the same network (sniffing packet), if I (the attacker) respond to the user faster than the server, now your connection is opened with me, now the victim exchanges informatios with the attacker;
+    \item creating a fake DNS to my own versions of the servers, providing wrong services, capturing data;
+\end{itemize}
+The countermeasures are: server authentications.
+
+\textbf{Connection hijacking (MITM, Data Spoofing)}: the attacker takes phisycal control of some node, becoming a \textbf{Man In The Middle}, letting the comunications of two cominacotrs get through my node, reading all the traffic, being able to perform any action. The countermeasures: even if the channel is already opend and the peers are already identified, the attackers can still take control of the comunications, to prevent this kind of attaks there needs to be some kind of authentication inside of the packets, even then also serializations is needed, beacause the attacker can swap the order of the packets.
+
+\textbf{Trojan}: a trojan is program containing a malicious payload. The networks are becoming more protected but terminals are becoming more vulnerable (smartphone, smartTV, IOT, ...). The attacker could trick the user into download an extension, or pirated copies of games, this programs could contain things like keyloggers. This attacks are colled:
+\begin{itemize}
+    \item MATE: Man At The End;
+    \item MITB: Man In The Browser;
+\end{itemize}
+
+\textbf{Zues}: also kwown as Zbot, this malware is installed on millions on devices, it can be user to:
+\begin{itemize}
+    \item perfom keylogging or form grabbing;
+    \item to load other malware, like CryptoLocker ransomware;
+\end{itemize}
+It was very difficoult to discover.
+
+\textbf{Sotware Bugs}: bugs in a sotware are explotable, thanks to them DoS can be performed.
+
+\textbf{Virus \& Co. (malware)}: 
+\begin{itemize}
+    \item virus: damages the target and replicates itself thanks to humams, requires involuntary complicity;
+    \item worm replicates itself sucking all the available resources and the propagating;
+    \item trojan: a vector for malware;
+    \item backdoor: entry point not known but the developers;
+    \item rootkit: something isntalled in the computer that provides root access to the attacker, remaining unnoticed;
+    \item PUA: Potentially Unwanted Applications, some applications not very dangerous but performing annoying operations;
+\end{itemize}
+
+
+\textbf{Ransomware}: it's a kind of malware that is oriented on getting a ransom, typically performed by ecrypting the disk or changing passwords. The only way of unlocking the device is to reset it, or 
+
+
+
+
+
+
+
+
+\end{document}

@@ -1,11 +1,13 @@
 
-/*
+/**/*
+!/*
 !/.gitignore
 
 !/elap/
 /elap/*
 !/controlli/
 /controlli/*
+
 
 !/**/*.tex
 !/**/*.pdf

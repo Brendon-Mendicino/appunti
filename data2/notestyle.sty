@@ -1,0 +1,163 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{notestyle}[2021/03/13 NoteStyle package]
+
+
+\RequirePackage[utf8]{inputenc}
+\RequirePackage[margin=1.25in]{geometry}
+
+\RequirePackage{amsmath}
+\RequirePackage{amssymb}
+\RequirePackage{amsfonts}
+
+\RequirePackage{graphicx}
+\RequirePackage{wrapfig}
+\RequirePackage{subfig}
+\RequirePackage{float}
+\graphicspath{{./img/}}
+
+\RequirePackage{pdfpages}
+
+\RequirePackage{tikz}
+\usetikzlibrary{shapes,arrows}
+\RequirePackage[RPvoltages]{circuitikz}
+
+\RequirePackage[listings,breakable,skins,theorems]{tcolorbox}
+
+% Code listing
+\usepackage{listings}
+\usepackage{xcolor}
+
+% fancy header and footer
+\usepackage{fancyhdr}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\rightmark}
+\fancyhead[R]{\bfseries \leftmark}
+\fancyfoot[C]{\thepage}
+\fancyfoot[R]{\emph{Brendon Mendicino}}
+
+\setlength{\headheight}{20pt}
+\setlength{\footskip}{37pt}
+
+\renewcommand{\headrulewidth}{2pt}
+\renewcommand{\footrulewidth}{1pt}
+
+
+\RequirePackage{hyperref}
+\RequirePackage[all]{hypcap}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                TIKZ                                 %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\tikzstyle{block} = [
+    draw,
+    fill=white,
+    rectangle,
+    minimum width=2cm,
+    minimum height=1.2cm
+]
+
+%% MATH COMMANDS %%
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\LL}{\mathcal{L}}
+\newcommand{\bbf}[1]{\textbf{#1}}
+% bold vector
+\newcommand{\vv}[1]{\textbf{\textit{#1}}}
+\newcommand{\vvv}[1]{\vec{\textbf{\textit{#1}}}}
+
+%% MATH ENV %%
+\newenvironment{system}{ \left\{ \begin{array}{ll}}{\end{array} \right.}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                        TCOLORBOX DEFINITIONS                        %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% tcolorbox main an accent colors
+\newcommand\mainc[1]{#1!12}
+\newcommand\accc[1]{#1!50!black}
+
+\newtcbtheorem[number within=section]{example}{Example}{%
+    enhanced,
+    breakable,
+    colframe=\mainc{green},
+    colback=\mainc{green},
+    colbacktitle=\mainc{green},
+    coltitle=\accc{green},
+    borderline west={1mm}{0pt}{\accc{green}},
+    sharp corners,
+    boxrule=0mm,
+    separator sign dash,
+    fonttitle=\bfseries}{exp}
+
+\newtcbtheorem[number within=section]{problem}{Problem}{%
+    enhanced,
+    breakable,
+    colframe=\mainc{red},
+    colback=\mainc{red},
+    colbacktitle=\mainc{red},
+    coltitle=\accc{red},
+    borderline west={1mm}{0pt}{\accc{red}},
+    sharp corners,
+    boxrule=0mm,
+    separator sign dash,
+    fonttitle=\bfseries}{prb}
+
+\newtcbtheorem[number within=section]{definition}{Definition}{%
+    enhanced,
+    breakable,
+    colframe=\mainc{orange},
+    colback=\mainc{orange},
+    colbacktitle=\mainc{orange},
+    coltitle=\accc{orange},
+    borderline west={1mm}{0pt}{\accc{orange}},
+    sharp corners,
+    boxrule=0mm,
+    separator sign dash,
+    fonttitle=\bfseries}{def}
+
+\newtcbtheorem[number within=section]{theorem}{Theorem}{%
+    enhanced,
+    breakable,
+    colframe=\mainc{blue},
+    colback=\mainc{blue},
+    colbacktitle=\mainc{blue},
+    coltitle=\accc{blue},
+    separator sign dash,
+    fonttitle=\bfseries}{the}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                              LISTINGS                               %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% color definitions
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+% code style
+\lstdefinestyle{mycodestyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+
+\lstset{style=mycodestyle}
