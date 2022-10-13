@@ -23,18 +23,48 @@
 
 KDD: Knowledge Discovery from Data
 
-Tecniche di data mining.
-
-Regole di associazione: usate per trovare delle relazioni frequenti all'interno del database. Ad esempio: chi compra pannolini compra anche birra, il 2$\%$ delle transazioni contegono entrambe gli oggetti, il 30$\%$ delle transaioni che contengono pannalini contengono anche birra.
-
-Grazie alle regole di associazione si possono fare dei tipi di analisi come la basket analisys, ma puo essere utile anche per le raccomanadazioni.
-
-Classificazione: i classificatori predicono etichette discrete, esempio: nella posta elettronica alcune mail vengono demoninati spam. La classificazione \`e  definisce un modello per definire le predizioni, a volte non \`e sempre possibile creare dei modelli interpretabili ovvero dare una ragione per una determinata scelta.
-
-Clustering: gli algoritmi danno gruppi di oggetti, senza per\`o dare delle motivazioni.
+\paragraph{Tecniche di data mining}
+\begin{itemize}
+    \item Regole di associazione: usate per trovare delle relazioni frequenti all'interno del database. Ad esempio: chi compra pannolini compra anche birra, il 2$\%$ degli scontrini contegono entrambe gli oggetti, il 30$\%$ degli scontrini che contengono pannalini contengono anche birra. Grazie alle regole di associazione si possono fare dei tipi di analisi come la basket analisys, ma puo essere utile anche per le raccomanadazioni.
+    \item Classificazione: i classificatori predicono etichette discrete, esempio: nella posta elettronica alcune mail vengono segnate come spam. La classificazione definisce un modello per definire le predizioni, a volte non \`e sempre possibile creare dei modelli interpretabili ovvero dare una ragione per una determinata scelta.
+    \item Clustering: gli algoritmi creano dei gruppi che raggruppano gli oggetti in esame, senza per\`o dare delle motivazioni delle scelte effettuate.
+\end{itemize}
 
 
-...
+
+
+
+\section{Data Warehouse}
+Un DW  \`e una base dati di supporto alla decisioni, che \`e mantenuta separatamente dalla base di dati operativa dell'azienda. I dati al suo interno sono:
+\begin{itemize}
+    \item orientati ai soggetti di interesse;
+    \item integrati e consistenti;
+    \item dipendenti dal tempo;
+    \item non volatili;
+    \item utilizzati per il supporto alle decisioni aziendali;
+\end{itemize}
+
+
+Per la progettazione concettuale di un DW, non esiste un formalismo universale, il modello ER non \`e adatto ma viene invece utilizzata il modello \textbf{Dimensional Fact Model}.
+
+Il DFM \`e composto da:
+\begin{itemize}
+    \item Fatto: modella un insieme di eventi di interesse, che evolvono nel tempo (che pu\`o overe diversa granuralit\`a).
+    \item Dimensioni: sono gli attribuiti di un fatto, generalmento sono categorici.
+    \item Misure: discrive una caratteristica numerica di un fatto.
+\end{itemize}
+Sulle dimensioni si possono definire delle gerarachie, che definiscono di fatto una dipendenza funzionale tra gli attributi, quindi di 1 a n. Ad esempio: \textbf{data} ha un arco \textbf{mese}, una data ha uno ed un solo mese (1 a n).
+
+I costrutti avanazati sono:
+\begin{itemize}
+    \item archi opzionali;
+    \item dimensioni opzionali;
+    \item attributo descrittivo: sono delle informazioni utili all'utente ma su cui non verteranno le interragazioni (ad esempio non si far\`a mai la group by su un indirizzo);
+    \item non-additivit\`a: non si pu\`o fare la somma sulla metrica, il motivo \`e che non \`e modellato in modo tale da fare la somma;
+\end{itemize}
+
+
+
 
 \begin{itemize}
     \item Fatto: fenomeno di studio;
@@ -68,11 +98,11 @@ I tipi di operazione sono:
     \item drill down: si aumenta il livello di dettaglio oppure si aggiunge una dimensione di analisi;
     \item slice and dice: consentono di ridurre il volume dei dati selezionando un sottogruppo dei dati di partenza;
     \item tabelle pivot: come viene mostrato il dato;
-    \item ordinamento: 
+    \item ordinamento: ordinamento in base agli attributi;
 \end{itemize}
 Queste operazioni possono essere fatte con pi\`u o una query.
 
-\paragraph{Finestra di calcolo}
+\subsection{Finestra di calcolo}
 Una finestra di calcolo fa dei calcoli a partire da una query sottostante, la finestra ha 3 operazioni sottostanti:
 \begin{itemize}
     \item partizionamento (\textbf{partition by}): partizionamnto dei dati, divide i record in gruppi a partire dall'attributo selezionato;
@@ -82,14 +112,14 @@ Una finestra di calcolo fa dei calcoli a partire da una query sottostante, la fi
 \begin{example}{}{}
     Data la tabella Vendite(\underline{Citt\`a}, \underline{Mese}, Importo), calcolare per ogni citt\`a la media delle vendite per il mese corrente ed i due precedenti.
 
-    \begin{lstlisting}[language=sql]
-    SELECT Citta, Mese, Importo,
-        AVG(Importo) OVER (PARTITION BY Citta)
-                            ORDER BY Mese
-                            ROWS 2 PRECEDING)
-        AS MediaMobile
-    FROM Vendite
-    \end{lstlisting}
+\begin{lstlisting}[language=sql]
+SELECT Citta, Mese, Importo,
+    AVG(Importo) OVER (PARTITION BY Citta)
+                        ORDER BY Mese
+                        ROWS 2 PRECEDING)
+    AS MediaMobile
+FROM Vendite;
+\end{lstlisting}
 \end{example}
 Quando la finestra \`e incompleta il calcolo \`e effettuato sulla parte presente, \`e possibile specificare che se la riga non \`e presente il risultato deve essere NULL.
 
@@ -99,7 +129,7 @@ Si pu\`o definire un intervallo fisico, superiore o inferiore.
 \end{lstlisting}
 \`E possibile definire la tupla currente e quella che la precedono e che la seguono
 \begin{lstlisting}[language=sql]
-    ROWS UNBOUNDED PRECEDING (o FOLLOWING)
+ROWS UNBOUNDED PRECEDING (o FOLLOWING)
 \end{lstlisting}
 Il rggruppamento fisico \`e specifico per quando i dati non hanno delle interruzioni.
 
@@ -107,19 +137,203 @@ Il rggruppamento fisico \`e specifico per quando i dati non hanno delle interruz
 Per definire un intervallo logico si utilizza il costrutto \textbf{range}.
 
 \begin{lstlisting}[language=SQL]
-    SELECT Citta, Mese, Importo,
-        Importo DIV SUM(Importo) OVER () AS PerOverMax,
-        Importo DIV SUM(Importo) OVER (PARTITION BY Citta) AS Boh2,
-        Importo DIV SUM(Importo) OVER (PARTITION BY Mese) AS Boh3
-    FROM Vendite
+SELECT Citta, Mese, Importo,
+    Importo / SUM(Importo) OVER () AS PerOverMax,
+    Importo / SUM(Importo) OVER (PARTITION BY Citta) AS PerOverCity,
+    Importo / SUM(Importo) OVER (PARTITION BY Mese) AS PerOverMonth
+FROM Vendite
+\end{lstlisting}
+
+
+Se una \textbf{group by} \`e presente all'interno della query allora, tutte le entry che possono comparire nella finestra di calcolo sono solo quelle che compaiono nella group by.
+
+\paragraph{Funzione di ranking}
+La funzione di ranking serve a creare delle classifiche
+
+\begin{itemize}
+    \item \textbf{rank()}: la funzione rank in presenza di pi\`u oggetti nella stessa posizione salta al prossimo record;
+    \item \textbf{denserank()}: la funzione denserank tiene tutte righe con la stessa posizione;
+\end{itemize}
+
+...
+\begin{lstlisting}[language=sql]
+SELECT Citta, Mese, SUM(Importo) AS TotMese,
+    RANK() OVER (PARTITION BY Citta
+                ORDER BY SUM(Import) DESC)
+
+FROM Vendite, ...
+WHERE ...
+GROUP BY Citta, Mese
 \end{lstlisting}
 
 
 
+\paragraph{Estensione della group by}
+\begin{itemize}
+    \item \textbf{rollup}: consente di calcolare le aggragazioni su tutti i possibili gruppi, eliminando una colonna alla volta, da destra verso sinistra, esempio: calcola le vendite per: (Citta, Mese, Prodotto), (Citta, Mese), (Citta):
+        \begin{lstlisting}[language=sql]
+SELECT Citta, Mese, Prodotto, SUM(Importo) AS TotVendite
+FROM ...
+WHERE ...
+GROUP BY ROLLUP (Citta, Mese, Prodotto)
+        \end{lstlisting}
+    \item \textbf{cube}: consente di calcolare tutte le possibili combinazioni del ragrruppamento;
+    \item \textbf{grouping sets}: serve a definire degli aggregati su gruppi specifici definiti dall'utente;
+\end{itemize}
+
+
+\subsection{Sintassi ORACLE}
+Raggruppamento fisico:
+\begin{example}{}{}
+    Selezionare, separatamente per ogni citt\`a, per ogni data l'importo e la media dell'importo dei due giorni precedenti.
+    \begin{lstlisting}[language=sql]
+select citta, data, importo,
+    avg(importo) over (partition by citta
+                        order by data
+                        rows 2 preceding
+    ) as mediaMobile
+from vendite
+order by citta, data;
+    \end{lstlisting}
+\end{example}
+
+
+Raggruppamento logico:
+\begin{example}{}{}
+   \begin{lstlisting}[language=sql]
+select citta, data, importo,
+    avg(importo) over (PARTITION BY citta
+                        ORDER BY data
+                        RANGE BETWEEN INTERVAL '2'
+                        DAY PRECEDING AND CURRENT ROW
+    ) as mediaUltimi3Giorni
+from vendite
+order by citta, data;
+   \end{lstlisting}
+\end{example}
+
+\begin{example}{}{}
+    \begin{lstlisting}[language=sql]
+select COD_A, sum(Q) as sommaPerArticolo,
+    rank() over (order by sum(Q) desc) as graduatoria
+from FAP
+group by COD_A
+    \end{lstlisting}
+\end{example}
+
+
+All'interno di oracle sono preseti delle funzionalit\`a aggiuntive oltre alla funzione di rank, come: 
+
+\paragraph{ROW\_NUMBER}
+Assegno un numero progressivo ad ogni elemento in una partizione.
+
+\begin{lstlisting}[language=sql]
+select tipo, peso,
+    row_number over (partition by tipo
+                    order by tipo)
+from ...
+where ...;
+\end{lstlisting}
+
+\paragraph{CUME\_DIST}
+Consente di calcolare le distribuzine cumulativa all'interno di una partizione, permette di definire un valore sulla distribuzione dei valori.
+
+
+\paragraph{NTILE(n)}
+Una funzione che da la possibilit\`a di dividere le partizioni in sottogruppi
+\begin{lstlisting}[language=sql]
+select tipo, perso, 
+    ntile(3) over (partition by tipo order by peso) as ntile3peso
+from ...
+where ...;
+\end{lstlisting}
 
 
 
+\subsection{Esercizi}
+Cliente(CodCliente, Cliente, Provincia, Regione) \\
+Categoria(CodCat, Categoria) \\
+Agente(CodAgente, Agente, Agenzia) \\
+Tempo(CodTempo, Mese, Trimestre, Semestre, Anno) \\
+Fatturato(CodTempo, CodCliente, CodCatArticolo, CodAgente, TotFatturato, NumArticoli, TotSconto) 
 
+\vspace{.8cm}
+
+1. Visualizzare per ogni categoria di articoli
+\begin{itemize}
+    \item la categoria
+    \item la quantità totale fatturata per la categoria in esame
+    \item il fatturato totale associato alla categoria in esame
+    \item il rank della categoria in funzione della quantità totale fatturata
+    \item il rank della categoria in funzione del fatturato totale
+\end{itemize}
+\begin{lstlisting}[language=sql]
+select categoria, sum(numArticoli),
+    sum(totFatturato),
+    rank() over (order by sum(numArticoli) desc),
+    rank() over (order by sum(totFatturato) desc)
+from fatturato f, categoria c
+where f.codCatArticolo = c.codCat
+group by categoria;
+\end{lstlisting}
+2. Visualizzare per ogni provincia
+\begin{itemize}
+    \item la provincia
+    \item la regione della provincia
+    \item il fatturato totale associato alla provincia
+    \item il rank della provincia in funzione del fatturato totale, separato per regione
+\end{itemize}
+\begin{lstlisting}[language=sql]
+select provincia, regione,
+    sum(totFatturato) as fatturatoPerProvincia,
+    rank() over (partion by regione
+                 order by sum(totFatturato) desc
+    ) as rankFatturatoPerRegione
+from cliente c, fatturato f
+where c.codCliente = f.codCliente
+group by provincia, regione;
+\end{lstlisting}
+3. Visualizzare per ogni provincia e mese
+\begin{itemize}
+    \item la provincia
+    \item la regione della provincia
+    \item il mese
+    \item il fatturato totale associato alla provincia nel mese in esame
+    \item il rank della provincia in funzione del fatturato totale, separato per mese
+\end{itemize}
+\begin{lstlisting}[language=sql]
+select provincia, regione, mese,
+    sum(totFatturato) as fatturatoPerProvinciaPerMese,
+    rank() over (partition by mese
+                order by sum(totFatturato)
+    ) as rankFatturatoPerMese
+from cliente c, fatturato f, tempo t
+where c.codCliente = f.codCliente and t.codTempo = f.codTempo
+group by provincia, regione, mese;
+\end{lstlisting}
+4. Visualizzare per ogni regione e mese
+\begin{itemize}
+    \item la regione
+    \item il mese
+    \item il fatturato totale associato alla regione nel mese in esame
+    \item l’incasso cumulativo al trascorrere dei mesi, separato per ogni regione
+    \item l’incasso cumulativo al trascorrere dei mesi, separato per ogni anno e regione
+\end{itemize}
+\begin{lstlisting}[language=sql]
+select regione, mese,
+    sum(TotFatturato) as fatturatoPerMese,
+    sum(TotFatturato) over (
+        partition by regione
+        order by mese
+    ) as incassoCumulativoTot,
+    sum(TotFatturato) over (
+        partition by regione, anno
+        order by mese
+    ) as incassoCumulativoPerAnno
+from cliente c, fatturato f, tempo t
+where c.CodCliente = f.CodCliente and t.CodTempo = f.CodTempo
+group by regione, mese, anno;
+\end{lstlisting}
 
 
 

@@ -35,9 +35,11 @@ Security Principles:
 
 Security propreties:
 
-\textbf{Peer authentication}: when a person tries to perform an operation on system it has to proof it's identity to the system, but even the system hhas to authenticate itself to the accessing user, this is called mutual authentication (when both peer have to authenticate).
+\paragraph{Peer authentication}
+When a person tries to perform an operation on system it has to proof it's identity to the system, but even the system hhas to authenticate itself to the accessing user, this is called mutual authentication (when both peer have to authenticate).
 
-\textbf{Data authentication}: Non-repudiation: undeniable proof of the data creator; there needs to be several facetes:
+\paragraph{Data authentication}
+Non-repudiation: undeniable proof of the data creator; there needs to be several facetes:
 \begin{itemize}
     \item authentication;
     \item integrity of the data;
@@ -45,15 +47,20 @@ Security propreties:
     \item ...
 \end{itemize}
 
-\textbf{Authorization (access control)}: someone has to give you the Authorization to perfrom some kind of action.
+\paragraph{Authorization (access control)}
+Someone has to give you the Authorization to perfrom some kind of action.
 
-\textbf{Privacy (communication)}: someone listening to a conversation means to vilate the privacy.
+\paragraph{Privacy (communication)}
+Someone listening to a conversation means to vilate the privacy.
 
-\textbf{Privacy (data, actions, position)}: keeping some data encrypted inside a disk to protect them from someone accessing them. By law the internet provider are required to keep track of all the visited websites up to some years in the past, those can be accessed in case of an investigation. The internet provider needs to keep track at any time of the position of the connected device.
+\paragraph{Privacy (data, actions, position)}
+Keeping some data encrypted inside a disk to protect them from someone accessing them. By law the internet provider are required to keep track of all the visited websites up to some years in the past, those can be accessed in case of an investigation. The internet provider needs to keep track at any time of the position of the connected device.
 
-\textbf{Integrity (data modification)}: the manager of the network can in some way modify the data shared by the systems, it can also cancel some parts of the data or filtering specific ones.
+\paragraph{Integrity (data modification)}
+The manager of the network can in some way modify the data shared by the systems, it can also cancel some parts of the data or filtering specific ones.
 
-\textbf{Replay attack}: if the data is encrypted they can no longer be modified by an external actor. The data cannot be changed but it can be send more that once, a \textbf{replay attack}. This can be solved by giving an ID to every transaction.
+\paragraph{Replay attack}
+If the data is encrypted they can no longer be modified by an external actor. The data cannot be changed but it can be send more that once, a \textbf{replay attack}. This can be solved by giving an ID to every transaction.
 
 \textbf{Data protection}:
 \begin{itemize}
@@ -63,7 +70,8 @@ Security propreties:
 \end{itemize}
 
 
-\textbf{Basic Problems}: Networks are insecure:
+\paragraph{Basic Problems}
+Networks are insecure:
 \begin{itemize}
     \item most of the communication are in clear;
     \item LANs operate in broadcast;
@@ -73,13 +81,12 @@ Security propreties:
     \item the software contains many bugs;
 \end{itemize}
 
-\textbf{Some classes of attacks}:
+\section{Some classes of attacks}
+\paragraph{IP spoofing}: creating an IP packet that contains a different address, typically the level 3 and level 2 address. It's a tecnique to hide somenes identiy. The attacks are: data forging a packet in someone else name, or currupting them. The countermeasures are: to never use an address-based authentication.
 
-\textbf{IP spoofing}: creating an IP packet that contains a different address, typically the level 3 and level 2 address. It's a tecnique to hide somenes identiy. The attacks are: data forging a packet in someone else name, or currupting them. The countermeasures are: to never use an address-based authentication.
+\paragraph{Packet sniffing}: the ability to read the packets addressed to another network node, this is very to do in broadcast area networks (all intranet networks are broadcast). This attack allows to read the payload of the packets sniffed, the countermeasures are: to don't use broadcast networks (not possible), to encrypt the payload of the packets.
 
-\textbf{Packet sniffing}: the ability to read the packets addressed to another network node, this is very to do in broadcast area networks (all intranet networks are broadcast). This attack allows to read the payload of the packets sniffed, the countermeasures are: to don't use broadcast networks (not possible), to encrypt the payload of the packets.
-
-\textbf{Denial-of-Service (DoS)}: keeping an host busy so that it cannot perform any other relevant action. Some examples are:
+\paragraph{Denial-of-Service (DoS)}: keeping an host busy so that it cannot perform any other relevant action. Some examples are:
 \begin{itemize}
     \item mail or log saturation;
     \item ping flooding;
@@ -87,35 +94,41 @@ Security propreties:
 \end{itemize}
 The purpose of the attack is to block the use of a system. There are no countermeasures, the only possiblity is to monitor.
 
-\textbf{Distributed Dos}: the attacker is using many computers (deamons, zombie, ...), usally infected with a malware, those machines contrlled by another master are called \textbf{Botnet}. To control the machines the attacker may uses encrypted channels, using a CC structure (Command and Control).
+\paragraph{Distributed Dos}
+The attacker is using many computers (deamons, zombie, ...), usally infected with a malware, those machines contrlled by another master are called \textbf{Botnet}. To control the machines the attacker may uses encrypted channels, using a CC structure (Command and Control).
 
 Attack: some of the deamons are turned into masters contrlling all the deamons, the attacker unplugs from the network avoind being monitored, some time later the masters give the command to the deamons and they start attacking all the vectim.
 
-\textbf{Shadow/fake server}: there are two kind of tecnique to fake a server:
+\paragraph{Shadow/fake server}
+There are two kind of tecnique to fake a server:
 \begin{itemize}
     \item being in the same network (sniffing packet), if I (the attacker) respond to the user faster than the server, now your connection is opened with me, now the victim exchanges informatios with the attacker;
     \item creating a fake DNS to my own versions of the servers, providing wrong services, capturing data;
 \end{itemize}
 The countermeasures are: server authentications.
 
-\textbf{Connection hijacking (MITM, Data Spoofing)}: the attacker takes phisycal control of some node, becoming a \textbf{Man In The Middle}, letting the comunications of two cominacotrs get through my node, reading all the traffic, being able to perform any action. The countermeasures: even if the channel is already opend and the peers are already identified, the attackers can still take control of the comunications, to prevent this kind of attaks there needs to be some kind of authentication inside of the packets, even then also serializations is needed, beacause the attacker can swap the order of the packets.
+\paragraph{Connection hijacking (MITM, Data Spoofing)}
+The attacker takes phisycal control of some node, becoming a \textbf{Man In The Middle}, letting the comunications of two cominacotrs get through my node, reading all the traffic, being able to perform any action. The countermeasures: even if the channel is already opend and the peers are already identified, the attackers can still take control of the comunications, to prevent this kind of attaks there needs to be some kind of authentication inside of the packets, even then also serializations is needed, beacause the attacker can swap the order of the packets.
 
-\textbf{Trojan}: a trojan is program containing a malicious payload. The networks are becoming more protected but terminals are becoming more vulnerable (smartphone, smartTV, IOT, ...). The attacker could trick the user into download an extension, or pirated copies of games, this programs could contain things like keyloggers. This attacks are colled:
+\paragraph{Trojan}
+A trojan is program containing a malicious payload. The networks are becoming more protected but terminals are becoming more vulnerable (smartphone, smartTV, IOT, ...). The attacker could trick the user into download an extension, or pirated copies of games, this programs could contain things like keyloggers. This attacks are colled:
 \begin{itemize}
     \item MATE: Man At The End;
     \item MITB: Man In The Browser;
 \end{itemize}
 
-\textbf{Zues}: also kwown as Zbot, this malware is installed on millions on devices, it can be user to:
+\paragraph{Zues}
+Also kwown as Zbot, this malware is installed on millions on devices, it can be user to:
 \begin{itemize}
     \item perfom keylogging or form grabbing;
     \item to load other malware, like CryptoLocker ransomware;
 \end{itemize}
 It was very difficoult to discover.
 
-\textbf{Sotware Bugs}: bugs in a sotware are explotable, thanks to them DoS can be performed.
+\paragraph{Sotware Bugs}
+Bugs in a sotware are explotable, thanks to them DoS can be performed.
 
-\textbf{Virus \& Co. (malware)}: 
+\paragraph{Virus \& Co. (malware)}
 \begin{itemize}
     \item virus: damages the target and replicates itself thanks to humams, requires involuntary complicity;
     \item worm replicates itself sucking all the available resources and the propagating;
@@ -126,7 +139,116 @@ It was very difficoult to discover.
 \end{itemize}
 
 
-\textbf{Ransomware}: it's a kind of malware that is oriented on getting a ransom, typically performed by ecrypting the disk or changing passwords. The only way of unlocking the device is to reset it, or 
+\paragraph{Ransomware}
+It's a kind of malware that is oriented on getting a ransom, typically performed by ecrypting the disk or changing passwords. The only way of unlocking the device is to reset it, or 
+
+
+\paragraph{Solcial Engineering}:
+\begin{itemize}
+    \item phishing:
+    \item psychological pressure: asking for help, or impersonating a person of interest imposing to perform some action;
+\end{itemize}
+
+\paragraph{Fake Mail}
+It can be possible to take an old email (send to the victim), copying it and changing the attachment with a malware.
+
+Important classes of attacks:
+\begin{itemize}
+    \item  Stuxnet (2010): new king of attack, it was a worm + virus for Windows, it was the first time to attempt to damage a SCADA system. It contained in itself an attack based on a known vulnerability (patched), a known vulnerability (not patched), and 2 zero-day vulnerability. This malware was used to destroy a nuclear plant in Iran (in fact in Iran the spread was $51\%$), destroying most of the machines, the facility was isolated from internet, the only way it could have accessed it was via USB, the malware spread thanks to shared disks and old sotfware with bugs, the malware aslo used digital signature validate by Microsoft;
+    \item Mirai: it was a cyberworm exploiting IOT vulnerabilities, trasforming the victim in botnets for a large scale attack. All this devices ware because they have little to none protection. The software was compiled with static libraires, cross compiled and also open source. It also abserves the victim before contactin the C\&C, if it detects some secuirty protection it contacts a fake C\&C.
+\end{itemize}
+
+\paragraph{The pillars of security}
+\begin{itemize}
+    \item Planning;
+    \item Avoidance;
+    \item Detection;
+    \item Investigation;
+\end{itemize}
+
+
+
+\section{Foundations}
+\paragraph{Cryptography}
+It's a mathematical algorithm that consists in: a clear message gets encrypted with a key, send to the receiver, that will decrypt the message with a second key to read the original message.
+\begin{itemize}
+    \item message in clear: called: \textbf{plain text} or \textbf{P};
+    \item ecrypted message: called \textbf{chipertext} or \textbf{C};
+\end{itemize}
+
+\textbf{Kerchoff's principle}:
+\begin{itemize}
+    \item the keys needs to be secret;
+    \item the keys are managed by a trusted system;
+    \item the keys needs to be of adequate lenght;
+\end{itemize}
+If this three priciples are met then the ecryption and decryption algorithms can be public.
+
+\paragraph{Security through obscurity (STO)}
+
+\paragraph{Secret key/symmetric cryptography}
+The key is shared
+\[ C = enc (K, P) \text{ or } C = {P} K \]
+\[ P = dec (K, C) = enc^{-1}(K, C) \]
+The main problem of symmetric cryptography is how to share the shared key.
+
+DES is an \textbf{obsolete} symmetric algorith with 64 bit block and 56 bit key. AES is a \textbf{state of the art} symmetric algorithm that uses 128 bit block and 128-192-256 bit key.
+
+\paragraph{The XOR function}
+If the input is random the output has the same probability (the 0:1 have $50\%$ probability of outcome).
+
+\paragraph{DES}
+It used 64 bits as a key but only 56 bits were for the key, the other 8 bit were parity bits, this algorithm was created to run fast on hardware.
+
+\paragraph{Triple DES (3DES)}
+3DES works with 2 keys, following the algorithm:
+\[ C' = enc(K_1,P) \; C'' = dec(K_2,C') \; C = enc(K_1,C'') \]
+
+3DES with 3 keys:
+\[ C' = enc(K_1,P) \; C'' = dec(K_2,C') \; C = enc(K_3,C'') \]
+
+The reason why it's not good to encrypt twice with the same algorithm, the reason is beacause of the attack \textbf{meet-in-the-middle}, which allows to decrypt the data with $2^{n+1}$ attempts if the keys are n-bit long, this is not a good enough improvemnt for the incresed volume of work added, or worse if the algorithm is part of a group there could exist a $K_3$:
+\[ enc( K_2, enc(K_1, P)) = enc(K_3,P) \]
+
+\paragraph{Meet-in-the-middle attack}
+Hypothesis:
+\begin{itemize}
+    \item n-bit key;
+    \item known P and C such that $C = enc(K_2, enc(K_1, P))$;
+\end{itemize}
+
+Note:
+\begin{itemize}
+    \item $\exists M$ such that $M = enc(K_1, P)$ and $C = enc(K_2, M)$;
+\end{itemize}
+
+Actions:
+\begin{itemize}
+    \item compute $2^{n}$ for $X_i =enc(K_i, P)$;
+    \item compute $2^{n}$ for $Y_j =dec(K_j, C)$;
+    \item if $X_i$ and $Y_j$ are matched then $K_i$ and $K_j$ are found;
+    \item false positives can be discarded with other $(P,C)$ couples;
+\end{itemize}
+
+\paragraph{Application of block algorithms}
+How a block algorithm is applied to a data quantity different from the alogorithm's block size?
+\begin{itemize}
+    \item ECB (Electronic Code Book): if we have to encrypt some data, we simply split the data in equal size blocks and encrypt every block with the same key, this is very insecure, for example an attcker could swap two ciphertext, also if there is a known plaintex the attacker could find the matching key and then decrypt all the ciphertext;
+    \item CBC (Cipher Block Chaining): we also split the data, we take every blcock, and before ecrypting the the block we xor it with the previous encrypted block, for the initial block we use a IV (Initialization Vector, $C_0$), for this reason the first block is the most vulnerable. In decryption to recover the plain text, the decrypted block will need to be xor-ed with the previous block (proprety of the xor function);
+\end{itemize}
+
+\paragraph{Padding with explicit lenght}
+\begin{itemize}
+    \item Schneier: the last byte has the value of bytes of padding, the other bytes are null;
+    \item SSL/TLS: the bytes of padding are all at the value as the lenght of the padding;
+\end{itemize}
+If the data is an exact multiple of the block lenght, then the padding will have to be added in anyhow, if the that is the case the last block will be entirely of padding.
+
+\paragraph{Ciphertext stealing (CTS)}
+CTS permits to use any block algorithm without requireing any padding to be added.
+
+\paragraph{CTR (Counter mode)}
+
 
 
 

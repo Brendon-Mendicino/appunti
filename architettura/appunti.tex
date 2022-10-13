@@ -20,6 +20,108 @@
 
 \section{Introduzione}\label{sec:introduzione}
 
+\section{Pipeline}
+Per misurare le prestazioni di una pipeline si usa il \textbf{throughput}. Il throughput \`e il numero di sitruzioni che escono dalla pipeline in un intervallo di tempo.
+
+Il datapath \`e composto da:
+\begin{itemize}
+    \item instruction fetch: si prende dalla memoria la prossima istruzione putnatata dal PC e si incrementa quest'ultimo di 4;
+    \item decode: si decodifica l'istruzione, attivando il datapath in modo adeguato, a prescindere dal tipo di operazione carico i due registri rs ed rt, ed il campo immediato, anche nel caso l'istruzione non fosse immediata, risparmio del tempo aumentando leggermente il comsumo di potenza;
+    \begin{itemize}
+        \item A <- Reg[rs];
+        \item B <- Reg[rt];
+        \item Imm <- ($IR_{16\dots 31}$);
+    \end{itemize}
+    \item execution/effective address cycle: 
+        \begin{itemize}
+            \item memory reference: ALUoutput <- A + Imm;
+            \item register-register: ALUoutput <- A op B;
+            \item register-immediate: ALUoutput <- A op Imm;
+            \item brach: ALUoutput <- NPC + Imm; Cond <- (A op 0);
+        \end{itemize}
+    \item memory access/branch completion cycle:
+        \begin{itemize}
+            \item LMD <- Mem[ALUoutput]; or Mem[ALUoutput] <- B;
+            \item branch: if (cond) PC <- ALUoutput else PC <- NPC;
+        \end{itemize}
+    \item write-back cycle:
+        \begin{itemize}
+            \item register-register: Reg[$IR_{16\dots 20}$] <- ALUoutput;
+            \item ...
+        \end{itemize}
+\end{itemize}
+
+L'assunzione molto forte sar\`a che tutti i dati e le istruzioni saranno sempre nelle memoria cache, quindi si avr\`a un delay di un solo colpo di clock. Il registre file potr\`a sia essere letto che scritto, ci sar\`a dunque bisogno di soddisfare queste richeste in un solo colpo di clock, la scrittura avviene nella prima parte del colpo di clock mentre la lettura avviene nelle seconda parte del colpo di clock.
+
+Si aggiungono dei registri (detti pipeline register), 
+
+Aggiungere i registri della pipeline aggiunge un overhead, inoltre il clock del processore comporta un rallentamento, causato dallo skew.
+
+\section{Pipeline Hazards}
+Sono dei casi in cui l'istruzione non viene esguita in modo corretto:
+\begin{itemize}
+    \item structural hazards: dipende dalla memoria, 
+    \item data hazards: dipende da come i dati vengono scritti e letti;
+    \item control hazards: dependi dai branch;
+\end{itemize}
+
+\paragraph{Stall}
+Un modo di gestire gli hazards \`e di manadre la CPU in stallo.
+
+Risolvere gli hazard strutturali comporta un costo, in termini di nuovo hardware e di migliorare quello esistente. Un processore con hazard strutturali avr\`a un clock pi\`u veloce ma problemi di accesso alla memoria, un processore senza hazard strutturali avr\`a un clock pi\`u lento ma nessuna limitizione di accesso alla memoria.
+
+\paragraph{Data hazards}
+Generati dalle dipendenze dei dati generati all'interno della pipeline. Esempio:
+\begin{lstlisting}
+add r1, r2, r3
+sub r4, r1, r5
+and r6, r1, r7
+or  r8, r1, r9
+xor r10, r1, r11
+\end{lstlisting}
+Il registro r1 viene inizializzato nella prima istruzione e poi utilizzato nel resto del codice, ma l'operazione di scrittura in si trova alla fine, infatti l'istruzione successiva (sub) dovrebbe aspettare che r1 sia scritto prima che possa essere letto, se tuttavia proviamo a leggere r1 il risultato sar\`a non deterministico.
+
+Per risolvere questo problema si hanno due soluzioni:
+\begin{itemize}
+    \item mandare in stallo il processore;
+    \item implementiamo un forwarding che permette di non attendere la scrittura del registro, ma di leggere direttamente il valore dei registri della pipeline;
+\end{itemize}
+
+
+\section{Floating Point}
+Le operazioni floating point sono molto complesse, se si cerca di implementarle in un solo colpo di clock allora il processore diventa troppo complicato dal punto di vista logico, oppure un altra suluzione potrebbe essere quello di rallentare il clock, per far entrare tutte le operazioni in un singolo colpo, ma entrambe le soluzioni non sono fattibili, allora si prende un approcia di suddivisione della pipeline in unit\`a. Per supportare le operazioni di floating point in pipeline, si \`e optato per una separazione dalla execute in diverse unit\`a:
+\begin{itemize}
+    \item integer unit;
+    \item fp/integer multiply;
+    \item fp adder;
+    \item fp/integer divider;
+\end{itemize}
+Questa ramificazione della pipeline va a convergere nella sezione di MEM.
+
+Si dovr\`a definire la latenza, ovvero il numero di colpi di clock che una unit\`a usa per avere un risultato, ed un intervallo di inizializzazione, ovvero il numero di colpi di clock che la seconda istruzione davr\`a attendere per entrare nella sezione desiderata (come somma o divisione). Un esempio:
+\begin{itemize}
+    \item add: lat: 1, int: 1;
+    \item mult: lat: 8, int: 1;
+    \item fadd: lat: 4: 1;
+    \item div: lat: 24, int: 24;
+\end{itemize}
+
+Solitamente la divisione ha la latenza identica all'intervallo di inizializzazione. Solitamente su un unit\`a \`e \textbf{pipelined} allora ha un colpo di clock come intervallo di inizializzazione, se l'unit\`a non \`e pipelined allora il suo intervallo di inizializzazione \`e uguale alla latenza.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

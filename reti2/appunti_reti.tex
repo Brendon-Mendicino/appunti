@@ -30,6 +30,68 @@ Si prendono i 23 bit bassi dell'IP e vengono assegnati ai 23 bit bassi dell'indi
 Esempio: viene usato l'indirizzo 224.0.0.0 come un gruppo multicast, gli host che vogliono connettersi a questo gruppo dovranno fare il join, e quindi impostare la loro scheda di rete (solitamente una scheda di rete virtuale, in cui viene aggiunto il MAC multicast) con il MAC multicast, in questo caso gli ultimi 23 bit saranno a 0.
 
 
+\section{IPv6}
+Gli indirizzi ipv6 sono rappresentati su 128, quindi si hanno $2^{128}$ combinazioni. Per rappresentarli si divide l'indirizzo in 8 gruppi di 2 byte, separati da un ":". Ci sono delle strategie per rendere pi\`u leggibile l'indirizzo:
+\begin{enumerate}
+    \item gli zeri in fronte possono essere omessi;
+    \item gli zeri (":0:") posso essere sostituiti con un "::" solo una volta;
+\end{enumerate}
+
+Per rappresentare l'indirizzo di rete si usano 64 bit. Il concetto di aggregazione gerarchico viene mentenuto del prefix length e dalla netmask, dunque il prefix viene usato per il subnetting.
+
+I principi di assegnamento sono:
+\begin{itemize}
+    \item \textbf{subnetwork}: set of host with the same prefix;
+    \item \textbf{link}: physical network;
+    \item \textbf{on-link}: comunicazioni tra host con lo stesso prefisso;
+    \item \textbf{off-link}: comunicazioni tra host con prefisso diverso;
+\end{itemize}
+
+\paragraph{Indirizzi Multicast}
+Il multicast ha una rappresentazione simile ad IPv4, infatti hanno un range di FF00::/8, che si dividono in tre sottocategorie:
+\begin{itemize}
+    \item \textbf{well-known multicast}: FF00::/12, questo range di indirizzi \`e assegnato e quindi venduto, utilizzato per scopi di comunicazione;
+    \item \textbf{transient}: FF10::/12, assegnati dinamicamente;
+    \item \textbf{solicited-node multicast}: FF02:0:0:0:0:1:FF00::/104, simile al broadcast;
+\end{itemize}
+
+I primi 8 bit mi identificano un indirizzo multicast
+
+4 bit per stabilire se sono indirizzi permanenti o transitori;
+
+4 bit per stabilire lo \textbf{scope} per difinire il range di indirizzi multicast;
+
+\paragraph{Unicast}
+Sono l'equivalte degli indirizzi publici IPv4. Quando un nuovo host si collega alla rete, sa automaticamente il suo indirizzo, infatti \`e gli indirizzi unicast sono plug and play. Gli indirizzi sono composti da:
+\begin{itemize}
+    \item 3 bit: 001;
+    \item n bit: global routing prefix;
+    \item m bit: subnet ID;
+    \item 1280-m-n-3 bit: interface ID;
+\end{itemize}
+
+Il prefisso moderno \`e stato assegnato formalmente da entit\`a multi-livello:
+\begin{itemize}
+    \item 3 bit: 001;
+    \item 13 bit: TLA ID, Top Level Authority (Large ISP);
+    \item 32 bit: NLA ID, Next Level Authority (Organizzazione);
+    \item 16 bit: SLA ID, Subnet Level Authority;
+    \item 64 bit: Interface ID;
+\end{itemize}
+
+
+\paragraph{Link Local/Site Local}
+Gli indirizzi link/site local sono assegnati automaticamente, iniziano con 1111 1110 1... (febf::/), allora:
+\begin{itemize}
+    \item link local: usati per gli indirizzi di rete per comunicare,
+    \item site local: fec0::/10, indirizzi deprecati, utilizzati per assegnare degli indirizzi privati univoci;
+\end{itemize}
+
+
+\paragraph{Unique Local Address}
+Gli ULA sono univoci, rimanendo comunque privati, e quindi non dovrebbero essre esposti alla rete, usando un range \`e di fc00::/7. La particolarit\`a \`e che l'ottavo bit \`e il \textbf{local flag} (L), se questo bit \`e settato ad 1 l'indirizzo \`e assegnato localmente, se invece \`e a 0 potrebbe essere assegnato in futuro. I successivi 40 bit sono asseganti casualmente, per mantenere l'univocit\`a.
+
+\paragraph{IPv4 Embedded Address}
 
 
 
