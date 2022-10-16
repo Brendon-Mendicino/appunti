@@ -109,6 +109,7 @@ Si dovr\`a definire la latenza, ovvero il numero di colpi di clock che una unit\
 Solitamente la divisione ha la latenza identica all'intervallo di inizializzazione. Solitamente su un unit\`a \`e \textbf{pipelined} allora ha un colpo di clock come intervallo di inizializzazione, se l'unit\`a non \`e pipelined allora il suo intervallo di inizializzazione \`e uguale alla latenza.
 
 
+Un altro porblema dato dagli hazard strutturali \`e il fatto che: pi\`u istruzioni non possono accedere in contemporanea alla fase di MEM o di WB, solitamente il criterio \`e FIFO, oppure si potrebbe dare maggiore priorit\`a alla istruzioni con il maggiore numero di clock.
 
 
 
