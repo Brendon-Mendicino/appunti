@@ -251,6 +251,123 @@ CTS permits to use any block algorithm without requireing any padding to be adde
 
 
 
+\paragraph{AES = rinjdael}
+It can have 3 possible key lenght (128/192/256) and a block size of 128 bit.
+
+
+\subsection{Public key criptograpy}
+It is an asymmetric algorithm, it means that the keys are different, one is used to encrypt and the other one is for dercrypt, that is why they are called \textbf{key-pair}. They take a lot of time to compute, this is why it is used to encrypt small quantities of data, usually used to share symmetric keys.
+
+The keys are called \textbf{public key} (SK) and a \textbf{private key} (PK), one encrypts the other decrypts, both of them can be interchangable so we must chose which one of them must be public and which one must be kept secret.
+
+\paragraph{Digital signature}
+The idea of digital signature: the asymmetric keys provides a way of signing messages, if I encrypt my data with my private key, anybody else can decrypt that data the public key, this works because this only works with key-pair, and because the key used to encrypt is private nobady else know it, and the derciption only with the respective public key.
+
+\paragraph{Confidentility without shared secrets}
+To share secret messages with someone: I can encrypt the date with the public key, sending the message to the receiver I am sure that nobady else can read the message, and when it reaches the receiver it can decrypt the message with his private key.
+
+\subsection{Public key algorithm}
+\paragraph{RSA} 
+It is based an the factorization of the product of two prime numbers, it can be used for both digital signature and confidentiality.
+
+\paragraph{DSA (Digital Signature Algorithm)}
+It is based on taking power, logarithm of the result, it can only be used for the digital signature.
+
+Both DSA and RSA are going deprecated.
+
+\paragraph{Certificate}
+How to bind a public key to the identiy of the person? To avoid this kind of problem a \textbf{public-key certificate} has been created.
+
+\paragraph{Secret key exchenge}
+One way of sharing keys between two users is to encrypt the symmetric key with the public key of the receivers, the receiver can then decrypt the symmetric key  with his private key and then both of them can start sharing messages with symmetric keys. This is the base of secret comunications nowadays. This is still not secure beacuse the sender can choose the password and share it with somebady else.
+
+\subsection{Diffie-Hellman (DH)}
+There are some common parameters know.
+Sender $A = g^{x} \mod p$; Receiver $B = g^{y} \mod p$. Then A and B are shared,
+
+This algorithm is not a good algorithm in the case of a man-in-the-middle attack, this can be rendered more secure with a certification.
+
+\paragraph{DH, RSA and quantum computing}
+Quantum computer pose a threat to those kind of algorithn, there is a quantum algorithm called \textbf{Shor's algorithm} that can foctorize a number in $O(N^{3})$ time.
+
+\paragraph{Elliptic Curve Criptography}
+Isntead of using modular arithmetic but we take computation on a plane that represent the graph of an elliptic curve, this kind of algorithm is more secure than RSA or DSA, in fact the keys or shorter.
+\begin{itemize}
+    \item \textbf{ECDSA}: digital signature;
+    \item \textbf{ECDH}: for key agreement;
+    \item \textbf{ECMQV}: authenticated key agreement;
+\end{itemize}
+
+
+\section{Message Integrity}
+Even if something has been enrypted it does not mean it cannot be damaged. The normal way of computing data inegrity is to create a \textbf{digest}. A digest is always of a fixed lenght, and it is created with a mathematical algorithm, in cybersecurity a digest is always created with a \textbf{cryptographic hash function}. The structure of a hash function is always the same: it splits the data in blocks and in computing a new block it reuses the previous block. The families of the hash functions are:
+\begin{itemize}
+    \item sha-2: sha-256, sha-512, ..., good enough, but they are based on the algorithm of sha-1 which has already been attacked;
+    \item sha-3: most secure;
+\end{itemize}
+
+An important part of the hash function is create less \textbf{collisions} possible, a collision accurs when two differnt messages create two identical digests.
+
+
+\subsection{SHA-3}
+The selected sha-3 algorithm was \textbf{Keccak}, it is has simple implementation and it has very good performance on a veriety of very differnt hardware.
+
+\paragraph{KDF}
+The hash functions are also used for \textbf{deriving passwords} (\textbf{KDF} Key Derivation Function). The KDF  is composed of:
+\begin{itemize}
+    \item P = password;
+    \item S = salt;
+    \item I = number of iteration;
+\end{itemize}
+The passwrod is derived in folling way: (da ricontrollare)
+\[ hash_{I\text{-times}} ( P || S ) \]
+
+
+\paragraph{MAC,MIC,MID}
+...
+
+
+\paragraph{keyed-digest HMAC}
+A hmac is a function to compute the digest, with HMAC the Hash function needs to be specified like: HMAC-SHA256.
+
+\paragraph{CBC-MAC}
+CBC can also be used to create the digest of some data, you discard all the block exept for the last one, in this way all the previous bloks are used.
+
+
+\section{Integrity and Secrecy}
+We use:
+\begin{itemize}
+    \item K1: symmetric encryption;
+    \item K2: key-digest
+\end{itemize}
+
+How do you use the two keys?
+\begin{enumerate}
+    \item authenticate and ecrypt:
+    \item authenticate then encrypt:
+    \item
+\end{enumerate}
+
+Combining authentication and integirty is not good. The solution is \textbf{Authenticated Encryption (AE)}.
+
+\subsection{Authenticated Encryption}
+da finire
+
+
+
+
+\begin{itemize}
+    \item peer authentication: 
+    \item data oridin authentication: 
+    \item confidentiality:
+    \item integrity:
+    \item authorization:
+    \item non-repudiation:
+    \item availability:
+    \item accountability:
+\end{itemize}
+
+
 
 
 

@@ -446,11 +446,11 @@ In fase di caricamento i dati si caricano nel seguente ordine:
 \begin{problem}{Progettazione Magazzini}{progettazione-magazzini}
     \hbadness=99999
     Tabelle: \\
-    \texttt{UsoMtqMagazzino(\underline{codMa}, \underline{codT}, mtqLiberi, mtqTot) \\
-    UsoProdMagazzino(\underline{codMa}, \underline{codMo}, \underline{codT}, numeroProdottiTotale, valoreTotaleProdotii) \\
     Tempo(\underline{codT}, data, mese, 3m, 4m, 6m, anno) \\
     Magazzino(\underline{codMa}, magazzino, citta, provincia, regione) \\
-Modello(\underline{codMo}, modello, categoria)}
+    Modello(\underline{codMo}, modello, categoria) \\
+    \texttt{UsoMtqMagazzino(\underline{codMa}, \underline{codT}, mtqLiberi, mtqTot) \\
+    UsoProdMagazzino(\underline{codMa}, \underline{codMo}, \underline{codT}, numeroProdottiTotale, valoreTotaleProdotii) }
 
     Query:
     \begin{enumerate}
@@ -458,15 +458,11 @@ Modello(\underline{codMo}, modello, categoria)}
 \begin{lstlisting}[language=sql]
 select magazzino, data,
     sum(valoreTotProdotti) as valoreTot,
-    avg(
-        sum(valoreTotProdotti) over (
-            partition by magazzino, data
-        )
-    ) over (
+    avg(sum(valoreTotProdotti)) over (
         partition by magazzino
         order by data
-        range between interval '1'
-        week preceding and current row
+        range between interval '7'
+        day preceding and current row
     ) as valoreMedioSuGiornoCorrenteESettimanaPrecedente
 
 from UsoProdMagazzino u, Tempo t, Magazzino m
@@ -482,7 +478,6 @@ group by magazzino, data;
 select citta, data,
     sum(mtqLiberi) / sum(mtqTot) * 100 as percentualeMtqLiberi,
     rank() over (
-        partition by citta, data
         order by sum(mtqLiberi) / sum(mtqTot) * 100
     ) as rankLowestPercentuale
 from Tempo t, Magazzino m, UsoMtqMagazzino u
@@ -504,12 +499,8 @@ group by magazzino, data;
 \end{lstlisting}
         \item Relativamente all’anno 2013, trovare per ogni coppia (magazzino,mese) il valore complessivo medio giornaliero di prodotti presenti.
 \begin{lstlisting}[language=sql]
-select magazzino, mese,
-    avg(
-        sum(valoreTotProdotti) over (
-            partition by magazzino, data
-        )
-    ) over (
+select distinct magazzino, mese,
+    avg(sum(valoreTotProdotti)) over (
         parition by magazzino, mese
     ) as valoreMedioGiornalieroComplessivo
 from UsoProdMagazzino u, Tempo t, Magazzino m
@@ -521,11 +512,7 @@ group by magazzino, mese, data;
         \item Relativamente all’anno 2015, trovare per ogni regione il valore complessivo medio giornaliero di prodotti presenti nella regione.
 \begin{lstlisting}[language=sql]
 select regione, mese,
-    avg(
-        sum(valoreTotProdotti) over (
-            partition by regione, data
-        )
-    ) over (
+    avg(sum(valoreTotProdotti)) over (
         parition by regione, mese
     ) as valoreMedioGiornalieroComplessivo
 from UsoProdMagazzino u, Tempo t, Magazzino m
@@ -537,13 +524,7 @@ group by regione, mese, data;
         \item Relativamente all’anno 2014, trovare per ogni coppia(mese, regione) la percentuale di superficie libera giornaliera nella regione.
 \begin{lstlisting}[language=sql]
 select regione, mese,
-    avg (
-        100 * sum(mtqLiberi) over (
-            partition by regione, data
-        ) / sum(mtqTot) over (
-            partition by regione, data
-        )
-    ) over (
+    avg (100 * sum(mtqLiberi) / sum(mtqTot)) over (
         partition by regione
     )
 from UsoMtqMagazzino u, Tempo t, Magazino m
@@ -554,6 +535,7 @@ group by regione, mese, data;
 \end{lstlisting}
     \end{enumerate}
 \end{problem}
+
 
 
 
