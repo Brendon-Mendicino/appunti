@@ -30,6 +30,7 @@ Si prendono i 23 bit bassi dell'IP e vengono assegnati ai 23 bit bassi dell'indi
 Esempio: viene usato l'indirizzo 224.0.0.0 come un gruppo multicast, gli host che vogliono connettersi a questo gruppo dovranno fare il join, e quindi impostare la loro scheda di rete (solitamente una scheda di rete virtuale, in cui viene aggiunto il MAC multicast) con il MAC multicast, in questo caso gli ultimi 23 bit saranno a 0.
 
 
+\newpage
 \section{IPv6}
 Gli indirizzi ipv6 sono rappresentati su 128, quindi si hanno $2^{128}$ combinazioni. Per rappresentarli si divide l'indirizzo in 8 gruppi di 2 byte, separati da un ":". Ci sono delle strategie per rendere pi\`u leggibile l'indirizzo:
 \begin{enumerate}
@@ -47,33 +48,46 @@ I principi di assegnamento sono:
     \item \textbf{off-link}: comunicazioni tra host con prefisso diverso;
 \end{itemize}
 
-\paragraph{Indirizzi Multicast}
-Il multicast ha una rappresentazione simile ad IPv4, infatti hanno un range di FF00::/8, che si dividono in tre sottocategorie:
+\subsection{Tipologie di Indirizzi}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{ipv6-spazio-di-indirizzamento.png}
+    \caption{Ipv6 Spazio Di Indirizzamento}
+    \label{fig:ipv6-spazio-di-indirizzamento}
+\end{figure}
+\subsubsection{Indirizzi Multicast}
+\tolerance=1000
+Il multicast ha una rappresentazione simile ad IPv4, infatti hanno un range di FF00::/8 (1111 1111 ...), che si dividono in tre sottocategorie:
 \begin{itemize}
-    \item \textbf{well-known multicast}: FF00::/12, questo range di indirizzi \`e assegnato e quindi venduto, utilizzato per scopi di comunicazione;
-    \item \textbf{transient}: FF10::/12, assegnati dinamicamente;
-    \item \textbf{solicited-node multicast}: FF02:0:0:0:0:1:FF00::/104, simile al broadcast;
+    \item \textbf{well-known multicast} FF00::/12 (1111 1111 0000 ...) : questo range di indirizzi \`e assegnato dalla IANA, utilizzato dalgi ISP per scopi di comunicazione;
+    \item \textbf{transient} FF10::/12 (1111 1111 0001 ...): assegnati dinamicamente;
+    \item \textbf{solicited-node multicast} FF02:0:0:0:0:1:FF00::/104: simile al broadcast address in ARP;
 \end{itemize}
 Un indirizzo multicast \`e formato da:
 \begin{itemize}
     \tolerance=1000
     \item I primi 8 bit mi identificano un indirizzo multicast, tutti settati ad 1;
     \item 4 bit assegnati a dei flag: l'unico utilizzabile \`e il campo T che specifica se l'indirizzo \`e permanente (0), ovvero assegnato dalla IANA, oppure non-permanente (1), gli altri campi non hanno un'assegnazione;
+    \item 4 bit per stabilire lo \textbf{scope}, definisce il range di indirizzi multicast;
     \item gli ultimi 112 rappresentano il \textbf{group id};    
 \end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{indirizzo-multicast.png}
+    \caption{Indirizzo Multicast}
+    \label{fig:indirizzo-multicast}
+\end{figure}
 
 
-4 bit per stabilire lo \textbf{scope} per difinire il range di indirizzi multicast;
 
-\paragraph{Unicast}
-Sono l'equivalte degli indirizzi publici IPv4. Quando un nuovo host si collega alla rete, sa automaticamente il suo indirizzo, infatti \`e gli indirizzi unicast sono plug and play. Gli indirizzi sono composti da:
+\subsubsection{Indirizzi Global Unicast}
+Sono l'equivalte degli indirizzi publici IPv4. Quando un nuovo host si collega alla rete, sa automaticamente il suo indirizzo, infatti gli indirizzi unicast sono plug and play. Gli indirizzi sono composti da tutto la spazio 2000::/3, l'indirizzo si divede in:
 \begin{itemize}
     \item 3 bit: 001;
     \item n bit: global routing prefix;
     \item m bit: subnet ID;
-    \item 1280-m-n-3 bit: interface ID;
+    \item $128-m-n-3$ bit: interface ID;
 \end{itemize}
-
 Il prefisso moderno \`e stato assegnato formalmente da entit\`a multi-livello:
 \begin{itemize}
     \item 3 bit: 001;
@@ -82,35 +96,47 @@ Il prefisso moderno \`e stato assegnato formalmente da entit\`a multi-livello:
     \item 16 bit: SLA ID, Subnet Level Authority;
     \item 64 bit: Interface ID;
 \end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{indirizzo-global-unicast.png}
+    \caption{Indirizzo Global Unicast}
+    \label{fig:indirizzo-global-unicast}
+\end{figure}
 
 
-\paragraph{Link Local/Site Local}
-Gli indirizzi link/site local sono assegnati automaticamente, iniziano con 1111 1110 1... (febf::/), allora:
+\subsubsection{Link Local/Site Local}
+Gli indirizzi link/site local sono assegnati automaticamente, fanno parte del gruppo fe80::/9 (1111 1110 1...), e si distinguono in:
 \begin{itemize}
-    \item link local: usati per gli indirizzi di rete per comunicare,
-    \item site local: fec0::/10, indirizzi deprecati, utilizzati per assegnare degli indirizzi privati univoci;
+    \item \textbf{link-local} fe80::/10 (1111 1110 10...): vengono generati automaticamente, ogni host in una rete ipv6 deve avare un link-local address utilizzato per comunicazioni di \textbf{neighbor discovery};
+    \item \textbf{site-local}: fec0::/10 (1111 1110 11...), indirizzi deprecati, utilizzati per assegnare degli indirizzi privati univoci;
 \end{itemize}
 
 
-\paragraph{Unique Local Address}
-Gli ULA sono univoci, rimanendo comunque privati, e quindi non dovrebbero essre esposti alla rete, usando un range \`e di fc00::/7. La particolarit\`a \`e che l'ottavo bit \`e il \textbf{local flag} (L), se questo bit \`e settato ad 1 l'indirizzo \`e assegnato localmente, se invece \`e a 0 potrebbe essere assegnato in futuro. I successivi 40 bit sono asseganti casualmente, per mantenere l'univocit\`a.
+\subsubsection{Unique Local Address}
+Gli ULA sono univoci rimanendo comunque privati, quindi non devono essre esposti alla rete. Gli Unique Local sono stati pensati per accedere a macchine che non devono essere esposte alla rete pubblica. Gli Unique Local  usano un range \`e di fc00::/7. La particolarit\`a \`e che l'ottavo bit \`e il \textbf{local flag} (L), se questo bit \`e settato ad 1 l'indirizzo \`e assegnato localmente, se invece \`e a 0 potrebbe essere assegnato in futuro. I successivi 40 bit sono asseganti casualmente, per cercare di mantenere l'univocit\`a.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{indirizzo-unique-local.png}
+    \caption{Indirizzo Unique Local}
+    \label{fig:indirizzo-unique-local}
+\end{figure}
 
-\paragraph{IPv4 Embedded Address}
-Sono usati per rappresentare gli indirizzi ipv4 sugli indirizzi ipv6. Sono composti da:
+\subsubsection{IPv4 Embedded Address}
+Sono usati per rappresentare gli indirizzi ipv4 sugli indirizzi ipv6 e vengono messi nello spazion ::ff:0:0/80. Sono composti da:
 \begin{itemize}
     \item i primi 80 bit a 0;
     \item 16 bit a 1;
     \item gli ultimi 32 bit rappreesntano l'indirizzo ipv4;
 \end{itemize}
 
-\paragraph{Loopback Address}
+\subsubsection{Loopback Address}
 L'indirizzo ::1 ha lo stesso scopo dell'indirizzo di loopback 127.0.0.1 di ipv4.
 
-\paragraph{Unspecified Address}
-\`E un indirizzo unicast non specificato ::0, anche in questo caso il suo comportamento \`e lo stesso di ipov4.
+\subsubsection{Unspecified Address}
+\`E un indirizzo unicast non specificato ::0, anche in questo caso il suo comportamento \`e lo stesso di ipv4.
 
 
-\paragraph{Indirizzi Anycast}
+\subsubsection{Indirizzi Anycast}
 Ho degli indirizzi assegnati a dei nodi nelle rete e quando mando un pacche voglio che esso arrivi ad uno di essi (inizialmento pensato per i DNS server). Gli indirizzi anycast non sono utilizzati.
 
 
@@ -119,7 +145,7 @@ Ho degli indirizzi assegnati a dei nodi nelle rete e quando mando un pacche vogl
 In ipv6 alcuni protocolli sono stati integrati o rimossi rispetto ad ipv4, infatti ARP ed IGMP sono stati integrati in ICMP, la maggior parte degli altri protoccolli \`e stata fatta una modifica per supportare gli indirizzi a 128 ma le modifiche rimangono minime.
 
 \subsubsection{IP}
-L'header in ipv6 contiene molte meno dati, il motivo \`e che le informazioni sono presenti nel padding, tutto ci\`o \`e possibile grazie al campo next header. Si crea cos\`i una catena di header. Se non ho bisogno di estensioni allora il campo next header punter\`a all'header tcp.
+L'header in ipv6 contiene molte meno dati che in ipv4, il motivo \`e che le informazioni sono presenti nel padding, tutto ci\`o \`e possibile grazie al campo next header. Si crea cos\`i una catena di header. Se non ho bisogno di estensioni allora il campo next header punter\`a all'header tcp.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{ipv6-header.png}
@@ -129,12 +155,12 @@ L'header in ipv6 contiene molte meno dati, il motivo \`e che le informazioni son
 I campi rimasti sono:
 \begin{itemize}
     \item ver: la versione del protocollo;
-    \item traffic class: si definiscono delle classi di pacchetti per determinare delle priorit\`a tra i traffici;
+    \item traffic class: definisce delle classi di pacchetti per determinare delle priorit\`a tra i traffici degli utenti;
     \item flow label: etichetta associata al flusso, sar\`a possibile fare routing grazie a questo campo;
     \item payload lenght: lunghezza del payload;
     \item hop limit: time to live del ipv4;
-    \item source address;
-    \item destinatoin address;
+    \item source address: indirizzo sorgente;
+    \item destinatoin address: indirizzo destinazione;
 \end{itemize}
 
 \paragraph{Headers extensions}
@@ -145,25 +171,26 @@ Il protocollo utilizza dei codici per specificare quale sar\`a il campo dell pro
     \caption{Header Chaining}
     \label{fig:header-chaining}
 \end{figure}
-Gli header hanno tutti lo stesso formato:
+I diversi extension header hanno tutti gli stessi attributi:
 \begin{itemize}
-    \item next header;
-    \item length: pi\`u o meno dato dell'header;
-    \item extension data: dati dell'header;
+    \item next header code;
+    \item lunghezza;
+    \item extension data: dati relativi all'extension header;
 \end{itemize}
+Un estensione molto usata \`e la \textbf{Routing Extension Header}, dove viene specificata una lista di indirizzi su cui il pacchetto deve passare.
 
 
-\subsubsection{Interfaccia con i livelli pi\`u bassi}
-Nel livello si \`e deciso di differenziare il protocllo ipv4 e ipv6 (approccio dual stack), infatti nel livello 2 esiste un campo che specifica il protocollo a livello superiore. Il \textbf{type} per ipv6 \`e 86DD.
+\subsection{Interfaccia con i livelli pi\`u bassi}
+Nel livello 3 si \`e deciso di differenziare il protocllo ipv4 e ipv6 (approccio dual stack), infatti nel livello 2 esiste un campo che specifica il protocollo a livello superiore. Il \textbf{type} per ipv6 \`e 86DD.
 
-\subsubsection{Mapping}
+\subsubsection{IPv6 Mutlicast Transmission}
 \tolerance=1000
-I 32 bit bassi dell'indirizzo ipv6 vengono mappati ai 32 bit bassi dell'indirizzo MAC, questo mapping viene specificato quando i primi 2 byte sono settati a 33:33, dunque un indirizzo MAC mappato sar\`a 33:33:xx:xx:xx:xx. Quanso si manda un pacchetto all'indirizzo di broadcast ff0c::89:aabb:ccdd l'indirizzo MAC corrispondente sar\`a 33:33:aa:bb:cc:dd.
+Quando si deve mandare un messaggio in multicast con ipv6 si utilizza una tecnica di mapping per creare un indirizzo MAC multicast appositamente per quetsto scambio di messaggi, il motivo \`e che si cerca di evitare l'utilizzo di un MAC broadcast address. I 32 bit bassi dell'indirizzo ipv6 multicast vengono mappati ai 32 bit bassi dell'indirizzo MAC, questo mapping viene specificato quando i primi 2 byte del MAC sono settati a 33:33, dunque un indirizzo MAC mappato sar\`a del tipo 33:33:xx:xx:xx:xx. Quando si manda un pacchetto all'indirizzo di broadcast ff0c::89:aabb:ccdd l'indirizzo MAC corrispondente sar\`a 33:33:aa:bb:cc:dd.
 
 \subsubsection{Neigbhor Discovery}
-Il protocollo ARP sar\`a sostituito dalla nuova version del protocollo ICMPv6.
+Il protocollo ARP sar\`a sostituito dalla nuova version del protocollo ICMPv6. Quando si vuole mandare un pacchetto ad un host nella stessa sottorete e non si \`e a conoscenza del MAC, si utilizza il protocollo di neighbor discovery.
 
-Il meccanismo avviene nel seguente modo: partendo da un indirizzo unicast si prendono i 24 bit bassi dell'indirizzo e si crea un indirizzo multicast solicited-node con i 24 bit bassi corrispondenti a quelli dell'unicast. Questo permette, quando si fa il mapping, di avere gli indirizzi MAC multicast che iniziano con 33:33:ff, grazie a come sono composti gli indirizzi solicited-node.
+Il meccanismo di neighbor discovery avviene nel seguente modo: partendo da un indirizzo unicast si prendono i 24 bit bassi dell'indirizzo e si crea un indirizzo multicast solicited-node con i 24 bit bassi corrispondenti a quelli dell'unicast, questo permette quando si fa il mapping, di avere degli indirizzi MAC multicast che iniziano con 33:33:ff, grazie a come sono composti gli indirizzi solicited-node. In questo modo viene limitato il numero di pacchetti mandati nelle rete, la probabilit\`a che il pacchetto venga spedito all'host di destinazione \`e molto probabile, invece in ARP si mandava un pacchetto in broadcast a tutti gli host della sottorete.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{solicited-node-multicast-address.png}
@@ -210,29 +237,52 @@ Messaggi di errore:
 Echo:
 \begin{itemize}
     \item 128: echo request;
-    \item 129 echo: reply;
+    \item 129: echo reply;
 \end{itemize}
 
-\paragraph{Neighbor Solicitation}
+\subsubsection{Error Message}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{icmpv6-error-message.png}
+    \caption{Icmpv6 Error Message}
+    \label{fig:icmpv6-error-message}
+\end{figure}
+
+\paragraph{Echo}
+I messaggi di echo sono: echo request ed echo reply.
+
+\subsubsection{Neighbor Solicitation}
+Mandato da un host nella sotto rete.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{neighbor-solicitation.png}
+    \caption{Neighbor Solicitation}
+    \label{fig:neighbor-solicitation}
+\end{figure}
 
 
-
-\paragraph{Neighbor Advertisement}
-Vengono aggiunti 3 flag:
+\subsubsection{Neighbor Advertisement}
+Vengono aggiunti 3 flag nel campo reserved:
 \begin{itemize}
     \item router: indica se il pacchetto arrivo da un router;
     \item solicited: specifica se il nodo \`e stato sollicitato o meno;
     \item override: specifice se l'host cache deve essere sovrascritta;
 \end{itemize}
-L'indirizzo MAC viene messo nel campo options, mente l'ip di sorgente viene messo nel campo target address.
+L'indirizzo MAC viene messo nel campo options, mentre l'ip di sorgente viene messo nel campo target address.
 
 \subsubsection{Group Management}
-Da rivedere...
+Per gestire le comunicazioni multicast in un link local (sottorete) non si utilizza pi\`u il protocollo IGMP ma si usa ICMPv6, per gestire il join ai diversi gruppi si utilizzano tre tipi di messaggi:
 \begin{itemize}
-    \item query;
-    \item report;
-    \item done;
+    \item Mutlicast Listener Query;
+    \item Mutlicast Listener Report;
+    \item Mutlicast Listener Done;
 \end{itemize}
+Un router inizia mandando un qeury a tutti gli host collegati utilizzando l'indirizzo ff02::1 (all host multicast address, solo host e non router), in questo modo vengono esposti i nodi che vogliono partecipare ad uno specifico gruppo. In teoria ha senso che tutti quanti gli host non appena ricevono la Query rispondano con la relativa Report, perch\'e in questo modo il router può avere la lista completa di tutti gli interessati. Ma nel tentativo di ottimizzare le trasmissioni, si \`e pensato che il router non dovesse possedere l’intera lista delle query con tutti i gruppi multicast, questo perch\'e il router dovrà semplicemente forwardare nella rete il pacchetto multicast quando è presente almeno 1 host nel gruppo multicast. \`E stato dunque inserito un timer randomico sugli host, che viene fatto partire quando viene ricevuta una query. Il primo host che manda un report viene registrato sia dal router che da tutti gli interessati al gruppo broadcast bloccando i loro timer.
+
+Quando uno degli host si disconnette invia un Done. I router tengono un timeout per ogni entry nella loro tabella in caso un host si disconnetta senza inviare un done.
+
+
+
 
 \subsection{Configurazione}
 Le informazioni necessarie sono:
@@ -282,18 +332,16 @@ Per generare l'interface Id si prendono 64 bit random e 64 bit generati del MAC 
 
 
 \subsubsection{Address Prefix}
-Anche in qeusto caso \`e possibile configurare la parte alta dell'indirizzo ip in modo manuale oppure in modo automatico.
-
-Per ottenere queste informazioni in modo automatico esistono due messaggi:
+Anche in questo caso \`e possibile configurare la parte alta dell'indirizzo ip in modo manuale oppure in modo automatico. Per ottenere queste informazioni in modo automatico esistono due messaggi:
 \begin{itemize}
-    \item \textbf{Router Solicitation}: nelle opzioni solitamente si chiede l'indirizzo
+    \item \textbf{Router Solicitation}: mandato a tutti i router con indirizzo multicast ff01::2.
         \begin{figure}[H]
             \centering
             \includegraphics[width=0.8\textwidth]{router-solicitation.png}
             \caption{Router Solicitation}
             \label{fig:router-solicitation}
         \end{figure}
-    \item \textbf{Router Advertisement}: pu\`o essere una risposa ad una solicitaion, M (Managed Address Configuration): se settato ad 1 indica che l'indirizzo \`e disponibile via DHCP; O (Other Configuration): parametri come il DNS server; Reachable Time: tempo in cui il router \`e disponibile; Retrans Timer: tempo in cui l'indirizzo \`e disponibile;
+    \item \textbf{Router Advertisement}: pu\`o essere una risposa ad una solicitaion, M (Managed Address Configuration): se settato ad 1 indica che l'indirizzo \`e disponibile via DHCP; O (Other Configuration): parametri come il DNS server; Reachable Time: tempo in cui il router \`e disponibile; Retrans Timer: tempo in cui l'indirizzo \`e disponibile; solitamente l'indirizzo viene messo nel campo options;
         \begin{figure}[H]
             \centering
             \includegraphics[width=0.8\textwidth]{router-advertisement.png}
@@ -303,51 +351,198 @@ Per ottenere queste informazioni in modo automatico esistono due messaggi:
 \end{itemize}
 Quando un host si collega ad una rete potr\`a fare una solicitation e ricevere una advertisement oppure i router periodicamente mandano una advertisement.
 
+\paragraph{Options}
+Le opzioni hanno un loro formato particolare:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{options-format.png}
+    \caption{Options Format}
+    \label{fig:options-format}
+\end{figure}
 Le informazioni sul prefisso sono:
 \begin{itemize}
     \item L: ad 1 se il prefisso pu\`o essere on-link;
     \item A: ad 1 se il prefisso pu\`o essere usato con una configurazione autonoma;
 \end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{prefix-information-options.png}
+    \caption{Prefix Information Options}
+    \label{fig:prefix-information-options}
+\end{figure}
 
-Un'altra informazione \`e il \textbf{Link Layer Address Option}, si mette il MAC del default gateway.
+Un'altra opzione \`e il \textbf{Link Layer Address Option}, si mette il MAC del default gateway.
 
 Un messaggio molto importante \`e l'\textbf{ICMP Redirect}, in una rete ci sono pi\`u router, l'host manda i pacchetti al suo default gateway, se per raggiungere un altro host un altro \`e router \`e pi\`u vicinino allora i pacchetti vengono rediretti in quel router.
 
 \subsubsection{Duplicate Address Detection (DAD)}
-L'host manda un messaggio di DAD. 
-Per verificare che non esistano indirizzi duplicati ...
+L'host manda un messaggio di DAD ogni volta che viene effettuata una configurazione. Per verificare che non esistano indirizzi duplicati viene mandato una neghbor solicitation con l'indirizzo appena configurato, se un host ripsonde a questa richesta l'indirizzo viene cambiato.
 
 
 \subsection{Stateless Config}
-Il link local address viene generato automaticamente, successivamente viene fatta una DAD, l'host si iscrive al Solicited Node Multicast Address, abilita le comunicazioni on-link.
+\begin{itemize}
+    \item Il link local address viene generato automaticamente;
+    \item successivamente viene fatta una DAD;
+    \item l'host si iscrive al Solicited Node Multicast Address (configurando il MAC multicast e inviando una ICMP mutlicast listener report);
+    \item abilita le comunicazioni on-link;
+\end{itemize}
 
-Una volta acquisita la parte bassa si ottiene la parte alta: router solicitation, router advertisement listening, si crea il prefisso dall'adversement, si fa una DAD, ci si iscrive al Soliced Node Mutlicast Address.
+\subsection{Stateful Config}
+\begin{itemize}
+    \item viene inviata un router solicitation;
+    \item si ascolta la router advertisement;
+    \item si crea un indirizzo col prefisso annunciato;
+    \item si prova la sua uncit\`a con la DAD;
+    \item ci si iscrivi al solicitated node mutlicast address (configurando il MAC multicast e inviando una ICMP mutlicast listener report);
+\end{itemize}
 
 Un altra grosso vantaggio \`e il \textbf{Renumbering}, tramite l'advertisement si riassegnano gli indirizzi in modo automatico.
 
-\subsection{Stateful Config}
-La configurazione stateful rimane invariata tranne che per le informazioni date dal flag M.
-...
 
-
-\section{Scope}
+\subsection{Scope}
 Qunado un dispositivo ha pi\`u interfaccie, gli indirizzi generati automaticamente saranno gli stessi, per distinguere le due interfacce l'host tiene conto a quale interfaccia mandare un messaggio. Per distinguere le due interfaccie si mette \%x, dove x \`e l'id dell'interfaccia.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{ipv6-scope.png}
+    \caption{Ipv6 Scope}
+    \label{fig:ipv6-scope}
+\end{figure}
 
 
 
+\newpage
 \section{IPv6 Transitioning}
-\subsection{IPv4 Traversing}
-Si fa del \textbf{Tunneling}, partendo da un paccheto ipv6 che si interfaccia ad una rete ipv4, si parte da un indirizzo ipv4 e nul suo header viene encapsulato l'indirizzo ipv6. Le soluzioni ci permettono di avere un mapping automatico o manule:
+IPv6 \`e ancora in via di utilizzo parziale, perci\`o si devono capire i problemi che sorgono nell'utilizzo di questo nuovo protocollo, si possono identificare 4 fasi di transizione, in cui IPv6 deventa incrementalmente pi\`u utilizzato fino a diventare lo standard:
 \begin{itemize}
-    \item \textbf{IPv4-compatible}: quando devo inviare un messaggio a destinazione gli ultimi 32 bit dell'indirizzo ipv6 sono i bit dell'indirizzo ipv4 (::/96);
-    \item \textbf{6over4}: sfrutta il multicast dell'ipv4 e dell'ipv6;
-    \item \textbf{ISATAP}: si basa su un prefisso comune (fe80::5efe) e gli ultimi 32 bit come l'indirizzo ipv6,
-    \item ...
+    \item \textbf{Network ipv6 isolati}: host di interfaccia dual stack, con ipv6 in ipv4 tunneling;
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.4\textwidth]{isolated-ipv6.png}
+            \caption{Isolated Ipv6}
+            \label{fig:isolated-ipv6}
+        \end{figure}
+    \item \textbf{ipv6 island grow}: le isole diventano pi\`u grandi con soli host ipv6 all'interno, gli host di interfaccia sono dul stack translating devices;
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.4\textwidth]{ipv6-island-grow.png}
+            \caption{Ipv6 Island Grow}
+            \label{fig:ipv6-island-grow}
+        \end{figure}
+    \item \textbf{natice ipv6 connectivity};
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.4\textwidth]{native-ipv6-connectivity.png}
+            \caption{Native Ipv6 Connectivity}
+            \label{fig:native-ipv6-connectivity}
+        \end{figure}
+    \item \textbf{ipv6 takes over}: ipv4 isolati, ipv4 in ipv6 tunneling;
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.4\textwidth]{ipv6-takes-over.png}
+            \caption{Ipv6 Takes Over}
+            \label{fig:ipv6-takes-over}
+        \end{figure}
+\end{itemize}
+
+
+\subsection{Isolated IPv6 networks}
+Si fa del \textbf{Tunneling}, partendo da un paccheto ipv6 che si interfaccia ad una rete ipv4, il router crea un header ipv4 e incapsula il pacchetto ipv6, il ricevitore con un indirizzo ipv4 dovr\`a poi riprendere il pacchetto ipv6 originale, per far in modo che questo avvenga i router devono essere necessariamente dual stack. Esistono dei vari protocolli che permettono di avere un mapping delgi indirizzi ipv6 algi indirizzi ipv4 automatico o manule.
+
+Una di queste soluzioni \`e avare entrambi gli host in dual stack (\textbf{host-centered solutions}):
+\begin{itemize}
+    \item \textbf{IPv4-compatible addresses}: assegno solo degli indirizzi ipv6 compatibili con ipv4, quando devo inviare un messaggio a destinazione gli ultimi 32 bit dell'indirizzo ipv6 (::/96) sono i bit dell'indirizzo ipv4, dunque non ho conflitti;
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.5\textwidth]{ipv4-compatible-addresses.png}
+            \caption{Ipv4 Compatible Addresses}
+            \label{fig:ipv4-compatible-addresses}
+        \end{figure}
+    \item \textbf{6over4}: sfrutta il multicast dell'ipv4 e dell'ipv6, per\`o anche se in ipv4 \`e presente il multicast i provider non lo abilitano all'interno delle loro reti;
+    \item \textbf{ISATAP}: l'ipv6 avr\`a su un prefisso comune (fe80::5efe) e gli ultimi 32 bit saranno dell'indirizzo ipv4;
+    \item \textbf{neighbor discovery}: viene distribuita un lista dal DNS dove esistono i mapping tra indirizzi ipv4 e indirizzi ipv6, una delle limitazione \`e che ad ogni indirizzo ipv6 deve essere associato un hostname;
+\end{itemize}
+
+Posso avare anche delle soluzioni \textbf{network-centered}, dove esistono host nativi in ipv6 e degli host dual stack:
+\begin{itemize}
+    \item \textbf{6to4}: una delle principali limatazioni del mapping era il basso numero di bit utilizzati, allora una possibile soluzione \`e quella di andare a mettere l'indirizzo ipv4 nella parte alta dell'ipv6,
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.6\textwidth]{6to4.png}
+            \caption{6To4}
+            \label{fig:6to4}
+        \end{figure}
+    \item \textbf{tunnel broker}: esiste un entit\`a nel mezzo che fa da broker per gli indirizzi da andare ad utilizzare per il tunnel;
+\end{itemize}
+
+
+Soluzioni \textbf{scalabili, carrier-grade solutions}, quando le isole ipv6 continuano a crescere si avranno anche scambi di pacchetti ipv4 attraverso reti native ipv6. Questo tipo di setup dovr\`a supportare ancora ipv4 clients e connessioni di host ipv6 a server in ipv4.
+
+Il mapping di un indirizzo IP era proprio del NAT (map da ipv4 a ipv4), un dispositivo in grado di fare sia routing che natting viene detto Customer Permises Equipment (CPE). Alcune varienti del NAT \`e quello nelle reti cellulari, dove le antenne a cui si connettono il nat assegna un indirizzo publico all'host, per questo viene detta Large Scale NAT (LSN). Esiste anche un soluzione con entrambi gli approcci dove un LSN mappa delle reti private, in cui \`e presente il NAT per la traduzione. Alcune soluzioni di mapping tra indirizzi dipendono da dove viene inserito il NAT.
+\begin{itemize}
+    \item \textbf{AFTR (address family transmission router)}: grantisce agli host ipv4 di parlare con host ipv4 attraverso infrastrutture nel mezzo ipv6, l'AFTR tipicamente ha due funzionalit\`a: accalleratori hardware del nat e del tunneling;
+    \item \textbf{Dual Stack Lite (DS lite)}: con questa soluzione si gestiscono tutti i casi in cui l'ISP abbia un backbone in ipv6, ds lite prevede che l'indirizzo ipv4 arrivi al CPE e che poi venga fatto un tunneling verso il Large Scale NAT (AFTR) e poi viene fatto il natting, lo svantaggio \`e che il piano di indirizzamento deve essere pubblico altrimente si potrebbero creare delle collisioni, le principali limitazioni sono: il NAT non \`e sotto il controllo del consumatore perch\'e un unico NAT gestisce tutti i clienti, il port forwarding non pu\`o essere abilitato nel CPR;
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.8\textwidth]{ds-lite.png}
+            \caption{Ds Lite}
+            \label{fig:ds-lite}
+        \end{figure}
+    \item \textbf{A+P (address plus port)}: in questa soluzione rispetto a ds lite il NAT viene spostato dall'AFTR al CPR diventando sotto il controllo del consumatore, auemtando la scalabilit\`a, quando si manda un pacchetto in ipv4 passo da un indirizzo privato ad uno nattato e poi si fa un tenneling verso il AFTR, questo comporta l'assegnazione di un indirizzo ipv4 pubblico al CPR, il motivo \`e che quando si far\`a il natting \`e necessario avere un ip pubblico che si interfacci con la rete e che poi viene tunnelato. Se per\`o l'ISP ha scarsit\`a di indirizzi ipv4 si pi\`u utenti avrenno gli stessi indirizzi ip con dei range di porte diversi assegnati;
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.8\textwidth]{a+p.png}
+            \caption{A+P}
+            \label{fig:a+p}
+        \end{figure}
+\item \textbf{MAP (mapping address and port)}: \`e un mix tra ds lite e a+p, in cui si tenta di avere una configurazione stateless, dove non si allocano dei range di porte al CPE, ma un set di porte, il vantaggio \`e che un border relay (AFTR) \`e in grado di ricostruire le informazioni a partire dall'indirizzo. Le caratteristiche sono:
+    \begin{itemize}
+        \item un client ipv4 viene mappato su un indirizzo univoco ipv6 caratterizzato dal prefisso del router CPE;
+        \item l'indirizzo pubblico dell'host di destinazione viene mappato nel border relay;
+        \item map-e: map con incapsulamento, il pacchetto ipv6 viene messo nel payload di un pacchetto ipv4;
+        \item map-t: map con traduzione, in un pacchetto ipv6 l'header viene sostituito con un uno ipv4;
+    \end{itemize}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.8\textwidth]{map.png}
+        \caption{Map}
+        \label{fig:map}
+    \end{figure}
+    \begin{itemize}
+        \item \textbf{Port set}: per generare i set di porte si utilizzano i 16 bit delle porte, ad ogni CPE veiene assegnato un PSID (Port Set ID) e un indirizzo ipv4 pubblico, ogni set di porte sono rappresetntate da: a bit maggiori di 0 (altrimenti si andrebbero a toccare le well-known ports), k bit di PSID, m bit (fino a 16 bit totali);
+        \item \textbf{CPE ipv6 address}: si basa sul fatto che l'indirizzo ipv6 del CPE contiene delle informazioni sul CPE stesso e legate in qualche modo all'host ipv4 che ci vuole raggiungere, in modo che il border relay possa ricostruirsi l'indirizzo ipv6 a partire dall'indirizzo ipv4 da cui arrivano le risposte, perci\`o l'indirizzo si compone di:
+            \begin{itemize}
+                \item ruole ipv6 prefix: prefisso che indentifica l'istanza di map;
+                \item EA bits: parte dell'indirizzo ipv4 pubblico e una porzione del port set;
+                \item subnet id: compatibilit\`a con gli indirizzi ipv6 (sempre messi a 0);
+                \item inteface id: informazioni dell'indirizzo ipv4;
+            \end{itemize}
+            \begin{figure}[H]
+                \centering
+                \includegraphics[width=0.8\textwidth]{cpe-ipv6-address.png}
+                \caption{Cpe Ipv6 Address}
+                \label{fig:cpe-ipv6-address}
+            \end{figure}
+        \item \textbf{map-e}:
+            \begin{figure}[H]
+                \centering
+                \includegraphics[width=0.8\textwidth]{map-e.png}
+                \caption{Map E}
+                \label{fig:map-e}
+            \end{figure}
+        \item \textbf{map-t}:
+            \begin{figure}[H]
+                \centering
+                \includegraphics[width=0.8\textwidth]{map-t.png}
+                \caption{Map T}
+                \label{fig:map-t}
+            \end{figure}
+    \end{itemize}
+    \item \textbf{NAT64 + DNS64}:  lo scenario \`e quando un client ipv6 vuole parlare con un indirizzo ipv4, questa operazione andr\`a fatta con un NAT64, l'indirizzo per\`o viene mappato dal DNS64. Per effettuare una risoluzione del nome, il DNS64 chiede a cui arriva una richiesta AAAA (ipv6) la inoltra al DNS del server ipv4 che risponde con un errore, allora il DNS64 manda una richiesta A (ipv4), il DNS6 mappa l'indirizzo ipv4 ricevuto ad un indirizzo ipv6 che inoltra al client, l'indirzzo ha un prefisso conusciuto (usato per le risoluzioni tradotte da ipv4) e la parte finale con l'indirizzo ipv4 del server, la richiesta che poi viene fatta passando per il NAT64 effettuer\`a una traduzione, creando l'header ipv4 a partire dall'indirizzo ipv4 dagli ultimi bit nell'indirizzo ipv6;
 \end{itemize}
 
 
 
-
+\newpage
 \section{Wireless and Cellular Networks}
 \subsection{Wireless LAN}
 Le caratterisiche del link wireless sono:
@@ -363,7 +558,7 @@ Tutte le implementazioni utilizzano il protocollo di accesso \textbf{CSMA/CA}.
 Un \textbf{access point} o una \textbf{base station} serve una \textbf{Basic Service Set (BSS)}, dentro la BSS si trovano sia gli access point che gli host.
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{bss.png}
+    \includegraphics[width=0.6\textwidth]{bss.png}
     \caption{BSS}
     \label{fig:bss}
 \end{figure}
@@ -483,6 +678,141 @@ jArchittura ...
         \end{itemize}
 \end{itemize}
 
+\subsection{Evoluzione delle reti cellulari}
+La prima generazione (1G) era una tecnologia completamente in analogico in FDMA, sostitutita dal \textbf{GSM (Europa) 2G}, in europa adottato con FDMA/TDMA, il passo in avanti \`e stato il passaggio dall'analogico al digitale e l'avvento degli sms, con il \textbf{2.5G GPRS/EDGE} \`e la prima tecnologia di fornire srevizi a pacchetti.
+
+\textbf{3G} dove il focus \`e improntato al miglioramento dello scambio di contenuti multimediali, che adotta il CDMA in USA, UMTS in Europa. L'estensione del \textbf{3.5G}, va a migliorare l'UMTS che diventa HSPA aumentando di fatto la grandezza dei dati scambiati.
+
+\textbf{4G} conosciuto comee LTE, ha un focus sul creare un'architettura ben integrata con i servici TPC/IP forniti da internet, vengono create delle antenne MIMO in cui si riesce a trasmettere su pi\`u canali in contemporanea, aumentando di molto il bitrate. Per la volta la rete \`e interamente in IP, anche per chiamate vocali.
+
+\textbf{5G} cerca di unificare diverse tecnologie di accesso wireless, di fatto annullando le diversit\`a tra rete cellulare e wifi. Il 5G utilizza delle \textbf{mmWave} (micro onde) permettono di avere un throughput maggiore. Si cerca di offrire dei servigi aggiuntivi come l'\textbf{edge computing}, spostando le computazione da un server ad dei nodi vicini alla BS, cercando di fornire dei servizi personalizzati attraverso la virtualizzazione dei servizi di rete (come ad esempio un firewall), detto \textbf{NFV (Network Function Visualization)}. Queste funzioni di rete vengono combinate in una catena di rete, utilizzando anche il source routing di ipv6. Esiste anche l'\textbf{SDN (Software Define Networking)}, serve per eseguire tutte queste funzioni ho bisogno di un disallineamento tra piano di controllo e piano dati, il router avr\`a bisogno di un sitema general purpose per poter gestire questi due servizi in modo differente, gestendo in maniera opportuna la catena di servizi.
+
+\subsection{GSM}
+Offre servizi come:
+\begin{itemize}
+    \item voce a (13 kbit/s o 6.5 kbit/s);
+    \item sms;
+    \item servizi supplementari;
+\end{itemize}
+L'architettura GSM \`e fatta da:
+\begin{itemize}
+    \item \textbf{Mobile Station}: si tratta di dispositivi in grado di connettersi;
+    \item \textbf{Subsrciber Identity Module (SIM)}: per connetersi alla rete, il dispositivo ha bisogno di una sim, che contiene dei parametri per autenticazione e di altri dati, uno di questi \`e l'IMSI che \`e molto simile ad un MAC, il dispositivo + sim formano un \textbf{mobile terminale (MT)};
+    \item \textbf{Base Station Subsystem (BSS)}: la BS \`e formata da una Basa Transceiver Station BTS che \`e in grado di modulare su pi\`u frequenze i diversi canali di accesso, e da una Base Station Controller BSC, che gestisce tutta la logica delle rete, come ad esempio la gestione dall'handover, manda inoltra il segnale di paging per localizzare un utente, e converte i 13kbit per la voce a 64kbit/s (il motivo \`e perche\'e la rete cellulaure usa PCM64);
+    \item \textbf{Network and Switching Subsystem (NSS)}: la BSS \`e collegata a:
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.6\textwidth]{nss.png}
+            \caption{Nss}
+            \label{fig:nss}
+        \end{figure}
+        \begin{itemize}
+            \item MSC (Mobile Switching Center): gestisce l'autenticazione, il routing tra il GSM ed altri network;
+            \item HLR (Home Location Register): \`e il database della rete a cui appartiene il dispositivo home, nella quale vengono registrati i parametri dell'utente, come le chiavi crittografiche, dati di mobilit\`a, \`e unico per tutta la rete;
+            \item VLS (Visitor Location Register): contiene le informazioni legati ad un MT presente in quel momento nella rete, mantiene i valori quando l'utente si \`e spostato;
+            \item AuC (Authentication Center): tramite una tecnologia challange and response, l'utente si pu\`o autenticare;
+            \item EIR (Equipmente Identity Register): mantiene un registro di tutti i dispositivi rubati;
+        \end{itemize}
+    \item \textbf{GMS Frequenze}: le frequenze allocate al GMS sono: 850, 900, 1800, 1900 MHz. Le frequenze in uplink sono diverse da quelle in downling;
+    \item \textbf{Canali}: si usa un approccio FDMA/TDMA, la divisione \`e in 32 frequenze portanti, inoltre ogni canale viene diviso in 8 slot temporali. All'interno degli slot le informazioni vengono arganizzate in burst:
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.6\textwidth]{up-down-link.png}
+            \caption{Up Down Link}
+            \label{fig:up-down-link}
+        \end{figure}
+    \item \textbf{Timing Advance}: ci sono dei ritardi di propagazione, comportando dei problemi con la trasmissione negli slot assegnati, per questo viene usato il timing advance, misurando i ritardi di propagazione si inizia a trasmette con un anticipo temporale pari a al ritardo di propagazione, infatti all'inizio e alla fine del burst sono presenti dei bit inutili, detti di guardia, per evitare sovrapposizioni con gli altri cananli, anche per problemi di disallineamento;
+    \item \textbf{Struttura burst}:
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.6\textwidth]{struttura-burst.png}
+            \caption{Struttura Burst}
+            \label{fig:struttura-burst}
+        \end{figure}
+    \item \textbf{Canali Logici}: i canali logici sono mappati sui canali fisici che identificano cosa viene trasmesso all'interno dei canali, divisi in traffic channel e control channel.
+\end{itemize}
+
+\subsection{LTE}
+Una delle caratterisiche principali \`e il rimpiazzamento del CDMA con l'FDMA (OFDMA: FDM dove le frequenze portanti sono pi\`u vicine tra di loro ed ortogonali tra di loro).
+
+L'LTE \`e composto da:
+\begin{itemize}
+    \item LTE utilizza 3 diverse bande di frequenza:
+        \begin{itemize}
+            \item 2600 MHz per citt\`a;
+            \item 1800 MHz medio gittata;
+            \item 800 MHz lunghe gittate, pochi utenti, pochi ostacoli;
+        \end{itemize}
+    \item \textbf{Terminologia}:
+        \begin{itemize}
+            \item \textbf{downling (DL)}: 
+            \item \textbf{upling (UL)}:
+            \item \textbf{User plane}:
+            \item \textbf{control plane}:
+        \end{itemize}
+    \item \textbf{Architettura}: \`e formata da RAN Radio Access Network, ... ,  le BSS vengono chiamate eNodeB, 
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.6\textwidth]{architettura-lte.png}
+            \caption{Architettura Lte}
+            \label{fig:architettura-lte}
+        \end{figure}
+    \item \textbf{ECP}: l'EPC \`e stato ridefinito da zero (clean-slate), gestisce anche le risorse radio;
+    \item \textbf{Bearers}: i bearer sono dei tunnel che trasportano il traffico dall'UE ad altri elementi dell'architettura, questi tunnel vengono creati per inviare il traffico attraverso alcuni nodi ritenuti i migliori per gestire il servizio dell'utente, si possono creare dei bearer per dei servizi specifici. I bearer hanno dei nomi specifici:
+        \begin{itemize}
+            \item radio bearer: connessione tra UE e eNodeB;
+            \item s1 bearer: connessione tra eNodeB e l'S-GW (Service Gateway);
+            \item s5 bearer: connette il S-GW al P-GW.
+        \end{itemize}
+    \item \textbf{E-UTRAN}: consistono per la maggior parte di eNodeB, la loro funzione principale \`e la gestione delle risorse, compressione degli header per migliorare le prestazioni, sicurezza, connessione all'EPC;
+    \item \textbf{Control/Data Plane}: controllo: protocolli per la mobilita, sicurezza, autenticazione, dati: nuovi protocolli per per livello link e livello fisico,
+\end{itemize}
+
+In LTE c'\`e una separazione, esistono \textbf{Control/Data Plane}:
+\begin{itemize}
+    \item \textbf{Link Layer Protocol}: formato da:
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.6\textwidth]{link-layer.png}
+            \caption{Link Layer}
+            \label{fig:link-layer}
+        \end{figure}
+        \begin{itemize}
+            \item packet data convergence: compressione e encryption;
+            \item radio link control (RLC): potrebbe essere necessario frammentare i pacchetti e la ricomposizione, inoltre permette un reliable data transfer che permette una verifica dei dati, come nel wifi;
+            \item medium access: richiesta di accesso, uso di slot radio;
+        \end{itemize}
+    \item \textbf{First Hop}: per accedere ai canali si utilizza un approccio OFDM con TDM, gli slot sono molto piccoli, grazie a questi slot piccoli gli algoritmi di assegnamento potranno asseganre pi\`u slot ad un singolo utente, tutti allocati in maniera dinamica;
+    \item \textbf{Canali Fisici}: la divisione fatta da OFDM/TDM vengono detti canali, in alcuni canali vengono riservati degli slot specifici per segnali di controllo, esiste dunque un divisione tra canali di controllo e canali di dato;
+    \item \textbf{Associazione di un nodo}: la BS fa un broadcast di un \textbf{primary sync signal} ogni 5ms su ogni frequenza, il terminale che riceve questo signal ne sceglio uno basandosi sulla pontenza del seganle e aspetta il \textbf{second sync signal} che contiene delle informazioni sulla BS, il primary da solo il seganle di aggancio, scelta la BS si inizia l'autenticazione e si inizializza il data plane;
+    \item \textbf{Sleep Mode}: dopo 100ms di inattivit\`a il terminale entra il light sleep e viene periodicamente svegliato ogni 100ms per controllare se ci sono dei messaggi pending, se i secondi di inattivit\`a diventano 5-10s, il terminale va in deep sleep, in cui la connessione va riassociata ad una BS, se il terminale deve ricevere dei messaggi la BS pu\`o sevgliare il terminale dal deep sleep;
+\end{itemize}
+
+
+\section{5G}
+Lo scopo \`e creare una rete wireless unificata (nuovo ordine mondiale), insieme ad altri servizi.
+
+Per offrire tutti questi servizi bisogna disclocare i calcoli vicino all'utente (edge della rete), si ha bisogno di \textbf{network slice}, ovvero porzioni di rete dedicate ad un utente, ho bisogno di un controllore centralizzato (SDN) per assegnare le risorse.
+
+Alcuni use cases:
+\begin{itemize}
+    \item eMBB (enhanced mobile brodband): definisce come in una rete si possono creare delle ditribuzioni di servizi streaming per utenti mobili;
+    \item mMTC (massive machine type comunication): comunicazioni tra macchine industriali;
+    \item URLLC (ultra relieable low latency comunication): comunicazioni con latenze di 1ms;
+\end{itemize}
+
+Le tecnologie usate:
+\begin{itemize}
+    \item forme d'onda avanzate;
+    \item MIMO avanzate, con un throught maggiore di quelle di LTE;
+    \item uso delle micro onde;
+\end{itemize}
+
+Core network:
+\begin{itemize}
+    \item SDN: controller centralizzato;
+    \item NFV: funzioni virtuali eseguite;
+\end{itemize}
 
 
 

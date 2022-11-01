@@ -539,8 +539,35 @@ group by regione, mese, data;
 
 
 
+\section{Data Lake}
+I data lake sono dei repositori di dati, storicizzati per utilizzo futuro cos\`i come sono disponibili, in qualsiasi formato. Questi raw data potrebbero essere utilizzati in futuro.
+
+I data lake danno la possibilit\`a di storicizzare i dati per un uso futuro, inoltre tutti i dati sono contunuti in un repository comune, infatti \`e caratterizzato da bassi costi di storage e mantenimento, per\`o pu\`o essere difficile estrapolare dei dati.
+
+\section{Data processing}
+Una collezione \`e costituita da oggetti di dato,
+\begin{itemize}
+    \item \textbf{Attributo}: \`e una propriet\`a dell'oggetto;
+    \item \textbf{Tipi di Attributo}: possono essere nominali, ordinali, intervalli, rapporti;
+    \item \textbf{Proprit\`a dei valori degli attributi}: possiamo definire equivalenza, ordine, addizione, moltiplicazione;
+    \item \textbf{Attributi discreti e continui}:  discreti hanno un nemero finito di valori, i continui hanno dei valori reali;
+\end{itemize}
+
+Tipi di dato da analizzare:
+\begin{itemize}
+    \item record: sono i dati presenti in una tabella;
+    \item grafi: come la struttura di una pagina web;
+    \item ordinato: dati in cui esiste il concetto di squenza;
+\end{itemize}
 
 
+\begin{itemize}
+    \item \textbf{Document Data} Per ogni riga ho un doumento, per ogni colonna ho degli attributi che descrivono delle parole chivi all'interno del documento, ogni riga \`e un array che contiene la pesatura degli attributi, la pesatura pu\`o essre calcolata con algoritmi specifici;
+    \item \textbf{Dato transazionale} Un dato transazionale \`e formato da un insieme di items all'interno della tabella, ogni transazione \`e identificata da un ID, nelle tabelle transazionali non esiste il concetto di ordine ne tra le riche, ne all'interno della transazione;
+    \item \textbf{Dato a grafo}: ad esempio le pagine web hanno dei link ad altre pagine, potrei considere i link come gli archi del grafo, ognuno con un peso specifico, e la singola pagina come un nodo del grafo;
+    \item \textbf{Qualit\`a del dato}: nella maggior parte dei casi i dati presentano delgi errori, questi possono essere causati da rumori e outliers, dati mancanti o duplica, ...;
+    \item \textbf{Outliers}: dati che escono al di fuori del comportamento medio e quindi molto rumorosi, l'abbiettivo dell'analisi di outlier detection \`e l'individuazione di questi dati e dell'eliminazione;
+\end{itemize}
 
 
 
