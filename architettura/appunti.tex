@@ -219,17 +219,120 @@ Quando un operazione di scrittura \`e fatta sulla cache deve anche essere propag
 \end{itemize}
 
 
-\section{BPU}
-...
+\newpage
+\section{Branch Prediction}
+Per effettuare delle predizioni esistono due tipi di approcci: prediction statici e prediction dinamici. Un esempio prediction statico \`e prendere tutti i salti come presi, oppure facciamo un filtro su quali tipi di branch prendere come presi (prendere i salti all'indietro come sempre presi).
 
-
-\subsection{BHT}
-Un tipo di predittore dinamico: \`e una piccola memoria che salva per ogni istruzione salva dei valori
-funzionamento:
+Per avere delle predizioni pi\`u accurate \`e usare un brach prediction dinamico (speculazione). I metodi di predizione sono:
 \begin{itemize}
-    \item se un branch non viene effettuta il contatore misP. counter ed il BHT vengono incrementati, il miss viene incrementato fino ad un massimo di differenza con il BHT, superato questo threshold i contatori non vengono incrementati ed il branch prediction \`e attivato per quella istruzione;
-    \item se un branch viene effettuato il BHT viene decrementatto, se il BHT \`e minore del miss il branch prediction non viene attivato per quella istruzione;
+    \item branch history table;
 \end{itemize}
+
+\paragraph{Branch History Table}
+Il BHT ha una memoria in cui sono contenute le informazioni relative ai salti. Si accede a questa tabella quando nella fase di fetch si prende un salto, si guarda l'informazione relativa e al salto e si legge la predizione del salto.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{bht-implementation.png}
+    \caption{Bht Implementation}
+    \label{fig:bht-implementation}
+\end{figure}
+Solitamente il valore che indica se il branch deve essere preso o meno solitamente \`e reppresentato da due bit.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{two-bits-prediction-scheme.png}
+    \caption{Two Bits Prediction Scheme}
+    \label{fig:two-bits-prediction-scheme}
+\end{figure}
+Questi tipi di predittori sono stati evoluti, usando dei contatori (\textbf{n-bit saturating counter}), quando un salto viene preso il contatore aumenta altrimenti diminuisce, se il bit pi\`u significativo \`e settato ad 1 allora il branch viene preso, questo tipo di contatore di saturazione \`e molto facile da implementare.
+
+Altri tipi di predittori sono i \textbf{(m, n) predictors} guardano agli m-salti precedenti, date le $2^{m}$ possibili salti ognuno ha un predittore da n bit.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{predictor.png}
+    \caption{(2,2) Predictor}
+    \label{fig:predictor}
+\end{figure}
+Questi tipi di predittori non danno inforamazioni su dove saltare.
+
+Un altro predittore \`e il \textbf{Branch Target Buffer} (usato dal MIPS), questo tipo di predettore ha a disposizine dei registri in cui sono contenuti gli indirizzi di salto, questo struttura contiene l'indirizzo del salto attuale, viene interrogata durante la fase di fetch e sar\`a poi disponibili al secondo colpo di clock, nel colpo di clock successivo l'indirizzo viene letto, se l'istruzione \`e un branch e l'istruzione corrente si trova nella tabella, allora il salto deve essere preso, per ogni linea si devo salvare 30bit per indirizzo (vengono tagliati gli ultimi 2 essendo degli indirizzi). Il problema con questo predittore \`e che \`e molto costoso, infatti si deve avare un numero di entry non piccolo che che sono onerose in termini di memoria.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{comportamento-branch-target-buffer.png}
+    \caption{Comportamento Branch Target Buffer}
+    \label{fig:comportamento-branch-target-buffer}
+\end{figure}
+
+Esistono anche due tipi di predittori chiamati \textbf{gselect} e \textbf{gshare}.
+
+\begin{example}{BHT}{bht}
+    
+\end{example}
+
+\newpage
+\section{Schedulazione Dinamica}
+
+
+
+\newpage
+\section{Pipelining}
+Esistono delle tecniche per portare le CPI sotto il numero 1, questo \`e possibile farlo attraverso il fetch di pi\`u istruzioni. Esistono due tipi di processori che possono farlo:
+\begin{itemize}
+    \item \textbf{superscalari}: hanno uno scheduling statico o dinamico;
+    \item \textbf{very long instruction word (VLIW)};
+\end{itemize}
+
+
+\subsection{Static Scheduling}
+Per implementare un processore superscalare viene creato un \textbf{issue packet}, dove viene fatto il fetch di due (o pi\`u) istruzioni contemporaneamente se in modo statico: una \`e load, store, branch o operazioni ALU e l'altra \`e una qualsiasi operazione FP, queste due istruzioni vengono chimate issue packet.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{issue-packet-example.png}
+    \caption{Issue Packet Example}
+    \label{fig:issue-packet-example}
+\end{figure}
+In un caso ideale si eseguiranno 0.5 istruzioni per colpo di clock. L'issue packet conterr\`a sempre una sola istruzione di branch. In questo caso l'unit\`a FP sar\`a pipelined o indipendente, in qualche modo \`e possibile ottere degli hazard, come: fare un un istruzione di load e subito dopo un'istruzione di write, oppure dei possibili RAW (read after write).
+
+Nei sistemi moderni si utilizza una strategia statica in alcuni processori embedded con MIPS.
+
+
+\subsection{Dynamic Scheduling}
+Si pu\`o ottenere una schedulazione dinamica
+Si ha un Common Data Bus (sistema di forwarding) comune, quindi viene duplicato. Suppoiamo di avere le seguenti istruzioni:
+\begin{lstlisting}[language=]
+loop:
+    ls r2, 0(r1)
+    daddiu r2, r2, 1
+    sd r2, 0(r1)
+    daddiu r1, r1, 4
+    bne r2, r3, loop
+\end{lstlisting}
+Supponiamo che:
+\begin{itemize}
+    \item non ci sia speculazione:
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.8\textwidth]{dynamic-scheduling-senza-speculazione.png}
+        \caption{Dynamic Scheduling Senza Speculazione}
+        \label{fig:dynamic-scheduling-senza-speculazione}
+    \end{figure}
+    \item con speculazione:
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.8\textwidth]{dynamic-scheduling-con-speculazione.png}
+            \caption{Dynamic Scheduling Con Speculazione}
+            \label{fig:dynamic-scheduling-con-speculazione}
+        \end{figure}
+\end{itemize}
+
+
+
+
+\section{ARM}
+
+
+
+
+
 
 
 

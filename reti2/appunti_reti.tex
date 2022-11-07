@@ -306,10 +306,10 @@ Per creare queste informazioni:
 Si pu\`o configurare manualmente, ottenere dal DHCP oppure generati automaticamente. Nel modo di configurare i 64 bit bassi non si hanno garanzie che siano univoci, esiste un protocollo che permette il controllo e l'univocit\`a.
 
 \paragraph{EUI-48 to EUI-64 Mapping}
-EUI = Extended Unique Id
-
-OUI = Organization Unique Id
-
+\begin{itemize}
+    \item EUI = Extended Unique Id
+    \item OUI = Organization Unique Id
+\end{itemize}
 Per creare l'interface ID in modo automatico si pu\`o sfruttare la tecnica del mapping, si prende il MAC del interfaccia e viene mappato nel seguente modo:
 \begin{figure}[H]
     \centering
@@ -317,7 +317,7 @@ Per creare l'interface ID in modo automatico si pu\`o sfruttare la tecnica del m
     \caption{Mac To Id Mapping}
     \label{fig:mac-to-id-mapping}
 \end{figure}
-Il settimo bit viene settato a 0 se l'ID viene assegnato automaticamente, mentre viene settato a 1 se l'ID \`e stato assegnato manualmente (quidni l'indirizzo sar\`a necessariamente univoco), questa \`e una convenzione ma non la regola.
+Il settimo bit viene settato a 0 il MAC \`e universale (la scheda di rete \`e configurata da un'organizzazione), mentre viene settato a 1 se il MAC \`e stato assegnato manualmente (quidni l'indirizzo sar\`a necessariamente univoco nella sottorete), questa \`e una convenzione ma non la regola.
 
 \paragraph{Privacy Extension Algorithm}
 Per evitare che l'interface Id possa essere calcolato da qualcun'altro ch conosca il MAC del mio dispositivo si usa un approccio per garantire maggior privacy ed aumentare la sicurezza.
