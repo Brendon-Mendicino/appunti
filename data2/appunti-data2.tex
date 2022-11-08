@@ -951,6 +951,108 @@ including new values;
 \end{lstlisting}
 
 
+\newpage
+\section{Lab 03}
+1.
+\begin{lstlisting}[language=sql]
+select mese, tariffa,
+    sum(prezzo),
+    sum(sum(prezzo)) over () as prezzo_comp,
+    sum(sum(prezzo)) over (partition by mese) as prezzo_per_mese,
+    sum(sum(prezzo)) over (partition by tipo_tariffa) as prezzo_per_tariffa
+from tempo te, fatti f, tariffa t
+where te.id_tempo = f.id_tempo and
+    f.id_tar = t.id_tar ans
+    anno = 2003
+group by mese, tipo_tariffa;
+\end{lstlisting}
+
+
+2.
+\begin{lstlisting}[language=sql]
+select mese
+    sum(chiamate) as chiamte_tot,
+    sum(sum(prezzo)) as incasso_tot,
+    rank() over (
+        order by sum(prezzo) desc
+    ) as rank_piu_chiamate
+from fatti f, tempo t
+where f.id_tempo = t.id_tempo
+group by mese;
+\end{lstlisting}
+
+3.
+\begin{lstlisting}[language=sql]
+select mese
+    sum(chiamate) as chiamte_tot,
+    sum(prezzo) as incasso_tot,
+    rank() over (
+        order by sum(chiamate) desc
+    ) as rank_piu_chiamate
+from fatti f, tempo t
+where f.id_tempo = t.id_tempo and
+    anno = 2003
+group by mese;
+\end{lstlisting}
+
+4.
+\begin{lstlisting}[language=sql]
+select tipo_tariffa
+    sum(prezzo)
+from fatti f, tariffa t
+where f.id_tar = t.id_tar and
+    mese = 'luglio' and
+    anno = 2003
+group by tipo_tariffa;
+\end{lstlisting}
+
+5.
+\begin{lstlisting}[language=sql]
+select mese
+    sum(prezzo) as incaso_tot,
+    sum(sum(prezzo)) over (
+        order by mese
+        rows unbounded preceding
+    ) as incasso_da_inizio_anno
+from fatti f, tempo t
+where f.id_tempo = t.id_tempo
+group by mese;
+\end{lstlisting}
+
+6.
+\begin{lstlisting}[language=sql]
+select tipo_tariffa, mese,
+    sum(sum(prezzo)) over (partition by mese) as incasso_per_mese,
+    sum(sum(prezzo)) over (partition by tipo_tariffa) as incasso_per_tariffa,
+    100 * sum(sum(prezzo)) over (partition by mese) /
+        sum(sum(prezzo)) over (partition by tariffa)
+from fatti f, tempo t
+where f.id_tempo = t.id_tempo and
+    anno = 2003
+group by tipo_tariffa, mese;
+\end{lstlisting}
+
+vista:
+\begin{lstlisting}[language=sql]
+create materialed view view_fatti
+biuld immediate
+as
+select mese,
+    tipo_tariffa,
+    anno,
+    sum(prezzo) as prezzo,
+    sum(chiamate) as chiamate
+from fatti f, tempo te, tariffa t
+where f.id_tempo = te.id_tempo and
+    f.id_tar = t.id_tar and
+    anno = 2003
+gorup by mese,
+    tipo_tariffa,
+    anno,
+    prezzo,
+    chiamate;
+\end{lstlisting}
+
 
 
 \end{document}

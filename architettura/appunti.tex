@@ -326,9 +326,19 @@ Supponiamo che:
 
 
 
-
+\newpage
 \section{ARM}
+Nei lab verr\`a usato il \textbf{Coretex M3} che fa parte di ARM9. ARM sviluppa architetture per tre categorie:
+\begin{itemize}
+    \item architetture embedded (SoC: system on a chip);
+    \item sistem operativi;
+    \item compilazione - supporto - debug tools
+\end{itemize}
 
+
+Memory BIST: questi parti del SoC servono per il collaudo del sistema, infatti duranta la pruduzione sul silicio le momoria potrebbere avere dei problemi fisici (quando si scrive in un registro il valore savato non \`e corretto o potrebbe intaccare quello dei registri vicini), infatti questi moduli non interagiscono direttamente con la logica del processore.
+
+In un dispositivo ARM compliant la prima parte di codice che viene eseguita \`e il bootloader, per poi far partire il sistema operativo. Guadando la toochain, si parte dal codice assembly ARM, e dal codice C/C++, questi verranno compilati da un CROSS COMPILER, il risultato finala sar\`a un codice compilato con un ISA per ARM. Il risulatato sar\`a un eseguibile, con questo eseguibile sar\`a possibile usarlo in un simulatore di una scheda oppure caricarlo direttamente sulla scheda.
 
 
 
