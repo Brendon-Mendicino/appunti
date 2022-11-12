@@ -336,10 +336,76 @@ Nei lab verr\`a usato il \textbf{Coretex M3} che fa parte di ARM9. ARM sviluppa 
 \end{itemize}
 
 
-Memory BIST: questi parti del SoC servono per il collaudo del sistema, infatti duranta la pruduzione sul silicio le momoria potrebbere avere dei problemi fisici (quando si scrive in un registro il valore savato non \`e corretto o potrebbe intaccare quello dei registri vicini), infatti questi moduli non interagiscono direttamente con la logica del processore.
+Uno dei moduli \`e il \textbf{Memory BIST}: questi parti del SoC servono per il collaudo del sistema, infatti duranta la pruduzione sul silicio le momoria potrebbere avere dei problemi fisici (quando si scrive in un registro il valore savato non \`e corretto o potrebbe intaccare quello dei registri vicini), infatti questi moduli non interagiscono direttamente con la logica del processore.
 
 In un dispositivo ARM compliant la prima parte di codice che viene eseguita \`e il bootloader, per poi far partire il sistema operativo. Guadando la toochain, si parte dal codice assembly ARM, e dal codice C/C++, questi verranno compilati da un CROSS COMPILER, il risultato finala sar\`a un codice compilato con un ISA per ARM. Il risulatato sar\`a un eseguibile, con questo eseguibile sar\`a possibile usarlo in un simulatore di una scheda oppure caricarlo direttamente sulla scheda.
 
+
+ARM cortex-M3 contiene 16 registri, tra cui il 15 \`e il PC. Il \textbf{barrel shifter} si avr\`a la possibilit\`a di creare valori immediati fino a 32 bit, sole se il valore contiene in qualche modo un replicazione all'interno di se stesso, inoltre ci permette di fare uno shift automatico del secondo registro su cui stiamo operando salvando un'istruzione.
+
+Esistono alcuni casi particolari:
+\begin{itemize}
+    \item istruzioni \textbf{registro-registro}: dati i due registri Rn ed Rm, il primo entra direttamente nell'ALU, il secondo pu\`o essere modificato, al termine dell'operazione il risultato viene riportaro in un registro;
+    \item ...
+\end{itemize}
+
+
+I vari moduli sono:
+\begin{itemize}
+    \item nested vectored interrupt controller;
+    \item wake up interrupt controller interface: permette di mandare il dispositivo in sleep;
+    \item memoria: interface code, memeory protection unit;
+    \item SRAM e interfaccie periferiche: possibilit\`a di parlare con i timer;
+    \item debug access port: permette di effettuare il debug anche attraverso il codice;
+    \item ITM trace, ETM trace, data watchpoint, flash patch: moduli che permettono di fare il debug;
+\end{itemize}
+
+La pipeline \`e formata da:
+...
+
+Le istruzioni di branch comportano una perdita di due cicli. Quando si legge dalla memoria si perde un colpo di clock.
+
+\subsection{Register}
+Non tutti i registri sono general purpose, infatti:
+\begin{itemize}
+    \item 15: PC;
+    \item 14: link register;
+    \item 13: stack pointer: l'sp ha due versinoi;
+\end{itemize}
+
+L'instruction set utilizzato sar\`a il \textbf{thumb 2}, che prende le caratteristiche positive del thumb (a 16 bit) e dell'ARM, in thumb 2 esistono istruzioni a 16 e 32 bit, in questo modo i programmi sono pi\`u piccoli e le prestazioni sono simili all'ARM.
+
+...
+
+Ogni istruzione pu\`o essere eseguita in modo condizionato. L'architettura load e store si pu\`o utilizzare un formato di tre operandi.
+
+
+\subsection{Instruction Set}
+In questa architettura il PC \`e immagazzinato in r15, questo registro \`e modificabile, modificare il PC \`e importante quando ad esempio si ritorna da un subroutine, il registro r14 link register salva il valore di memoria di ritorno che andr\`a copiato nel PC. Il registro r13 \`e lo stack pointer, che permette di avere il valore dell'ultimo oggetto inserito, questo registro ha un valore iniziale, al termine del programma il valore dello stack pointer var\`a ricaricato con il suo valore iniziale che si trova all'interno della \textbf{interrupt vector table}, la posizione dello stack precedente si trova nell'index 0. Esiste anche il program status register \`e deviso in 3 registri, a seconda dell'operazione che si sta facendo si potrebbe accedere solo ad un parte del registro, vi sono dei flag delle operazioni aritmetiche, questo registro \`e diviso in:
+\begin{itemize}
+    \item application program status regiser (apsr);
+    \item execution program status register (epsr);
+    \item interrupt porgram status register (ipsr);
+\end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{}
+    \caption{}
+    \label{fig:}
+\end{figure}
+
+I flag sono:
+\begin{itemize}
+    \item Z zero;
+    \item N negative;
+    \item C carry;
+    \item V overflow;
+\end{itemize}
+
+L'esecuzione condizionata delle istruzioni non vale solo per i salti, ma per ogni istruzione, nei 32 bit delle istruzioni ARM (comprese nella versione thumb 2), si hanno 4 bit che indicano il tipo di condizione che determina se l'istruzione viene eseguita oppure no, questo viene fatto leggendo i flag o secondo certe condizioni. Se si vuole che un istruzione modifichi un flag dobbiamo chiderlo esplicitamente, aggiungendo un \textbf{S} alla fine dell'istruzione.
+
+
+v5.36 di Keil
 
 
 

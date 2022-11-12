@@ -772,7 +772,7 @@ Per effettuare lo split bisogna partire dai tipi di dati con cui si lavora:
 
 Per stimare la purezza (grado di omogeneit\`a) dei nodi che vengono generati, esistono delle metriche per calcolare l'impurit\`a: gini index, entropia, missclassification index. Il primo caso \`e quello di utilizzo del \textbf{Gini index}, con questo metodo viene misurata l'impuit\`a prima e dopo lo split, il gini index si misura con:
 \[ GINI(t) = 1 - \sum_{j}^{} (p(j|t))^{2} \]
-$p(j|t) = $ frequenza della classe j al nodo t. Pi\`u il gini index si avvicina allo zero, pi\`u la classe \`e impura, pi\`u il valori si avvicina a $(1 - \frac{1}{\text{numro di classi}} )$ pi\`u il nodo \`e impuro, viene preso l'attributo che genera il gini index col valori pi\`u basso. Nelle implementazioni reali vengono fatti dei test utilizzando metriche diverse con successive validazioni.
+$p(j|t) = $ frequenza della classe j al nodo t. Pi\`u il gini index si avvicina allo zero, pi\`u la classe \`e impura, pi\`u il valore si avvicina a $(1 - \frac{1}{\text{numro di classi}} )$ pi\`u il nodo \`e impuro, viene preso l'attributo che genera il gini index col valori pi\`u basso. Nelle implementazioni reali vengono fatti dei test utilizzando metriche diverse con successive validazioni.
 
 Per la creazione di un albero va definito anche un criterio di stop:
 \begin{itemize}
@@ -781,6 +781,133 @@ Per la creazione di un albero va definito anche un criterio di stop:
     \item post-pruning: generato l'albero completo vado a tagliare i rami dell'albero con delle caratterisiche troppo specifiche;
 \end{itemize}
 
+
+
+\subsection{Random Forest}
+I random forest sono un'estensione degli albri di decisione (pi\`u alberi di descisione), dato un db si creano n sottoinsiemi dei dati originali, su ogni sottoinsieme si crea un albero di decisione, ognuno di questi modelli per decidere l'etichetta, successivamente si seglie l'etichetta finale in base ai voti (possono anche essere pesati).
+
+Si parte con il \textbf{Bootstrap} che va a estrarre gli n sottoinsiemi (con ripescamento) di oggetti randomici, base alla cardinalit\`a, poi si va a creare un albero di decisione applicando una selezione degli attributi (non tutti gli alberi potrebbero utilizzare le stesse feature), ma si scelgono gli attributi che megli modellano i dati che si vogliono analizzare.
+
+
+\subsection{Rule-based Classification}
+Si parte da un database di training. Le classificazione rule-based sono composte da: (conidizione) $ \implies $ y, dove la condizione \`e in inseme di condizioni booleane e y \`e la classe. Un esmpio \`e:
+\begin{center}
+    (Blood type == warm) \&\& (can fly == yes) $ \implies$ Bird
+\end{center}
+Dato il db di training si genera il modello, che \`e composto da n regole R.
+
+Ogni regola R che matcha la entry che si sta elaborando, viene associata la classe all'istanza, se esistono delle collisioni, si pu\`o utilizzare la mutua esclusione, e soprattutto (idealmente) le regole devono essere esaustive (non devono esistere casi non gestiti).
+
+Per creare le regole si pu\`o partire da un albero di decisione, in questo modo si risolve la mutua esclusione ma non l'esaustivit\`a. La strategia che solitamente si segue \`e il semplificamento di queste regole, le rogole possono essere semplicate al completamento dell'albero di decisione, oppure si potrebbe semplificare l'albero con del pruning e poi estrarre le regole, oppure estrarre  le regole direttamente dal db. Quando le regole non sono esaustive si una classe di default che solitamente \`e la maggioritaria.
+
+Le caratteristiche di questi modelli sono:
+\begin{itemize}
+    \item accuratezza maggiore degli alberi di decisione;
+    \item interpretabili;
+    \item non sono incrementali;
+    \item molto efficenti;
+    \item sono scalabili sia sul training set che sul numero di attributi;
+    \item sono robusti agli outliers;
+\end{itemize}
+
+
+\subsection{Classificazione Associativa}
+Si utilizzano le regole di associazione per fare delle previsioni, le regolo di associazione per\`o vanno ristrette, per la classificazione le uniche regole che interessano sono (condizione) $ \implies $ regola di classe (un sottoinsieme delle regole possibili). In questo caso l'estrazione \`e diversa dalle regole di associazione, infatti la classificazoine associativa \`e composta da regole ordinate con degli indice di qualit\`a, l'ordinamento \`e fatto sulle regole di associazione (soglia, confidenza, lift). Anche in questo caso non si vuole fare dell'overfitting sul training set, quindi in fase di creazione si dovr\`a decidere dove fare del pruning.
+
+Le caratteristiche sono:
+\begin{itemize}
+    \item ha un accuratezza maggiore alla rule-based;
+    \item modello iterpretabile;
+    \item non incrementale;
+    \item efficenza bassa: dato dall'estrazione delle regole di associazione (dato dal minsup);
+    \item la scalabilit\`a dipende dai dati: dimensione dell'FP-growhth (ad esempio);
+    \item non soffre di missing value e robusti agli outliers;
+\end{itemize}
+
+
+\subsection{K-Neareset Neighbor (KNN)}
+\`E un algoritmo di classificazione che non ha un modello, ma si basa sul dataset di training, in questo modo non viene effettuato alcuna fase di training. Quando si vuole classificare un nuovo item, si cercano delle similarit\`a dal dataset di training e poi si assegna la classe. Per decidere quali dati nell'iteset di training sono i pi\`u simili al nuovo item si utilizza un concetto di vicinanza, trovati i sui vicini si assegna la classe, il numero di vicini che vengono scelti \`e dato dal valore K, la scelta di questo valore influisce col rumore che possono causare i vicini. Le misure di distanza dipende dal tipo di dato.
+
+Le caratteristiche sono:
+\begin{itemize}
+    \item l'accuratezza \`e simile ai precedenti;
+    \item il modello non \`e interpretabile;
+    \item il training set pu\`o essere incrementale;
+    \item tempi di classificazione lunghi;
+    \item la scalabilit\`a \`e determinata dalla cardinalit\`a dell'training set;
+\end{itemize}
+
+
+\subsection{Bayesian Classification}
+\begin{theorem}{Teorema di Bayes}{teorema-di-bayes}
+    \[ P(C,X) = P(X) \cdot P(C|X) \]
+\end{theorem}
+
+
+\subsection{Support Vector Machines}
+\`E una tecnica non interpretabile che va identificare un iperpiano che va a separare le classi di interesse. Questo iperpiano deve massimizzare il suo margine (distanza tra l'iperpiano i punti pi\`u vicini delle classi). \`E possibile definire anche delle curve non-lineari modificando il kernel dello spazio vettoriale.
+
+Le caratteristiche sono:
+\begin{itemize}
+    \item performance tra le migliori;
+    \item non interpretabile;
+    \item non incrementale;
+    \item molto efficente con il giusto tuning;
+    \item scalabilit\`a media;
+    \item robusti ad outlier e rumori;
+\end{itemize}
+
+
+\subsection{Artificial Neural Network}
+L'algoritmo utilizza delle unit\`a di computazioni detti \textbf{neuroni}, questi neuroni sono collegati tra di loro attraverso \textbf{sinapsi}. Esistono vari modelli di rete neurale:
+\begin{itemize}
+    \item Feed Forward NN: la pi\`u basilare;
+    \item Convolutional NN, prima viene modellato il dato utilizzando dei filtri, che poi viene dato ad un FFNN per la computazione finale;
+    \item Rcurrent NN, 
+    \item auto-encoder: vengono fatte delle elaborazione di dato dove viene fatto del denoising;
+\end{itemize}
+
+FFNN si ha un livello di input ed un livello di output ovvero l'etichetta di classe che deve essere predetta, questo modello \`e fully connected, ogni nodo genera un output che va in input ad ongi nodo del livella successivo, questo connessioni sono pesate. Ogni nodo \`e composto da: la somma di tutti gli output pesati, poi questo valore moltiplicato per un coefficiente e poi dato in pasto ad un funzione di attivazione che genera l'output. Le funzioni di attivazione decide come elaborare i valori, le pi\`u utilizzate sono la sigmoide e la tangente iperbolica. Altre funzioni sono il binary step o la rampa. La funzione utilizzata per l'output finale \`e la sofmax. 
+
+Costruire un algoritmo di rete neurale viene fatto con un approccio iterativo:
+\begin{enumerate}
+    \item ai vettori peso vengono assegnati dei valori casuali;
+    \item l'istanza processata veiene processata da tutti i layer della rete, l'output viene confrontato con il vero valore dell'etichetta;
+    \item ad ogni iterazione viene fatta una backpropagation per aggiustare i valori dei pesi e dei nodi;
+    \item l'iterazione finisce quando si raggiunge una certa percentuale di guess corretti o quando si finisce il dataset di training;
+\end{enumerate}
+
+Le caratteristiche sono:
+\begin{itemize}
+    \item performance migliori;
+    \item non interpretabile;
+    \item non incrementale;
+    \item il training \`e molto lento ma la classificazione \`e molto veloce;
+    \item riechede grandi moli di dati ma il training diventa pi\`u lento;
+    \item robusti in presenza di dati rumorosi ed outliers, questo \`e ottenuto con un grande pool di dati di test;
+\end{itemize}
+
+Un'architettura utilizzata sono le \textbf{Convolutional NN}, la parte di computazione convoluzionale vanno ad effettuare delle feature selection sui dati in input, questi dati vengono poi mandati in input in una rete FFNN. Per estrarre le feature un layer convoluzione fa operazione:
+\begin{enumerate}
+    \item convoluzione;
+    \item funzione di attivazione;
+    \item pooling;
+\end{enumerate}
+I dati sono rappresentati in tensori (matrice multidimensionale), ogni matrice di input \`e un tensore, l'output \`e anch'esso generato in un matrice tensoriale. La convoluzione viene effettuando applicando una finestra di filtro, che viene fatta scivolare su tutto il tensore, solitamnte viene aggiunto un padding ai bordi, ogni eleborzione viene effettuata considerando il vicinato di un punto che genera un singlo punto in output. Dopo la convoluzione viene applicata la funzione di attivazione, solitamnte nelle CNN viene utilizzata la ReLU (rampa). La fase di pooling \`e una fase di downsampling, viene fatto applicando dei filtri al tensore in output, il risultato finale \`e un assegnazione di tag ai vari oggetti presenti nel dato.
+
+Un'altra architettura \`e quello basato sulle \textbf{Recurrent NN} applicate sui tipi di dato con un concetto di tempo, queste architettura hanno un concetto di memoria, infatti all'n-esima elaborazione prendono in considerazione l'elaborazione n-1.
+
+\textbf{Support Vector Machines}
+
+
+
+\newpage
+\section{Model evuation}
+Nella letteratura esitono delle diverse tecniche per decidere quali dati faranno parte. Supponiamo di avera un db con 100 oggetti, si vuole utilizzare una parte di questi oggetti per il training associandogli le caratteristiche dell'input e dell'output, si utilizzano gli oggetti rimanenti per validare il modelo creato, verificando il corretto assegnamento delle etichette. 
+
+Le prime operazioni da effettuare \`e misurare la distribuzione dei tag nei diversi oggetti, calcolare i costi di missclassification e misurare la cardinalit\`a del training set.
+
+Il training pu\`o essere di dimensioni diverse
 
 
 
@@ -1052,6 +1179,11 @@ gorup by mese,
     prezzo,
     chiamate;
 \end{lstlisting}
+
+
+
+\newpage
+\section{A}
 
 
 
