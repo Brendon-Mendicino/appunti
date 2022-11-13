@@ -587,6 +587,77 @@ used on many websites to authenticate like google, twitter, aws, ...
 
 
 
+\section{Esercizi}
+\begin{itemize}
+    \item Symmetric:
+
+        alg-keylen-
+    \item Hash functions:
+        \begin{itemize}
+            \item B = data blob;
+            \item D = digest;
+        \end{itemize}
+        D = h-alg(B)
+    \item Keyed digest:
+
+        D = kd(K, B) or D = mac(K, B)
+        D = keyed-digest-alg(K, B) $ \implies $ hmac-sha-1(K, B)
+    \item Asymmetric encryption:
+
+        C = asymm-enc(PK, P) $ \implies $ rsa-2048-enc(Alice.PK, P)
+    \item Basic operation:
+        \begin{itemize}
+            \item random();
+            \item save();
+            \item send();
+            \item receive();
+            \item "||" or "+" concatenate;
+        \end{itemize}
+    \item Extract valuem from certificates (PKC = public key certificate):
+
+        get-hashalg(PKC), get-pubkey(PKC)
+\end{itemize}
+
+1.
+\begin{lstlisting}[language=]
+IV = random()
+C = aes-128-cbc-enc(K, P, IV)
+Alice.send(IV, C)
+Bob.receive(IV, C)
+P = aes-128-cbc-dec(K, C, IV)
+\end{lstlisting}
+
+2. Alice wants to write data P protected on disk, size of data must not be increased, key must be generated:
+\begin{lstlisting}[language=]
+Alice passwd
+salt = random()
+IV = random()
+K = h-sha-512(passwd || salt)
+D = hmac-sha-512(passwd || salt)
+C = aes-256-cbc-cts-enc(K, P, IV)
+writes(C, D, IV, salt)
+\end{lstlisting}
+
+3. alice wants to send bob a message P protected for integrity and authentication, they sahre symm key K
+\begin{lstlisting}[language=]
+alice 
+h = hmac-sha-256(K, P || "hmac-sha-256")
+Alice.send("hmac-sha-256", h, P)
+Bob.receive("hmac-sha-256", h, P)
+h' = hmac-sha-256(K, P || "hmac-sha-256")
+if h != h' FAIL
+\end{lstlisting}
+
+4. Alice wants to send bob a digitally signed message P, alice has Key Pair, alice send OOB PK
+\begin{lstlisting}[language=]
+S = rsa-2048-enc(Alice.SK, h-sha512(P))
+Alice.send(P, S, "rsa-2048", "h-sha512(P))
+Bob.receive(P, S, "rsa-2048", "h-sha512(P))
+digest = rsa-2048-dec(Alice.PK, S)
+if digest == h-sha512(P) then SIGNATURE VERIFIED
+\end{lstlisting}
+
+
 
 
 

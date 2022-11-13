@@ -820,4 +820,45 @@ Core network:
 
 
 
+\section{VPN (Virtual Private Network)}
+Si utilizzano le VPN quando ci si vuole connettere in una rete privata passando dalla rete, per questo motivo stabilire un tipo di comuncazione va protetta. Gli elementi chiave di queste connessioni sono:
+\begin{itemize}
+    \item \textbf{tunnel}: incapsulamento del traffico su un canale condiviso, che in alcune situazione non potrebbe essere disponibile;
+    \item \textbf{VPN gateway}: dispositivo ad-hoc per aprire e terminare dei tunnel, che dovr\`a supportare un protocollo specifico (non sempre il VPN gateway non supporta tutti i protocolli);
+\end{itemize}
+Il motivo per cui esistono le VPN \`e che l'alternativa sarebbe quella di posare un cavo direttamente collegato alla rete, dunque \`e comodo avere un modo di connersi ad una rete privata su una rete condivisa. Un altro motivo \`e l'utilizzo di un indirizzo IP locato in un altro paese.
+
+In base al livello dello stack ISO/OSI \`e possibile implementare una VPN.
+
+Gli scenari di attuazione di VPN pu\`o essere fatta in una azienda solo internamente (\textbf{Intranet VPN}) oppure pu\`o essere condivisa con pi\`u azionde o vari clienti, quindi dovranno essere presi in considerazione aspetti di sicurezza e privacy, entrando in gioco anche diversi livelli di firewall e varie autorizzazioni che vengono assegnate, si deve tenere in considerazione anche il problema dell'overlapping, ovvero avere pi\`u host con lo stesso indirizzo privato.
+
+Quando si parla di connessione ad internet attraverso la VPN esistono due tipi di accesso:
+\begin{itemize}
+    \item \textbf{Centralized Internet Access}: si ha accesso alla sottorete ed a internet;
+    \item \textbf{Distributed Internet Access}: solo il traffico indirizzato alla sottorete passo per la VPN, mentre il traffico verso internet passa normalmente dal default gateway;
+\end{itemize}
+
+
+\subsection{Deployment Model}
+Con deployment model ci si focolizza sull'infrastruttura che permette di utilizzare una VPN. Le VPN devono garantire autenticazione dei peer, integrit\`a dei dati e confidenzialit\`a. Quando si fa il deploy possono essere possibili diversi tipi di tunneling.
+\begin{itemize}
+    \item \textbf{s2s (site 2 site) VPN tunneling}: una sottorete 1 comunica con una sottorete 2 con un tunnel;
+    \item \textbf{e2e (end 2 end) VPN tunneling}: due computer in due sottoreti separate vengono connessi con un tunnel;
+    \item \textbf{remote VPN tunneling}: un singolo host si collega con un border gateway delle sottorete;
+\end{itemize}
+Adoperare un s2s ha dei costi maggiori, infatti i due border gateway (che sono ai bordi delle sottoreti) devono gestire costi di overhead, tunnel miltipli e quelli della crittografia, mentre col e2e non si ha questo problema di gestione.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 \end{document}
