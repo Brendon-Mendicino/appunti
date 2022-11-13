@@ -907,7 +907,35 @@ Nella letteratura esitono delle diverse tecniche per decidere quali dati faranno
 
 Le prime operazioni da effettuare \`e misurare la distribuzione dei tag nei diversi oggetti, calcolare i costi di missclassification e misurare la cardinalit\`a del training set.
 
-Il training pu\`o essere di dimensioni diverse
+Una tecnica di partizione dei dati \`e l'\textbf{hold out}, dove si definiscono delle percentuali fisse tra training e test, generalmente l'80\% dei dati dati viene usati per il training ed il 20\% per la validazione. Queste percentuali vanno mantenute per tutte le classi presenti, seve dunque un smapling di tipo stratificato attraverso tutte le classi. Questa tecnica \`e utilizzata con db di grosse dimensioni.
+
+La tecnica della \textbf{cross validation} presenta nativamente la ripetizione della fase di training. I dati vengono divisi in k \textbf{fold}, su k-1 fold viene fatto il training mentre sul rimanente viene fatta la validation, questo viene ripetuto per ogni fold. Quando un db \`e piccolo (e.g. nei casi medici), si prendono il numero di fold uguali al numero di entry nel database, quindi prendendo un singolo oggetto viene fatto il tranining su tutti gli altri, questo detto \textbf{leave-one-out}.
+
+Per poter stimare correttamnte un modello deve essere validato in base ai parametri di input (analisi delle sensitivit\`a), si devono selezionare i parametri di input del modello e fare delle validazioni, il motivo per il quale il dataset iniziale viene diviso in tre parti:
+\begin{itemize}
+    \item parte di training 60\%;
+    \item parte di validation (fatto sulla sensitivit\`a dei parametri) 20\%;
+    \item parte di test 20\%;
+\end{itemize}
+L'hold-out viene utitlizzato per dividere il db in training-validation e test, mentre il cross validation divide il db in training e validation.
+
+Esistono delle metriche per poter stimare in modo oggettivo le predizione fatte dal modello, per far questo viene utilizzata la \textbf{matrice di confusione}.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{}
+    \caption{}
+    \label{fig:}
+\end{figure}
+La metrica  dell'accuratezza non \`e sempre affidabile, consideriamo un esempio: classe 0: 9900 record; classe 1: 100 record; assegnando un classificatore di default che assegna sempre la classe 0 la sua accuratezza sar\`a del 99\%, mentre la classe 1 non sar\`a mai predetta, questo \`e un esempio di caso in cui le classi sono sbilanciate, il nostro interesse in questi casi \`e predirre con precisione la classe minoritaria, come nella vita reale solo l'1\% della popolazione contrae una malattia, ma quell'1\% deve esere predetto con la maggiore precisione. Generalmente si danno delle metriche di valore per gli attributi di interesse, queste metriche calcolate pre una classe di interesse vengono dette, \textbf{recall} (numero di oggetti correttamente assegnati alla classe / numbero di oggetti che appartengono alla classe) e \textbf{precision} (numero di oggetti correttamente assegnati alla classe / numbero di oggetti assegnati alla classe). Queste metriche vanno massimizzate attraverso l'\textbf{F-measure} $= \frac{2rp}{r + p} $.
+
+L'ultima tecnica di classificazione dei modelli \`e la \textbf{curva ROC}, ...
+
+
+
+\section{Clustering fundamentals}
+
+
+
 
 
 
