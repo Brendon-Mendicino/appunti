@@ -846,12 +846,39 @@ Con deployment model ci si focolizza sull'infrastruttura che permette di utilizz
     \item \textbf{e2e (end 2 end) VPN tunneling}: due computer in due sottoreti separate vengono connessi con un tunnel;
     \item \textbf{remote VPN tunneling}: un singolo host si collega con un border gateway delle sottorete;
 \end{itemize}
-Adoperare un s2s ha dei costi maggiori, infatti i due border gateway (che sono ai bordi delle sottoreti) devono gestire costi di overhead, tunnel miltipli e quelli della crittografia, mentre col e2e non si ha questo problema di gestione.
+Adoperare un s2s ha dei costi maggiori, infatti i due border gateway (che sono ai bordi delle sottoreti) devono gestire costi di overhead, tunnel miltipli e quelli della crittografia, mentre col e2e non si ha questo problema di gestione. Solitamente una buona soluzione implementativa \`e l'utilizzo in contemporanea di e2e e s2s.
+
+Quando si parla di tunnel esistono diversi metodi di creazione, a differenza della soluzione si avr\`a una differenza tra performance e sicurezza, queste ultime sono inversamente proporzionali:
+\begin{itemize}
+    \item \textbf{Overlay Model}: nell'overlay model i tunnel vengono creati tra i due endpoint, non preccopandosi del routing.
+    \item \textbf{Peer Model}: in una soluzione peer model viene creato un tunnel spezzato tra i vari router in cui si passa, quindi esisteranno tanti tunnel quanti sono i router da cui si deve passare per raggiungere la destinazione, il vantaggio di questa soluzione \`e che si pu\`o indirizzare il traffico per un percorso specifico, lo svantaggio \`e che ad ogni hop il pacchetto viene decapsulato per poi essere reincapsulato in un nuovo pacchetto quando si fa il forward.
+\end{itemize}
 
 
+Il tunneling in una VPN non \`e altro che l'incapsulamento di un pacchetto IP (header e payload) in un altro pacchetto IP (nel caso diVPN a livello IP), questo nouvo payload viene criptato con i protocolli GRE o IPsec.
 
 
+\subsection{Livelli delle VPN}
+Esisistono anche le VPNs di livello 2, vengono dette \textbf{Virtual Private LAN Service}, viene usata per emulare le funzionalit\`a delle LAN, serve anche per connettere parti della sottorete. Il tunnel viene fatto attraverso l'incapsulamento di una trama di livello 2 in pacchetto IP, per questo motivo \`e necessario avere una rete locale con una tecnologia di livello 3.
 
+Le VPN di livello 3, hanno un routing basato su Peer o Overlay, mentre i CE possono essere connessi con e2e, s2s, remote. L'impacchettamento pu\`o essere fatto in GRE o IPsec.
+
+Le VPN di livello 4, hanno una encapsulazione basata su TCP che ottiene un alto livello di sicurezza attraverso SSL.
+
+
+\subsection{Protocolli per VPN}
+Il protocollo \textbf{GRE} (Generic Routing Encapsulation) \`e uno standard per l'encapsulazione, il suo fromato \`e fatto da:
+\begin{itemize}
+    \item Flags: presenza di campi addizionali;
+    \item s: se la destinazione non \`e raggiunta quando si \`e percorsa la lista dei router il pacchetto viene distrutto;
+    \item recur: massimo numero di encapsulazioni successive;
+    \item route: \`e possibile specificare un indirizzo per fare del routing, viene usato insieme al flag s;
+\end{itemize}
+Del protocollo GRE esiste anche una versione 1 che migliora gli acknowledge.
+
+I protocolli di tunneling di livello sono \textbf{L2TP} (Layer 2 Tunneling Protocol), che la caratteristica di essere indipendente dal livello 2, non viene utilizzato in pratica perch\`e richiede un ulteriore encapsulamento in IPsec, ed il \textbf{PPTP} (Point To Point Tunneling) che \`e Customer provisioner, ma anche esso ha una cifratura debole oltre ad avere un sistema di chiavi proprietario.
+
+L2TP utilizza due dispositivi per creare un tunnel, il LAC (L2TP Access Concentrator) a cui gli utenti si collegano, poi questo crea un tunnel verso il LNS (L2TP Network Server), che poi si collega alla rete locale dell'azienda.
 
 
 
