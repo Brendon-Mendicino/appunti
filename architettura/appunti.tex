@@ -409,6 +409,30 @@ v5.36 di Keil
 
 
 
+Quando si organizza il codice si dovranno avere delle sezioni di codice. Nella memoria di codice readonly (quello che va in ROM) si possono definire delle costanti. Per salvare delle costanti in memoria esistono delle direttive per definire un tipo di dato (le direttive inziano con DC**).
+\begin{lstlisting}[language=ARM]
+my_matrix   DCD  1, 2, 3, 4
+            DCD  3, 4, 5, 6
+            DCD  7, 8, 9, 1
+            DCD  8, 9, 6, 3
+
+my_const    DCD 10
+\end{lstlisting}
+Come ad esempio il salvataggio di una matrice e di una costante con dati.
+
+Un'altra direttiva molto importante \`e quella di LTORG, ovvero dei \textbf{literal pool}, che permette al compilatore di accedere direttamente  ad alcune costanti che non sono accessibili direttamente, ad esmpio se un valore immediato \`e troppo grande (quando si fa un operazione come LDR r1, =0x12345678) viene salvato in questa zone dalla quale si pu\`o accedere.
+
+Una volta fatte delle operazioni si possono valer salvare le variabili in memoria RAM, per fare questo si utilizza direttiva AREA, questa direttiva perende dei parametri:
+\begin{itemize}
+    \item |\emph{nome della sezione}|;
+    \item \texttt{DATA / CODE}: definisce se la zona \`e e di codice o di dati;
+    \item \texttt{READONLY / READWRITE}: definsce se si pu\`o leggere o scriver;
+    \item \texttt{align=x}: definisce l'allineamento dei dati ...;
+\end{itemize}
+
+Per caricare un registro in memoria si utilizza un valore \textbf{pre-indicizzamento}: \texttt{load/store Rd, [Rt, <offset>]\{!\}}, se si usa ! il valore del registro viene incrementato prima di essere letto e quindi viene salvato se non si mette il ! il valore del registro viene incrementato dopo esser stato letto. L'offset pu\`o essere anche un valore salvato in un registro. Oppure usando si pu\`o usare un valore \textbf{pre-indicizzato}: \texttt{load/store Rd, [Rt], <offset>} 
+
+
 
 
 
