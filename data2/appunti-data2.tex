@@ -1221,6 +1221,31 @@ Il clustering consiste nel raggruppamento di oggetti similiri tra di loro, quest
     \item cluster concettuali;
 \end{itemize}
 
+\subsection{K-means}
+Ogni cluster \`e associato con un centroide, l'algoritmo prende in input un parametro K che corrisponde al numero di cluster. L'algoritrmo \`e formato da:
+\begin{lstlisting}[language=]
+seleziona K centroidi casuali
+do
+  si formano K cluster a partire dai centroidi assegnando i valori pi\`u vicini
+  si ricalcolano i centroidi a partire dai cluster
+while (i centroidi non cambiano)
+\end{lstlisting}
+Questo algoritmo converge abbastanza velocemente infatti ha O(num_punti * K * iterazioni * num_attributi), per questo motivo l'algoritmo viene fatto eseguire molteplici volte per eliminare il problema dell'assegnazione casuale dei centroidi che potrebbe a portare anche a cluster vuoti. Per valutare quanto \`e buono un partizionamaneto si usa l'SSE, Sum of Squerd Error.
+\begin{definition}{SSE}{sse}
+    \[ SSE = \sum_{i=1}^{K} \sum_{x \in C_i}^{} dist^{2}(m_i, x) \]
+\end{definition}
+Questa metrica \`e molto buona per calcore devese run dell'algoritmo su stessi K (o anche comparare le prestazioni di diversi algoritmi), se per\`o si decide di aumentare K allora l'SSE \`e sempre confrontabile ma i valori saranno pi\`u piccoli al crescere di K, perch\`e la base dati rimane la stessa, dunque con pi\`u partizionamento i dati sono molto pi\`u coesi tra di loro.
+
+Oltre ad utilizzare l'approccio delle \textbf{run multiple} si possono utilizzare come centroidi utilizzando punti del database stesso usando altre tecniche. Si possono anche utilizzare centroidi maggiori di K e poi al termine delle run scegliere tra questi i centroidi iniziali, si pu\`o anche utilizzare del postprocessing o un bisect K-means.
+
+Esiste il problema dei cluster vuoti quando si fanno delle iterazioni, per evitare che vengano creati cluster vuoti si prende un punto dal cluster conl'SSE pi\`u grande oppure scegliere il punto con l'SSE pi\`u grande, riassegnando il centroide col un cluster vouto al punto estratto si risolve questo problema, se pi\`u cluster sono vuoti si ripente fino ad otterli tutti con almeno un elemento.
+
+Per ridurre il rumore dei dati eliminando gli outliers si possono applicare operazioni di pre-processing. Una volta finito l'algoritmo si possono applicare operazioni di post-processing come: eliminare cluster piccoli, eliminare cluster con SSE molto grande, oppure fare il merge di cluster vicini tra di loro, per le operazioni di post-processing non esistono delle linee guida, ma solitamente dipende dal contesto.
+
+
+\subsection{Bisecting K-means}
+Il bisecting
+
 
 
 

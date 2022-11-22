@@ -426,7 +426,172 @@ Una volta fatte delle operazioni si possono valer salvare le variabili in memori
 
 Per caricare un registro in memoria si utilizza un valore \textbf{pre-indicizzamento}: \texttt{load/store Rd, [Rt, <offset>]\{!\}}, se si usa ! il valore del registro viene incrementato prima di essere letto e quindi viene salvato se non si mette il ! il valore del registro viene incrementato dopo esser stato letto. L'offset pu\`o essere anche un valore salvato in un registro. Oppure usando si pu\`o usare un valore \textbf{pre-indicizzato}: \texttt{load/store Rd, [Rt], <offset>} 
 
+La direttiva \textbf{EQU} ci permette di definire delle macro, avvero associare un valore ad un nome, esiste anceh la \textbf{RN} che chi permette di definire un alias per un registro.
 
+Esempio di moltiplicazione di matrice, ogni elemento va moltiplicato per una costante e poi salvato:
+\begin{lstlisting}[language=]
+				AREA 	MY_DATA, DATA, READWRITE, align=3
+NEW_MATRIX		SPACE 	5 * 4 * 4
+
+
+                AREA    |.text|, CODE, READONLY
+
+
+ROW 			EQU 	5
+COL				EQU		4
+	
+ELEMENTS		EQU		ROW * COL
+	
+matrix 			RN		0
+new_matrix		RN		1
+i 				RN		2
+j				RN		3
+const			RN		4
+
+
+; Reset Handler
+
+Reset_Handler   PROC
+                EXPORT  Reset_Handler             [WEAK]
+					
+				
+				LDR matrix, =MATRIX
+				LDR new_matrix, =NEW_MATRIX
+				LDR	const, =CONSTANT
+				LDR const, [const]
+				MOV	i, #0
+				MOV j, #0
+				
+
+ciclo_riga		MOV j, #0
+
+ciclo_colonna	MOV	r6, #COL
+				MUL r6, i, r6
+				ADD r6, r6, j
+				LDR r7, [matrix, r6, LSL #2]
+				
+				MUL r7, r7, const
+				STR	r7, [new_matrix, r6, LSL #2]
+				
+				ADD j, j, #1
+				CMP j, #COL
+				BNE	ciclo_colonna
+				
+				ADD i, i, #1
+				CMP i, #ROW
+				BNE ciclo_riga      
+				
+                ENDP
+	
+MATRIX  		DCD  1, 2, 3, 4
+				DCD  3, 4, 5, 6
+				DCD  7, 8, 9, 1
+				DCD  8, 9, 6, 3
+
+CONSTANT    	DCD 10
+	
+				LTORG
+\end{lstlisting}
+
+\subsection{Stack}
+Nel thumb2 lo stack \`e discendente, infatto quando si fa un push di un dato il valore dello stack decresce. Esistono anche gli stack ascendenti, entrambi si differenziano per essere full o empty,
+che differenziano il modo in cui lo SP si muove.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{tipi-di-stack.png}
+    \caption{Tipi Di Stack}
+    \label{fig:tipi-di-stack}
+\end{figure}
+Per iserire dei dati nello stack si utilizzano.
+\begin{lstlisting}[language=]
+LDM {xx} / STM {xx} <Rn>!, <regList>
+\end{lstlisting}
+Dovremmo fornire la lista dei registri, ad esempio \texttt{r0-r4, r10, LR}, il compilatore ordina tutto e poi vengono salvati. Il modo in cui avviene \`e salvano il registro pi\`u basso nella posizione pi\`u bassa dello stack. Lo SP non si pu\`o aggiungere nella lista, mentre il PC ed il LR sono mutuamente esclusivi.
+
+I modi di indirizzamento sono IA (increment after, di default), DB (decrement before). Esistono delle istruzioni che implementano la PUSH e la POP nel caso di full descending o empy ascending. Nel nostro caso: \texttt{PUSH <regList> = STMDB SP!, <regList>; POP <regList> = LDMIA SP!, <regList>}.
+
+Tutto questo serve per implementare delle \textbf{subroutine}, esistono delle istruzione che mi permettono di saltare e linkare (\texttt{BL <label>, BLX <Rn>}). Per determinare che un segmento di codice \`e una subroutine si utilizzano le keywork \texttt{PROC/FUNCTION, ENDP/ENDFUNC}. Esiste il problema del passaggio dei parametri, esistono 3 approcci:
+\begin{itemize}
+    \item dai registri;
+    \item by reference;
+    \item dallo stack;
+\end{itemize}
+Esistono comunque degli standard di chimata, il motivo \`e che potremmo chimare delle subroutine da codice C.
+
+Esempi di codie che fa la sottrazione ed il valore assoluto passando i 3 tipi di argomenti:
+\begin{enumerate}
+    \item 
+\begin{lstlisting}[language=]
+Reset_Handler 
+    PROC
+
+    ;registri
+    mov r0, #42
+    mov r1, #37
+
+    BL sub1
+
+    
+    ;by reference
+    mov r0, #42
+    mov r1, #37
+    LDR r3, =mySpace
+    STAMIA r3, {r0, r1}
+    BL sub2
+    LDR r2, [r3]
+
+
+    ;stack
+    mov r0, #42
+    mov r1, #37
+
+    PUSH {r0, r1, r2} ;r2 = valore di ritorno
+    BL sub3
+    POP {r0, r1, r2}
+
+    ENDP
+
+sub1
+    PROC
+    PUSH {lr}
+
+    CMP r0, r1
+    SUBGE r2, r0, r1
+    SUBLO r2, r1, r0
+
+    POP {pc}
+
+    ENDP
+
+sub2
+    PROC
+    PUSH {r2, r4, r5, LR}
+    LDMIA r3, {r4, r5}
+    CMP r4, r5
+    SUBHS r2, r4, r5
+    SUBLO r2, r5, r4
+    STR r2, [r3]
+
+    POP {r2, r4, r5, PC}
+    ENDP
+
+sub 3
+    PROC
+    PUSH {r4, r5, r6, lr}
+    LDR r4, [sp, #16]
+    LDR r5, [sp, #20]
+
+    CMP r4, r5
+    SUBGE r6, r4, r5
+    SUBLO r6, r5, r4
+
+    STR r6, [sp, #24]
+
+    POP {r4, r5, r6, pc}
+    ENDP
+
+\end{lstlisting}
+\end{enumerate}
 
 
 
