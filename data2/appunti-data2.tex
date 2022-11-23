@@ -762,7 +762,7 @@ Attraverso un albero di decisione, dati i dati di input \`e possibile inferire l
     \caption{Albero Di Descisione}
     \label{fig:albero-di-descisione}
 \end{figure}
-In un albero di decisione le folgie corrispondo all'etichetta di classe che sat\`a assegnata alla entry. Questo modello dipendo molto dai dati, infatti se gli attributi cambiano anche il modello va modificato opportunamente. Per generare gli alberi di decisione esistono degli algoritmi, un di questi \`e l'\textbf{algoritmo di Hunt}. L'algoritmo parte dal leggere il database, e si cerca di  individuare l'attributo che ha la maggiore capacit\`a di dividere il db in due sottogruppi, il primo passo \`e duqnue individuare l'attributo che riesce a dividerere il db in due gruppi pi\`u omogenei possibili rispetto al tag. Successivamente si cerca il prossimo attributo che effettua il prossimo miglior partizionamento. Questo albero non \`e aggiornabile all'arrivo di nuovi dati.
+In un albero di decisione le folgie corrispondo all'etichetta di classe che sar\`a assegnata all'item in esame. Questo modello dipendo molto dai dati, infatti se gli attributi cambiano anche il modello va modificato opportunamente, questo \`e dovuto al fatto che gli alberi di decsione non sono incrementali. Per generare gli alberi di decisione esistono vari algoritmi, uno di questi \`e l'\textbf{algoritmo di Hunt}, l'algoritmo parte dal leggere il database, il primo passo \`e quello di individuare l'attributo che riesce a dividerere il db in due gruppi pi\`u omogenei possibili rispetto al tag. Successivamente si cerca il prossimo attributo che effettua il prossimo miglior partizionamento, fino al raggiungimento delle condizioni di terminazione. Questo albero non \`e aggiornabile all'arrivo di nuovi dati.
 
 Per effettuare lo split bisogna partire dai tipi di dati con cui si lavora:
 \begin{itemize}
@@ -772,7 +772,7 @@ Per effettuare lo split bisogna partire dai tipi di dati con cui si lavora:
 
 Per stimare la purezza (grado di omogeneit\`a) dei nodi che vengono generati, esistono delle metriche per calcolare l'impurit\`a: gini index, entropia, missclassification index. Il primo caso \`e quello di utilizzo del \textbf{Gini index}, con questo metodo viene misurata l'impuit\`a prima e dopo lo split, il gini index si misura con:
 \[ GINI(t) = 1 - \sum_{j}^{} (p(j|t))^{2} \]
-$p(j|t) = $ frequenza della classe j al nodo t. Pi\`u il gini index si avvicina allo zero, pi\`u la classe \`e impura, pi\`u il valore si avvicina a $(1 - \frac{1}{\text{numro di classi}} )$ pi\`u il nodo \`e impuro, viene preso l'attributo che genera il gini index col valori pi\`u basso. Nelle implementazioni reali vengono fatti dei test utilizzando metriche diverse con successive validazioni.
+$p(j|t) = $ frequenza della classe j al nodo t. Pi\`u il gini index si avvicina allo zero, pi\`u la classe \`e \textbf{pura}, pi\`u il valore si avvicina a $(1 - \frac{1}{\text{numro di classi}} )$ pi\`u il nodo \`e impuro, viene preso l'attributo che genera il gini index col valori pi\`u basso. Nelle implementazioni reali vengono fatti dei test utilizzando metriche diverse con successive validazioni.
 
 Per la creazione di un albero va definito anche un criterio di stop:
 \begin{itemize}
@@ -1230,7 +1230,7 @@ do
   si ricalcolano i centroidi a partire dai cluster
 while (i centroidi non cambiano)
 \end{lstlisting}
-Questo algoritmo converge abbastanza velocemente infatti ha O(num_punti * K * iterazioni * num_attributi), per questo motivo l'algoritmo viene fatto eseguire molteplici volte per eliminare il problema dell'assegnazione casuale dei centroidi che potrebbe a portare anche a cluster vuoti. Per valutare quanto \`e buono un partizionamaneto si usa l'SSE, Sum of Squerd Error.
+Questo algoritmo converge abbastanza velocemente infatti ha O(num-punti * K * iterazioni * num-attributi), per questo motivo l'algoritmo viene fatto eseguire molteplici volte per eliminare il problema dell'assegnazione casuale dei centroidi che potrebbe a portare anche a cluster vuoti. Per valutare quanto \`e buono un partizionamaneto si usa l'SSE, Sum of Squerd Error.
 \begin{definition}{SSE}{sse}
     \[ SSE = \sum_{i=1}^{K} \sum_{x \in C_i}^{} dist^{2}(m_i, x) \]
 \end{definition}
