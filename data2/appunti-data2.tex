@@ -1262,10 +1262,53 @@ Il bisecting
 
 
 
-\section{Buffer Manager}
+\section{Introduzione ai DBMS}
+Il DBMS permette di avere una gestione concorrente delle informazioni, oltre ad avere delle routine che operano sui dati, la sua struttuare \`e molto complessa ed \`e strutturata in moduli, l'entry poiont \`e una query.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{architettura-dbms.png}
+    \caption{Architettura Dbms}
+    \label{fig:architettura-dbms}
+\end{figure}
+Il DBMS \`e composto da:
+\begin{itemize}
+    \item ottimizzatore: prende delle decisioni in base alla distribuzione dei dati, oltre a fare il parsing della stringa;
+    \item access method manager: viene eseguito un metodo specifico per leggere la memoria;
+    \item buffer manager: buffer nella moria principale che ottimizza le operazioni di I/O;
+    \item concurrency control: gestisce l'accesso concorrente ai dati;
+    \item reliability manager: garantisce la correttezza del contenuto dei dati del db, utilizzando dei file di log in cui vengono scritte le operazioni effettuate;
+\end{itemize}
+
+Il concetto fondamentale nel constesto dei db sono le \textbf{transazioni}: ovvero di una serie di operazioni che rappresentano una singola unit\`a  di lavoro. Una transazione termina con COMMIT o ROLLBACK. Le transazioni sono caratterizzazate da ACID:
+\begin{itemize}
+    \item \textbf{atomic}: tutte le operazione dovono andare a buon fine o nessuna, le operazioni che controllono lo stato del sistema sono \textbf{UNDO} o \textbf{REDO};
+    \item \textbf{consistency}: non vanno violati i vincoli di consistenza del DBMS, vincoli di chiava, chiave esterna, ...;
+    \item \textbf{isolation}: la transazioni operano in modo indipendente tra di loro, i dati intermedi non sono visibili all'esterno;
+    \item \textbf{durability}: i dati di una transazioni non possono essere perse, questa proprit\`a \`e garantata dal relieability manager;
+\end{itemize}
+
+
+\subsection{Buffer Manager}
+Il buffer manager ha accesso ad una parte della memoria principale a cui gli applicativi hanno accesso. Il buffer \`e organizzato in \textbf{parole} di dati, che \`e l'unit\`a minima trasferibile dalla memoria secondaria, per essere efficace nelle operazioni di IO le pagine devono essere presenti nel buffer per velocizzare le operazioni, per questo motivo si utilizza il principio di localit\`a. Ogni pagina deve avere:
+\begin{itemize}
+    \item l'ID del file;
+    \item l'ID del blocco;
+\end{itemize}
+Per ogni pagina esistono anche due stati:
+\begin{itemize}
+    \item \textbf{count}: numero di transazioni che stanno utilizzando la pagina;
+    \item \textbf{dirty bit}: settato quando la pagina \`e stata modificata e non \`e stata ancora caricata nella memoria secondaria;
+\end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{buffer-manager.png}
+    \caption{Buffer Manager}
+    \label{fig:buffer-manager}
+\end{figure}
+
 Il buffer manager ha a disposizione una parte della memoria principale in cui salva della pagine di dati del DB qundo viene fatta query. Eisitono delle primitive per poter accedere a questa memoria:
 \begin{itemize}
-    \item \textbf{fix}: richiesta dalla transazione, se la pagina \`e disponibile allora viene passata, altrimeti si fanno delle operazioni di IO per recuperare la pagina, se il buffer \`e pieno un'altra pagina deve essere rimpiazzata, solitamente quella con il \textbf{Next}=0, e poi si vengono passate la informazioni per accedere alla pagina all transazione, se durante la transazione una pagina ha il \textbf{dirty} = 1 allora deve essere fatta un operazione di IO per sincronizzare la pagina;
+    \item \textbf{fix}: richiesta dalla transazione, se la pagina \`e disponibile allora viene passata, altrimeti si fanno delle operazioni di IO per recuperare la pagina, se il buffer \`e pieno un'altra pagina deve essere rimpiazzata, solitamente sar\`a un pagina con il \textbf{count}=0, questa pagina viene detta \textbf{vittima} e verr\`a rimpiazzata con qualla richiesta dalla transazione, se durante la transazione una pagina ha il \textbf{dirty biy} = 1 allora deve essere fatta un operazione di IO per sincronizzare la pagina. Prima che la lettura inizii il count viene incrementato di 1;
     \item \textbf{unfix}: viene richiesta dalla transazione quando la pagina non deve essere utilizzata;
     \item \textbf{set dirty}: setta il valore dirty ad una pagina quando viene fatta un'operazione di scrittura;
     \item \textbf{force}: richiede un trasferimento sincrono della pagina al disco, quindi si scrive la pagina, non \`e detto che la pagina venga rimossa;
@@ -1277,13 +1320,13 @@ Il buffer manager ha a disposizione una parte della memoria principale in cui sa
 Inoltre il buffer manager mette a disposizione:
 \begin{itemize}
     \item squential read;
-    \item write adn sequential write;
+    \item write and sequential write;
     \item directory;
 \end{itemize}
 
 
 
-\section{Accesso alla Memoria}
+\subsection{Accesso alla Memoria}
 L'access methods manager riceve dall'ottimizzatore il piano di esecuzione e decide quale metodo di accesso utilizzare per leggere o scirvere i dati, vengono poi selezionati i blocchi dei file da prendere dalla memoria principale, questi dati sono richiesti al buffer manager.
 
 Le strutture fisiche che si possono utilizzare sono dipendenti dal tipo di operazione che si effetuano su di loro (select, update, delete, ...), queste strutture sono dette di tipo \textbf{accessorio}, in particolare gli \textbf{indici}, che sono sturtture definite all'interno del db per velocizzare le operazioni di IO. I dati fisici posso essere salvati in strutture sequenziali o strutture di heap, mentre gli indici utilizzano strutture ad albero, bitmap, unclustered hash.
@@ -1317,17 +1360,15 @@ I \textbf{bitmap index} sono delle strutture unclustered, che si portano bene a 
 
 
 
-\section{Ottimizzatore}
-
-
-
-\section{Progettazione Fisica}
+\subsection{Progettazione Fisica}
 Per fare una buona progettazione fisica sono:
 \begin{itemize}
     \item il progetto logico;
     \item il carico di lavoro in termine di query e freuqnza di esecuzione;
     \item engine del database;
 \end{itemize}
+
+
 
 
 
