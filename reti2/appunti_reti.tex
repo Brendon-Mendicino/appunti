@@ -1017,6 +1017,50 @@ Le soluzioni del count to infinity e bouncing effect sono:
 ...
 
 
+\newpage
+\section{Multi-Protocol Label Switching (MPLS)}
+MPLS nasce con il supporto di molti protocolli. \emph{"MPLS \`e l'abilitazione per la Nuova Rete (IP) Publica a Bandlarga"}, per rete pubblica si intende una rete dove viaggia del traffico proveniente da diversi , il motivo per cui non si possono utilizzare i router IP per fare questo tipo di infrastruttura \`e che per decidere la strada che un pacchetto deve prendere si basa sull'indirizzo di destinazione creano un collo di bottiglia , MPLS \`e una tecnologia che deve superare questo problema. Per superare questo problema negli anni passati si doveva creare una "cipolla" di protocolli per dirigere il traffico in modo da creare congistioni, grazie ad MPLS si utilizzo un solo tipo di commutatore collegato con gli switch ottici, rimuovendo tutta la ridondanza, MPLS \`e stato progettato per funzionare con IP e per abbattere i costi degli operatori.
+
+L'idea di MPLS \`e: non inoltrare i pacchetti IP in base all'indirizzo di destinazine, ma in base ed una etichetta piazzata davanti al pacchetto, \`e per questo motivo che MPLS \`e multiprotocollare.
+
+Il motivo per cui si \`e adottata questa tecnologia \`e il problema del \textbf{longest prefix matching}, che richiede del tempo per la ricerca all'interno della tabella di routing e lo spazio utilizzato per immagazzinare le strutture dato di supporto. Il vantaggio di avere un etichetta \`e che il valore di quell'etichetta \`e il numero della riga della tabella dove si trova il next hop, molto pi\`u facile e veloce. Un altro motivo per cui l'utilizzo di etichette \`e importante \`e la possibilit\`a di realizzare del \textbf{Traffic Engineering}, ovver poter determinare come viene distribuito il traffico in una rete.
+
+MPLS introduce un paradigma \textbf{connection-oriented} nelle reti IP.
+
+MPLS utilizza una architettura che non arriva all'endsystem, per evitare ci\`o che avvenne con IPv6 dove andavano cambiati tutti i software. MPLS pu\`o essere adottato in modo incrementale, esiste una \textbf{rete MPLS} dove sono presenti:
+\begin{itemize}
+    \item \textbf{Label edge router}: questi router si trovano ai bordi della rete che inseriscono e rimuovono le etichette;
+    \item \textbf{Label router}: router che fanno il routing delle etichette;
+\end{itemize}
+All'ingresso della rete devono essere creati \textbf{Label Switched Path} (LSP), ovvero le "connessioni" create all'interno della rete. Le etichette vengono cambiate ad ogni hop, se si volesse utilizzare una etichetta per ongi connessione, servirebbe un'etichetta per ogni possibile percorso, il che \`e molto oneroso, cambiare l'etichetta fa si che la sua lunghezza non sia lunga.
+
+I punti chive sono:
+\begin{itemize}
+    \item \textbf{intestazione}: dove viene messa l'etichetta;
+    \item protocolli per distribuire l'etichetta;
+    \item protocolli di routing potenziati, in cui si vuole in percorso pi\`u breve ed un link carico pi\`u del 50\%;
+\end{itemize}
+
+Storia di MPLS: ..., venne usato per utilizzare utilizzare la scambio di pacchetti IP su delle reti ATM.
+
+
+\subsection{Shim Header}
+L'header MPLS \`e fatto da uno o pi\`u moduli da aggiungere tra il livello 2 e livello 3. In ogni modulo viene insireta l'\textbf{etichetta} (20 bit), \textbf{bit sperimentali} (3 bit ridondanti), \textbf{bottom of stack} (1 bit) il border router quando toglie le etichette deve sapere qual'\`e l'ultimo modulo alla fine dello stack, \textbf{TTL} (8 bit) con un funzionamento identico al TTL dell'header IP.
+
+Se il protocollo di livello 2 \`e un procollo connection-oriented si utilizza la label di quel protocollo lasciando intatto lo standard, il motivo per cui si possono utilizzare \`e che l'hardware rimane invariato, ma il software implementa MPLS.
+
+\subsection{Forwarding Equivalence Class (FEC)}
+La FEC viene associato ad ogni pacchetto che fa parte di un LSP, 
+
+gli LSR devono scegliere un'etichetta (\textbf{label binding}), una volta fatto il binding si deve creare la riga nella tabello di routing (\textbf{label mapping}), un'etichetta deve essere comunicato agli LSR vicini (\textbf{label distribution})
+
+Label Binding deve essere fatto dal router che sta a valle di un link, ovvero dal nodo che ricever\`a pacchetti con quell'etichetta (\textbf{downstream binding}), inoltre i pacchetti con la stessa FEC devono essere ricevuti con la stessa label, ed il nodo in upstream (a monte) deve essere notificato, inoltre il label binding deve pu\`o essere unsolicited o ...;
+
+Label Mapping quando arriva una label viene fatto il mapping alla nuova label e viene fatto il forwarding al next hop. Il nodo a valle vedr\`a arrivare pacchetti con la stessa label scelti da lui. Il routing viene deciso con i protocolli di routing.
+
+Label Distribution quando un router ha fatto il binding far\`a una label distribution per notificare ai vicini la scelta della label per una FEC.
+
+
 
 
 

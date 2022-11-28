@@ -430,18 +430,18 @@ La direttiva \textbf{EQU} ci permette di definire delle macro, avvero associare 
 
 Esempio di moltiplicazione di matrice, ogni elemento va moltiplicato per una costante e poi salvato:
 \begin{lstlisting}[language=]
-				AREA 	MY_DATA, DATA, READWRITE, align=3
+    AREA 	MY_DATA, DATA, READWRITE, align=3
 NEW_MATRIX		SPACE 	5 * 4 * 4
 
 
-                AREA    |.text|, CODE, READONLY
+    AREA    |.text|, CODE, READONLY
 
 
 ROW 			EQU 	5
 COL				EQU		4
-	
+
 ELEMENTS		EQU		ROW * COL
-	
+
 matrix 			RN		0
 new_matrix		RN		1
 i 				RN		2
@@ -452,45 +452,45 @@ const			RN		4
 ; Reset Handler
 
 Reset_Handler   PROC
-                EXPORT  Reset_Handler             [WEAK]
-					
-				
-				LDR matrix, =MATRIX
-				LDR new_matrix, =NEW_MATRIX
-				LDR	const, =CONSTANT
-				LDR const, [const]
-				MOV	i, #0
-				MOV j, #0
-				
+    EXPORT  Reset_Handler             [WEAK]
+        
+    
+    LDR matrix, =MATRIX
+    LDR new_matrix, =NEW_MATRIX
+    LDR	const, =CONSTANT
+    LDR const, [const]
+    MOV	i, #0
+    MOV j, #0
+    
 
 ciclo_riga		MOV j, #0
 
 ciclo_colonna	MOV	r6, #COL
-				MUL r6, i, r6
-				ADD r6, r6, j
-				LDR r7, [matrix, r6, LSL #2]
-				
-				MUL r7, r7, const
-				STR	r7, [new_matrix, r6, LSL #2]
-				
-				ADD j, j, #1
-				CMP j, #COL
-				BNE	ciclo_colonna
-				
-				ADD i, i, #1
-				CMP i, #ROW
-				BNE ciclo_riga      
-				
-                ENDP
-	
+    MUL r6, i, r6
+    ADD r6, r6, j
+    LDR r7, [matrix, r6, LSL #2]
+    
+    MUL r7, r7, const
+    STR	r7, [new_matrix, r6, LSL #2]
+    
+    ADD j, j, #1
+    CMP j, #COL
+    BNE	ciclo_colonna
+    
+    ADD i, i, #1
+    CMP i, #ROW
+    BNE ciclo_riga      
+    
+    ENDP
+
 MATRIX  		DCD  1, 2, 3, 4
-				DCD  3, 4, 5, 6
-				DCD  7, 8, 9, 1
-				DCD  8, 9, 6, 3
+    DCD  3, 4, 5, 6
+    DCD  7, 8, 9, 1
+    DCD  8, 9, 6, 3
 
 CONSTANT    	DCD 10
-	
-				LTORG
+
+    LTORG
 \end{lstlisting}
 
 \subsection{Stack}
@@ -519,8 +519,6 @@ Tutto questo serve per implementare delle \textbf{subroutine}, esistono delle is
 Esistono comunque degli standard di chimata, il motivo \`e che potremmo chimare delle subroutine da codice C.
 
 Esempi di codie che fa la sottrazione ed il valore assoluto passando i 3 tipi di argomenti:
-\begin{enumerate}
-    \item 
 \begin{lstlisting}[language=]
 Reset_Handler 
     PROC
@@ -591,7 +589,59 @@ sub 3
     ENDP
 
 \end{lstlisting}
-\end{enumerate}
+
+\newpage
+\section{Application Binary Interface}
+Un ABI sono un insieme di standard per definire la comunzione tra due moduli di programmi binari, nel nostro caso quando in C deve essere chiamata un procedura assembler, vengono definiti come dovranno essere passati i parametri. L'interesse sar\`a relativo alla chiamate a procedure e alla gestione delle eccezioni. Un esmpio di ABI per i nomi dei registri:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{register-abi.png}
+    \caption{Register Abi}
+    \label{fig:register-abi}
+\end{figure}
+
+\subsection{Supervisor Calls (SVC)}
+Sono i Software Interrupt. Si dividono in Exception per le interruzoini sotfware e Interrupt che sono le interruzioni hardware. Nell'architettura ARM si possono per sollevare un interrupt si utilizza \textbf{SVC <id>}, dove l'id \`e l'indentificativo dell'interrupt.
+
+La \textbf{Interrupt Vector Table} \`e una lista che specifica l'handler delle procedura che gestisce l'eccezione, fa eccezione solo la prima riga che \`e il valore iniziale dello stack pointer. Ogni riga ha uno spazio di 4 byte.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{ivt.png}
+    \caption{Ivt}
+    \label{fig:ivt}
+\end{figure}
+Ogni eccezione ha diverse priorit\`a, dopo l'hard fault \`e possibile programmarle. Le eccezioni hanno uno stato:
+\begin{itemize}
+    \item inattiva;
+    \item attiva: un interruzione che sta venendo servita sul processore ma non \`e completata;
+    \item pending: l'eccezione sta aspettando di essere schedulata sul processore;
+\end{itemize}
+Quando arriva un eccezione su un processore ARM, il processore deve saltare al suo handler, ma prima di fare ci\`o devono essere savati il registro dei flag, pc, lr, r12, r3-r0, questo processo viene fatto in automatico.
+
+La sintassi delle svc \`e: \texttt{\{label\} SVC immediate}, il valore dell'immediato \`e a 8 bit, infatti l'SVC \`e una istruzione del thumb a 16 bit. Dopo l'esecuzione di una SVC, oltre ad i registri salvati nello stack, il LR viene caricato con un valore (diverso da quello di ritorno) detto \textbf{EXC\_RETURN}. 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{exception-return.png}
+    \caption{Exception Return}
+    \label{fig:exception-return}
+\end{figure}
+Per leggere il valore dell'immediato si prende il valore del PC salvato nello stack, essendo che il valore viene compilato insieme all'istruzione, si pu\`o recuperare il valore leggendo l'istruzione precedente (perch\`e lo SP \`e incrementato) e facendo un BIC (bit clear) ed uno shift.
+
+Si pu\`o utilizzare la MSR sono quando si \`e in handler mode, ...
+
+Le modalit\`a di utilizzo sono:
+\begin{itemize}
+    \item \textbf{thread mode}: dopo un reset o dopo un'eccezione;
+    \item \textbf{handler mode}: quando arriva un'eccezione;
+\end{itemize}
+I livelli di accesso sono:
+\begin{itemize}
+    \item \textbf{user level}: accesso limitato;
+    \item \textbf{priviliged level}: accesso a tutte le risorse;
+\end{itemize}
+Handler mode \`e sempre a livello privilegiato.
+
+
 
 
 
