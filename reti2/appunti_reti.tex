@@ -850,9 +850,16 @@ Adoperare un s2s ha dei costi maggiori, infatti i due border gateway (che sono a
 
 Quando si parla di tunnel esistono diversi metodi di creazione, a differenza della soluzione si avr\`a una differenza tra performance e sicurezza, queste ultime sono inversamente proporzionali:
 \begin{itemize}
-    \item \textbf{Overlay Model}: nell'overlay model i tunnel vengono creati tra i due endpoint, non preccopandosi del routing.
-    \item \textbf{Peer Model}: in una soluzione peer model viene creato un tunnel spezzato tra i vari router in cui si passa, quindi esisteranno tanti tunnel quanti sono i router da cui si deve passare per raggiungere la destinazione, il vantaggio di questa soluzione \`e che si pu\`o indirizzare il traffico per un percorso specifico, lo svantaggio \`e che ad ogni hop il pacchetto viene decapsulato per poi essere reincapsulato in un nuovo pacchetto quando si fa il forward.
+    \item \textbf{Overlay Model}: nell'overlay model i tunnel vengono creati tra i due endpoint, non preccopandosi del routing, l'overlay model \`e una soluzione customer provisioner;
+    \item \textbf{Peer Model}: in una soluzione peer model viene creato un tunnel spezzato tra i vari router in cui si passa, quindi esisteranno tanti tunnel quanti sono i router da cui si deve passare per raggiungere la destinazione, il vantaggio di questa soluzione \`e che si pu\`o indirizzare il traffico per un percorso specifico, lo svantaggio \`e che ad ogni hop il pacchetto viene decapsulato per poi essere reincapsulato in un nuovo pacchetto quando si fa il forward, il peer model \`e una soluzione di provider provisioner (l'ISP deve provveddere a rendere sicura il traffico tra i peer, che solitamnte appertengono a lui);
 \end{itemize}
+Per effettuare un implementazione di una VPN esistono due tipi di sispositivi, il CE (Customer Equipment) che appartine all'utente e gestisce il tunneling a partire dall'uscita della sottorete, ed il PE (Provider Equipment) che appartine all'ISP , solitamente si tratta di una rete collegata che implementa il VPN, questo servizio non \`e pi\`u disponibile all'uscita di questa della rete di PE.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{ce-pe.png}
+    \caption{Ce Pe}
+    \label{fig:ce-pe}
+\end{figure}
 
 
 Il tunneling in una VPN non \`e altro che l'incapsulamento di un pacchetto IP (header e payload) in un altro pacchetto IP (nel caso diVPN a livello IP), questo nouvo payload viene criptato con i protocolli GRE o IPsec.
@@ -867,21 +874,147 @@ Le VPN di livello 4, hanno una encapsulazione basata su TCP che ottiene un alto 
 
 
 \subsection{Protocolli per VPN}
-Il protocollo \textbf{GRE} (Generic Routing Encapsulation) \`e uno standard per l'encapsulazione, il suo fromato \`e fatto da:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{protocolli-vpn.png}
+    \caption{Protocolli Vpn}
+    \label{fig:protocolli-vpn}
+\end{figure}
+
+\subsubsection{GRE}
+Il protocollo \textbf{GRE} (Generic Routing Encapsulation) \`e uno standard per l'encapsulazione di un pacchetto all'interno di un altro, il suo header \`e fatto da:
 \begin{itemize}
     \item Flags: presenza di campi addizionali;
     \item s: se la destinazione non \`e raggiunta quando si \`e percorsa la lista dei router il pacchetto viene distrutto;
     \item recur: massimo numero di encapsulazioni successive;
+    \item squence number: questo campo non riesce ad evitare i replay attack;
     \item route: \`e possibile specificare un indirizzo per fare del routing, viene usato insieme al flag s;
 \end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{header-protocollo-gre.png}
+    \caption{Header Protocollo Gre}
+    \label{fig:header-protocollo-gre}
+\end{figure}
 Del protocollo GRE esiste anche una versione 1 che migliora gli acknowledge.
 
-I protocolli di tunneling di livello sono \textbf{L2TP} (Layer 2 Tunneling Protocol), che la caratteristica di essere indipendente dal livello 2, non viene utilizzato in pratica perch\`e richiede un ulteriore encapsulamento in IPsec, ed il \textbf{PPTP} (Point To Point Tunneling) che \`e Customer provisioner, ma anche esso ha una cifratura debole oltre ad avere un sistema di chiavi proprietario.
+\subsection{L2TP}
+Soluzione di tipo provider provisioner.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{l2tp-schema.png}
+    \caption{L2Tp Schema}
+    \label{fig:l2tp-schema}
+\end{figure}
+Il protocollo \textbf{L2TP} (Layer 2 Tunneling Protocol) \`e un protocollo di livello 2, che la caratteristica di essere indipendente dal livello 2, non viene utilizzato in pratica perch\`e richiede un ulteriore encapsulamento in IPsec, rendendo tutto il protocollo abbastanza inutile. L2TP utilizza due dispositivi per creare un tunnel, il LAC (L2TP Access Concentrator) a cui gli utenti si collegano, poi questo crea un tunnel verso il LNS (L2TP Network Server), che poi si collega alla rete locale dell'azienda.
 
-L2TP utilizza due dispositivi per creare un tunnel, il LAC (L2TP Access Concentrator) a cui gli utenti si collegano, poi questo crea un tunnel verso il LNS (L2TP Network Server), che poi si collega alla rete locale dell'azienda.
+
+
+\textbf{PPTP}, il point to point protocol nasce come un una soluzione customer provisioner, ma anche esso ha una cifratura debole oltre ad avere un sistema di chiavi proprietario.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{ptpp-schema.png}
+    \caption{Ptpp Schema}
+    \label{fig:ptpp-schema}
+\end{figure}
+
+\subsubsection{IPsec}
+Il protocollo IPsec, si basa su altri due protocolli:
+\begin{itemize}
+    \item AH: fornisce l'intergrit\`a;
+    \item ESP: fornisce confidenzialit\`a e/o integrit\`a;
+\end{itemize}
+IPsec ha due modalit\`a di funzionamento in base al tipo di VPN che si ha (e2e vs s2s).
+
+Per scambiare le chiavi IPsec si basa sul protocollo IKE.
+
+
+\subsubsection{SSL}
+Le soluzioni che implementa ssl sono:
+\begin{itemize}
+    \item s2s;
+    \item e2e (source service access);
+    \item remote access;
+    \item tunneling su tpc o upd;
+\end{itemize}
+Il motivo per cui si preferisce una soluzione SSL invece che su IPsec \`e che SSL non si interfaccia con il kernel, \`e poco complesso, \`e il pi\`u sicuro, non ci sono problemi di attraversamento del NAT. SSL funziona molto bene con soluzioni che utilizzano uno scenario di network, ad esempio scenari client-server.
+
+Per rendere un procollo sicuro basta incapsularno in un tunnel ssl, ad esempio http diventa https che utilizza ssl per cifrare tutto il traffico.
+
+
+Per il livello 4 quando si ha un s2s, l'header  A to B solitamente \`e incapsulato (pu\`o essere un header di livello 3 o 4) l'header IP \`e tra i due VPN gateway, se si ha un e2e solo il payload \`e incapsulato, metre l'header IP \`e tra A e B.
 
 
 
+\newpage
+\section{Routing}
+Il routing viene definito come la creazione delle tabelle di routing, spesso confuso con il forwarding che \`e l'azione di spedire il pacchetto su una delle diverse interfaccie basandonsi sulle tabelle di routing.
+
+Il \textbf{proactive routing} (routing) consiste nel scegliere in modo dinamico o statico il percorso migliore per raggiungere un nodo, il percorso migliore \`e basato su diverse metriche come: il percorso pi\`u corto, il percorso con il maggiore throughput, ...
+
+Mentre l'\textbf{on-the-fly routing} (forwarding) si basa sullo spedire un pacchetto si una delle interfaccie basandosi su: label swapping, indirizzi, source routing (indirizzamento del traffico), a differenza degli algoritmi di forwarding si possono avere dei risultati diversi.
+
+Gli algoritmi di routing si distinguono in:
+\begin{itemize}
+    \item \textbf{statici}: le routing table possono essere configurate manualmente in modo statico, detto fixed directory routing, anche il flooding \`e un algoritmo statico perch\`e si mandano pacchetti a tutti i nodi indistintamente;
+    \item \textbf{dinamici}: gli algoritmi dinamici si dividono in: centralizzato, distribuito, isolato;
+\end{itemize}
+
+\subsection{Centralized}
+Esiste un \textbf{Routing Control Center} (RCC), che \`e a conoscenza di tutti i nodi della rete, decide per ognuno la propria routing table riuscendo anche a fare del load balancing tra il traffico, la gestione della rete viene fatto in modo ottimo ma la svantaggio \`e che l'RCC diventa un collo di bottiglia ed un single point of failure, si pu\`o anche ridondare l'RCC litimitando questi due lati negativi.
+
+\subsection{Isolated}
+La scelta del percorso che deve essere presa da pacchetto deve essere fatto in modo isolato per ogni nodo, infatti non vengono scambiate informazioni.
+
+\subsection{Distributed}
+Gli algoritmi distribuiti vengono basati sul tipo di informazioni che vengono scambiate tra i diversi nodi.
+
+Uno degli algoritmi \`e il \textbf{Distence Vector} , si tratta dell'implementazione dell'algoritmo di Bellman-Ford, dove vengono scambiete informazioni solo tra i vicini, ovvera i nodi direttamente connessi, in cui ogni router avr\`a la sua routing table. Le informazione scambiate sono solo le distanze tra i vicini, per far questo c'\`e una fase detta di \textbf{transitorio} in cui tutti i nodi riescono a scambiare le informazioni tra di loro. Il problema del transitorio \`e molto grave, infatti il transitorio non esiste solo quendo c'\`e un cold start ma anche quando ci sono dei guasti nella rete, infatti nascono delle problematiche che sono:
+\begin{itemize}
+    \item black hole;
+    \item count to infinity: scenario in cui dei router continuano a scambiarsi informazioni su un nodo non raggiungibile, incrementando la sua distanza all'infinito;
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.8\textwidth]{count-to-infinity.png}
+            \caption{Count To Infinity}
+            \label{fig:count-to-infinity}
+        \end{figure}
+    \item bouncing effect: il messeggio viene rimbalzato tra due nodi per sempre;
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.8\textwidth]{bouncing-effect.png}
+            \caption{Bouncing Effect}
+            \label{fig:bouncing-effect}
+        \end{figure}
+\end{itemize}
+
+Le soluzioni del count to infinity e bouncing effect sono:
+\begin{itemize}
+    \item \textbf{split horizon}: la variante si basa sul principio: \emph{"se C raggiunge A attraverso B, \`e inutile per B provare a raggiungere A attraverso C"}, questo serve per evitare la creazione di loop. Cos\`i facendo B non propaga sul distance vector l'informazione di A. In particolare il DV di C verso B non contiene destinazioni reggiunte attraverso B.
+
+        Su una rete completamente connesse esiste ancora il proble del transitorio perch\`e i nodi non sono a conoscenza di tutti i path. Il problema si risolve quando vengono inviati nuovamente i DV , per\`o i DV verrano inviati anche al nodo connesso al guasto "avvelenando" la sua RT, questo problema viene risolto dal paht hold down;
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.8\textwidth]{spli-horizon-transitorio.png}
+            \caption{Spli Horizon Transitorio}
+            \label{fig:spli-horizon-transitorio}
+        \end{figure}
+    \item \textbf{Path Hold Down}: \emph{"Se un link L fallisce, tutte le distinazioni raggiungibili attraverso il link L sono considerate \textbf{irragiungibili} per un certo periodo di tempo"}, in questo modo nessun percorso di A viene calcolato.
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.8\textwidth]{path-hold-down.png}
+            \caption{Path Hold Down}
+            \label{fig:path-hold-down}
+        \end{figure}
+        Il paht hold down non risolve il problema del count to infinity, questo pu\`o essere superato dall'utilizzo combinato con lo spli horizon;
+    \item \textbf{Route poisoning}: quando un link si guasta la distanza viene impostata direttamente a infinito, evitando il count to infinity, questo algoritmo per\`o \`e molto lento, infatti viene sconsigliato per reti molto grandi;
+    \item \textbf{Path Vector}: questo algoritmo elimina il problema dei loop, al posto del DV viene inviato un path vector dove viene inserito il costo di un link ed il percorso da cui il PV arriva;
+    \item \textbf{Link State}: in questo algoritmo ongi nodo attraverso le informazioni dei sui vicini riesce a calcolare la topologia della rete, qeusta informazione viene detta link state, il link state viene poi condiviso tra tutti i nodi, in questo modo ogni nodo possiede la mappa di tutta la topologia della rete. Per calcolare poi le RT viene usato l'algoritmo di Djikstra.
+\end{itemize}
+
+
+\subsection{Internet Routing Architecture}
+...
 
 
 

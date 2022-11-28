@@ -901,15 +901,14 @@ Un'altra architettura \`e quello basato sulle \textbf{Recurrent NN} applicate su
 
 
 
-\newpage
-\section{Model evuation}
-Nella letteratura esitono delle diverse tecniche per decidere quali dati faranno parte. Supponiamo di avera un db con 100 oggetti, si vuole utilizzare una parte di questi oggetti per il training associandogli le caratteristiche dell'input e dell'output, si utilizzano gli oggetti rimanenti per validare il modelo creato, verificando il corretto assegnamento delle etichette. 
+\subsection{Model evuation}
+Nella letteratura esitono delle diverse tecniche per decidere quali dati faranno parte della fase di training di un per la creazione di un modello e quali per la validazione del suddetto. Supponiamo di avera un db con 100 oggetti, si vuole utilizzare una parte di questi oggetti per il training associandogli le caratteristiche dell'input e dell'output, si utilizzano gli oggetti rimanenti per validare il modelo creato, verificando il corretto assegnamento delle etichette. 
 
-Le prime operazioni da effettuare \`e misurare la distribuzione dei tag nei diversi oggetti, calcolare i costi di missclassification e misurare la cardinalit\`a del training set.
+La prima operazione da effettuare \`e quella di misurare la distribuzione dei tag nei diversi oggetti, calcolare i costi di missclassification e misurare la cardinalit\`a del training set.
 
-Una tecnica di partizione dei dati \`e l'\textbf{hold out}, dove si definiscono delle percentuali fisse tra training e test, generalmente l'80\% dei dati dati viene usati per il training ed il 20\% per la validazione. Queste percentuali vanno mantenute per tutte le classi presenti, seve dunque un smapling di tipo stratificato attraverso tutte le classi. Questa tecnica \`e utilizzata con db di grosse dimensioni.
+Una tecnica di partizione dei dati \`e l'\textbf{hold out}, dove si definiscono delle percentuali fisse tra training e test, generalmente l'80\% dei dati vengono usati per il training ed il 20\% per la validazione. Queste percentuali vanno mantenute per tutte le classi presenti, serve dunque un sampling di tipo stratificato attraverso tutte le classi, questo vuol dire che la percentuale con cui appaiono le diverse classi deve essere mantenuta nei partizionamenti. Questa tecnica \`e utilizzata con db di grosse dimensioni.
 
-La tecnica della \textbf{cross validation} presenta nativamente la ripetizione della fase di training. I dati vengono divisi in k \textbf{fold}, su k-1 fold viene fatto il training mentre sul rimanente viene fatta la validation, questo viene ripetuto per ogni fold. Quando un db \`e piccolo (e.g. nei casi medici), si prendono il numero di fold uguali al numero di entry nel database, quindi prendendo un singolo oggetto viene fatto il tranining su tutti gli altri, questo detto \textbf{leave-one-out}.
+La tecnica della \textbf{cross validation} presenta nativamente la ripetizione della fase di training. I dati vengono divisi in k \textbf{fold}, su k-1 fold viene fatto il training mentre sul rimanente viene fatta la validation, questo viene ripetuto per ogni fold. Quando un db \`e piccolo (e.g. nei casi medici), si prendono il numero di fold uguali al numero di entry nel database, quindi prendendo un singolo oggetto viene fatto il tranining su tutti gli altri, questa tecnica viene detta \textbf{leave-one-out}.
 
 Per poter stimare correttamnte un modello deve essere validato in base ai parametri di input (analisi delle sensitivit\`a), si devono selezionare i parametri di input del modello e fare delle validazioni, il motivo per il quale il dataset iniziale viene diviso in tre parti:
 \begin{itemize}
@@ -920,7 +919,19 @@ Per poter stimare correttamnte un modello deve essere validato in base ai parame
 L'hold-out viene utitlizzato per dividere il db in training-validation e test, mentre il cross validation divide il db in training e validation.
 
 Esistono delle metriche per poter stimare in modo oggettivo le predizione fatte dal modello, per far questo viene utilizzata la \textbf{matrice di confusione}.
-La metrica  dell'accuratezza non \`e sempre affidabile, consideriamo un esempio: classe 0: 9900 record; classe 1: 100 record; assegnando un classificatore di default che assegna sempre la classe 0 la sua accuratezza sar\`a del 99\%, mentre la classe 1 non sar\`a mai predetta, questo \`e un esempio di caso in cui le classi sono sbilanciate, il nostro interesse in questi casi \`e predirre con precisione la classe minoritaria, come nella vita reale solo l'1\% della popolazione contrae una malattia, ma quell'1\% deve esere predetto con la maggiore precisione. Generalmente si danno delle metriche di valore per gli attributi di interesse, queste metriche calcolate pre una classe di interesse vengono dette, \textbf{recall} (numero di oggetti correttamente assegnati alla classe / numbero di oggetti che appartengono alla classe) e \textbf{precision} (numero di oggetti correttamente assegnati alla classe / numbero di oggetti assegnati alla classe). Queste metriche vanno massimizzate attraverso l'\textbf{F-measure} $= \frac{2rp}{r + p} $.
+La metrica  dell'accuratezza non \`e sempre affidabile, consideriamo un esempio: 
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|}
+        \hline
+        classe & record \\
+        \hline
+        0 & 9900 \\
+        1 & 100 \\
+        \hline
+    \end{tabular}
+\end{table}
+assegnando un classificatore di default che assegna sempre la classe 0 la sua accuratezza sar\`a del 99\%, mentre la classe 1 non sar\`a mai predetta, questo \`e un esempio di caso in cui le classi sono sbilanciate, il nostro interesse in questi casi \`e predirre con precisione la classe minoritaria, come nella vita reale solo l'1\% della popolazione contrae una malattia, ma quell'1\% deve esere predetto con la maggiore precisione. Generalmente si danno delle metriche di valore per gli attributi di interesse, queste metriche calcolate pre una classe di interesse vengono dette, \textbf{recall} (numero di oggetti correttamente assegnati alla classe / numbero di oggetti che appartengono alla classe) e \textbf{precision} (numero di oggetti correttamente assegnati alla classe / numbero di oggetti assegnati alla classe). Queste metriche vanno massimizzate attraverso l'\textbf{F-measure} $= \frac{2rp}{r + p} $.
 
 L'ultima tecnica di classificazione dei modelli \`e la \textbf{curva ROC}, ...
 
@@ -1246,11 +1257,77 @@ Per ridurre il rumore dei dati eliminando gli outliers si possono applicare oper
 \subsection{Bisecting K-means}
 Il bisecting
 
+...
 
 
 
 
+\section{Buffer Manager}
+Il buffer manager ha a disposizione una parte della memoria principale in cui salva della pagine di dati del DB qundo viene fatta query. Eisitono delle primitive per poter accedere a questa memoria:
+\begin{itemize}
+    \item \textbf{fix}: richiesta dalla transazione, se la pagina \`e disponibile allora viene passata, altrimeti si fanno delle operazioni di IO per recuperare la pagina, se il buffer \`e pieno un'altra pagina deve essere rimpiazzata, solitamente quella con il \textbf{Next}=0, e poi si vengono passate la informazioni per accedere alla pagina all transazione, se durante la transazione una pagina ha il \textbf{dirty} = 1 allora deve essere fatta un operazione di IO per sincronizzare la pagina;
+    \item \textbf{unfix}: viene richiesta dalla transazione quando la pagina non deve essere utilizzata;
+    \item \textbf{set dirty}: setta il valore dirty ad una pagina quando viene fatta un'operazione di scrittura;
+    \item \textbf{force}: richiede un trasferimento sincrono della pagina al disco, quindi si scrive la pagina, non \`e detto che la pagina venga rimossa;
+    \item \textbf{flush}: richiede un trasferimento asincrono della pagina al disco, questo traferimento;
+    \item \textbf{steal}: quando si utilizza steal il buffer manager pu\`o selezionare una pagina locked con un count=0, detta pagina \textbf{vittima}, e la rimuove dal buffer, se non-steal \`e settato non si pu\`o selezionare una pagina su cui sta avvenendo una transazione;
+    \item \textbf{force}: tutta la pagine di una transazione sono scritte in modo sincrono sul disco;
+    \item \textbf{no-force}: utilizza flush per scrivere le pagine in modo asincrono sul disco;
+\end{itemize}
+Inoltre il buffer manager mette a disposizione:
+\begin{itemize}
+    \item squential read;
+    \item write adn sequential write;
+    \item directory;
+\end{itemize}
 
+
+
+\section{Accesso alla Memoria}
+L'access methods manager riceve dall'ottimizzatore il piano di esecuzione e decide quale metodo di accesso utilizzare per leggere o scirvere i dati, vengono poi selezionati i blocchi dei file da prendere dalla memoria principale, questi dati sono richiesti al buffer manager.
+
+Le strutture fisiche che si possono utilizzare sono dipendenti dal tipo di operazione che si effetuano su di loro (select, update, delete, ...), queste strutture sono dette di tipo \textbf{accessorio}, in particolare gli \textbf{indici}, che sono sturtture definite all'interno del db per velocizzare le operazioni di IO. I dati fisici posso essere salvati in strutture sequenziali o strutture di heap, mentre gli indici utilizzano strutture ad albero, bitmap, unclustered hash.
+
+Nelle strutture squenziali le tuple sono storicizzate nella pagina seguendo l'ordine di inserimento, il vantaggio \`e che lo spazio occupato \`e massimo all'interno della pagina e che l'inserimeto \`e molto veloce, quando si fanno delle operazione di delete si vengono a creare dei buchi, mentre con l'update si rischia di scrivere pi\`u dati di quelli che avevo prima.
+
+Gli \textbf{heap file} utilizzano delle strutture secondarie per avvalersi di ricerca veloce, tutti i tipi di operazione sono identiche a quelle delle strutture sequenziali.
+
+Le \textbf{ordered sequential structures} sono delle strutture sequenziali ordinate in base ad una chiave di ordinamento. I dati oridinati servono per velocizzare le operazioni per quelle interrogazioni che usano la stessa chieve di ordinamento. Come contro le operazioni di delete e inserimento sono molto onerose. Viene lasciato dello spazio in pi\`u per eventuali operazioni di update, oppure viene implementato un file di \textbf{overflow}, dove vengono salvati la parte di dati che dopo un'update o insert non entra nella pagina.
+
+Nelle \textbf{strutture ad albero} nei nodi si trovano solo le chivi per effettuare la ricerca, negli indice unclustered le foglie si trovano parte dei valori della tuple e il puntatore alla tupla originale, mentre in una struttura clustered le foglie corrispondono ai puntatori della tupla, inoltre da una folgia si pu\`o passare all'altra essendo tutte ordinate in modo seequenziale (come nei \textbf{B+-Tree}.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{unclustered-b-tree.png}
+    \caption{Unclustered B+-Tree Index}
+    \label{fig:unclustered-b-tree}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{clustered-b-tree.png}
+    \caption{Clustered B+-Tree Index}
+    \label{fig:clustered-b-tree}
+\end{figure}
+Su una tabella pu\`o essere creato un unico indice di tipo clustered, mentre possono essere create pi\`u strutture unclustered.
+
+
+Un altre struttura utilizzabile \`e la \textbf{struttura di hash}, utilizza una funzione di hash per assegnare ad ogni tupla secondo una chiave, un blocco tra quelli predefiniti della struttura, anche le strutture di hash possono essere clustered o unclustered.
+
+
+I \textbf{bitmap index} sono delle strutture unclustered, che si portano bene a rappresentare gli attributi categorici.
+
+
+
+\section{Ottimizzatore}
+
+
+
+\section{Progettazione Fisica}
+Per fare una buona progettazione fisica sono:
+\begin{itemize}
+    \item il progetto logico;
+    \item il carico di lavoro in termine di query e freuqnza di esecuzione;
+    \item engine del database;
+\end{itemize}
 
 
 
