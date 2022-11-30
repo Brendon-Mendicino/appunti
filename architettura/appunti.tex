@@ -627,7 +627,7 @@ La sintassi delle svc \`e: \texttt{\{label\} SVC immediate}, il valore dell'imme
 \end{figure}
 Per leggere il valore dell'immediato si prende il valore del PC salvato nello stack, essendo che il valore viene compilato insieme all'istruzione, si pu\`o recuperare il valore leggendo l'istruzione precedente (perch\`e lo SP \`e incrementato) e facendo un BIC (bit clear) ed uno shift.
 
-Si pu\`o utilizzare la MSR sono quando si \`e in handler mode, ...
+Si pu\`o utilizzare la MSR sono quando si \`e in handler mode, \texttt{MSR\{cond\} spec\_reg, Rn}.
 
 Le modalit\`a di utilizzo sono:
 \begin{itemize}
@@ -640,6 +640,23 @@ I livelli di accesso sono:
     \item \textbf{priviliged level}: accesso a tutte le risorse;
 \end{itemize}
 Handler mode \`e sempre a livello privilegiato.
+
+A seconda del valore del registro di controllo si avr\`a lo PSP (process stack pointer) normale o un MSP (master stack pointer) quando ci si trova in handler mode. \`E importante ricordare che l'esecuzione \`e sempre in handeler mode quando viene chiamata un'eccezione, bisogna quindi definire delle sezioni di per lo stack, ovvero un sezione per il PSP ed un per il MSP.
+\begin{lstlisting}[language=]
+; stack segment
+StackSize   EQU 0x00000200
+            AREA STACK, NOINIT, READWRITE, ALIGN=3
+            SPACE StackSize/2
+StackProcess SPACE StackSize/2
+__initial_sp
+\end{lstlisting}
+Qundo si vuole passare a thread mode ed impostare il valore del PSP, si deve:
+\begin{lstlisting}[language=]
+    MOV R0, #3  ; user mode
+    MSR CONTROL, R0
+    LDR SP, =StackProcess
+\end{lstlisting}
+
 
 
 

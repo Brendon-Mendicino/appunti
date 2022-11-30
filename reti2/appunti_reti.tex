@@ -1060,6 +1060,42 @@ Label Mapping quando arriva una label viene fatto il mapping alla nuova label e 
 
 Label Distribution quando un router ha fatto il binding far\`a una label distribution per notificare ai vicini la scelta della label per una FEC.
 
+Il label binding pu\`o anche essere fatto in modo dinamico, le modalit\`a con cui viene scatenato sono: scatenato dai dati oppure da dei messagi di controllo. Quando il binding \`e control drived esistono due modalit\`a di operamento:
+\begin{itemize}
+    \item \textbf{topology based}: la creazione di LSP \`e data dalla scoperta di percorsi di routing;
+    \item \textbf{creazione esplicita}: quando un router decide che serve un LSP per un FEC, allora viene creato, questa segnalazione parte da un label edge router;
+\end{itemize}
+
+Per distribuire i label esistono 3 soluzioni diverse:
+\begin{itemize}
+    \item protocolli di routing (BGP): solo in topology based;
+    \item \textbf{label distribution protocol (LDP)}: evoluzione del protocollo inventato da cisco;
+    \item \textbf{resource reservation protocol (RSVP)}: implementata da quasi tutti i costruttori, dove i nodi prenotano delle risorse per un tipo di pacchetto e poi la conferma viene propogata al contrario;
+\end{itemize}
+
+
+Modi di Routing:
+\begin{itemize}
+    \item hop-by-hop routing;
+    \item ...
+\end{itemize}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
