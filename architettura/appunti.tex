@@ -655,7 +655,142 @@ Qundo si vuole passare a thread mode ed impostare il valore del PSP, si deve:
     MOV R0, #3  ; user mode
     MSR CONTROL, R0
     LDR SP, =StackProcess
+
+    SVC 0x10
 \end{lstlisting}
+L'handler andr\`a gestito nel seguente modo:
+\begin{lstlisting}[language=]
+    PUSH {r0-r12, lr}
+    
+    TST lr, #2_1000
+    MSREQ r1, PSP               ; thread mode
+    LDREQ r0, [r1, #(14 + 6)*4]
+
+    MSRNE r1, MSP               ; handler mode
+    LDRNE r0, [r1, #(6)*4]
+
+    BIC r0, 0xff000000
+    LSR r0, #16
+    
+    ...
+
+    POP {r0-r12, lr}
+    BX lr
+\end{lstlisting}
+
+
+
+\section{ASM+C}
+Per usare una funzione scritta in C da ASM si usa:
+\begin{lstlisting}[language=]
+Reset PROC
+    EXPORT Reset
+    IMPORT __main
+    LDR r0, =__main
+    BX r0
+\end{lstlisting}
+
+Per usare una funzione scritta in ASM da C si usa:
+\begin{lstlisting}[language=C]
+exter int ARM_funct(int, int, int);
+
+int main(void)
+{
+    int i = 0xFF, j = 2, k = 3;
+    volatile int r = 0;
+
+    r = ASM_funct(i, j, k);
+    return 0;
+}
+\end{lstlisting}
+La funzione ASM\_funct \`e dischiarata come:
+\begin{lstlisting}[language=]
+    AREA asm_functions, CODE, READONLY
+    EXPORT ASM_funct
+
+ASM_funct
+    ; save current SP for a faster access
+    ; to parameters in the stack
+    MOV r12, sp
+    PUSH sp, {r4-r9,r10,r11,lr}
+
+    LDR r4, [r12]
+    LDR r5, [r12, #4]
+    ; prepare return value
+    MOV r0, r5
+
+    PUSH sp, {r4-r9,r10,r11,lr}
+    END
+\end{lstlisting}
+
+Se davanti ogni variabile non viene aggiunta la keyword \texttt{\textbf{volatile}}, il compilatore (in modalit\`a ottimizzata) potrebbe decidere di non usare un registro perch\`e pensa che sia inutile.
+
+
+
+
+\section{Scheda}
+
+
+Per configurare gli \textbf{switch} (bottoni) in modo far scatenare un eccezione si ha bisogno di di settare i bit della porta a 01, per abilitare l'eccezione EINT0, si fa:
+\begin{lstlisting}[language=C]
+void buttonInit(void) {
+    //  Porta relativa all'abilatazione dell'eccezione
+    // dello switch
+    LPC_PINCON->PINSEL4     |= (1 << 20);
+    // Registro della direzione dell'input
+    LPC_GPIO2->FIODIR       &= ~(1 << 10);
+
+    // ...
+
+    // Interrupt sensitivo al fronte di salita
+    LPC_SC->EXTMODE = 0x7;
+
+    // Abilitazione della interruzioni
+    NVIC_EnableIRQ(EINT0_IRQn);
+    
+    // ...
+}
+\end{lstlisting}
+Un esempio di handler sar\`a:
+\begin{lstlisting}[language=C]
+void EINT0_IRQHandler (void)	  
+{
+  LED_On(0);
+  /* clear pending interrupt         */
+  LPC_SC->EXTINT &= (1 << 0);     
+}
+\end{lstlisting}
+
+
+\subsection{Progetto Interrupt Controller}
+Gli eventi che si scatenano possono essere periodici o asincroni. I tipi di interruzione possono essere: 
+
+Si possono gestire le interruzioni in modo:
+\begin{itemize}
+    \item \textbf{polling}: gestito dal software, ovvero si usa un ciclo infinito per controllare periodicamente se dei registri relativi alle periferiche vengono modificati, in caso di modifica vengono gestite di conseguenza;
+    \item \textbf{interrupt}: si devono configurare i periferici in modo che quando avviene un cambiamento, viene scatenata un'interruzione, la risposta a questi eventi saranno gestite dalle loro priorit\`a, per gestirle si usa l'Interrupt Vector Table;
+\end{itemize}
+Quando si vuole configurare un sistema con le interruzioni vanno inizializzate diverse istruzioni, come la configuraione dei periferici o dei valori iniziali da assegnare a dei registri, decidere la priorit\`a ed i perferici che possono interrompere, in oltre va fatto un \textbf{aknowledge} che un interruzione \`e avvenuta, questo consiste nel scrivere un valore in un registro per non far risultare pi\`u l'interruzione come pending.
+
+L'\textbf{interrupt controller}, che si trova all'interno del microcontrollore (solitamente), gestisce i peidini delle interruzioni e decide le priorit\`a dei vari tipi. Il cortex pu\`o gestire fino a 35 possibili interrupt.
+
+
+\subsection{System Timing}
+Alcuni sistemi (come il cortex), ci permette di utilizzare i temporizzartori, o catturare l'intervallo di tempo tra due eventi.
+
+Se si vuole che i timer contino per un certo periodo allora sfruttiamo la formula: $time[s] = \frac{count}{colckPeriod[s]}$ (la costante che il simulatore vuole in input \`e il \emph{count}), ogni volta che passa questo periodo viene scatenata un eccezione.
+
+I timer a disposizione nel sistema sono 4.
+
+
+
+
+
+
+
+
+
+
 
 
 
