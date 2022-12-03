@@ -745,8 +745,9 @@ void buttonInit(void) {
     // Interrupt sensitivo al fronte di salita
     LPC_SC->EXTMODE = 0x7;
 
-    // Abilitazione della interruzioni
+    // Abilitazione della interruzioni e delle priorit\`a
     NVIC_EnableIRQ(EINT0_IRQn);
+    NVIC_SetPriority(EINT2_IRNQn, 1);
     
     // ...
 }
@@ -780,8 +781,23 @@ Alcuni sistemi (come il cortex), ci permette di utilizzare i temporizzartori, o 
 
 Se si vuole che i timer contino per un certo periodo allora sfruttiamo la formula: $time[s] = \frac{count}{colckPeriod[s]}$ (la costante che il simulatore vuole in input \`e il \emph{count}), ogni volta che passa questo periodo viene scatenata un eccezione.
 
-I timer a disposizione nel sistema sono 4.
+I timer a disposizione nel sistema sono 4, 2 sono attivi di default. Per assegnare un timer count, si incorre nel problema che il valore potrebbe essere pi\`u grande della grandezza di un registro, per risolvere questo problema l'lpc1768 funziona con un \textbf{prescaler}, ovvero usa un valore a 64 bit che richiede due registri. I \textbf{match register} sono dei registri particolari che matchano il timer counter, ogni qual volta vengono matchati si possono fare varie operazioni, come lanciare un eccezione, modificare il valore dei match registre o del timer, o controllare dei piedini.
 
+La libreria dei match register ci facilita la configurazoine, offrendo:
+\begin{itemize}
+    \item generazione di interrupt;
+    \item reset il timer counter;
+    \item stoppare il timer counter;
+\end{itemize}
+Per inizializzare i timer:
+\begin{lstlisting}[language=C]
+int main()
+{
+    
+
+}
+\end{lstlisting}
+\emph{La libreria dei timer (che fa un po schifo a detta del professore) possiede anche un wizard di configurazione}.
 
 
 

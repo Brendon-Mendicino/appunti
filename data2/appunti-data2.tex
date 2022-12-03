@@ -842,6 +842,9 @@ Le caratteristiche sono:
 \begin{theorem}{Teorema di Bayes}{teorema-di-bayes}
     \[ P(C,X) = P(X) \cdot P(C|X) \]
 \end{theorem}
+La classificazione bayesiana si basu sul teorema di bayes, questo tipo di classificazione presuppune un indipendenza statistica dei dati tra di loro, che solitamente \`e l'ipotesi sbagliata. Quando si vuole classificare una nuova tupla X rispetto ad un classe C si calcola $P(X|C)$ per ogni classe, il valore pi\`u alto trovato corrisponder\`a alla classe di apparteneza delle tupla. Per calcolare $P(X|C)$ si calcola:
+\[ \prod_{i=1}^{N} P(x_i|C)  \]
+dove $x_i$ \`e un attributo della tupla X (\`e per questo motivo che si richiede l'indipendenza statistica, altrimenti quella moltiplicazione non sarebbe possibile).
 
 
 \subsection{Support Vector Machines}
@@ -1367,6 +1370,85 @@ Per fare una buona progettazione fisica sono:
     \item il carico di lavoro in termine di query e freuqnza di esecuzione;
     \item engine del database;
 \end{itemize}
+Nella progettazione fisica dato il carico delle query vengono definiti uno o pi\`u indici e le strutture dati.
+
+Euristiche:
+\begin{itemize}
+    \item mai indicizzare una tabella piccola;
+    \item mai indicizzare un attributo con bassa cardinalit\`a;
+    \item analizzare i predicati nelle clausole \texttt{where};
+    \item quando si creano degli indici composti si deve considerare il costo del mantenimento;
+    \item per migliorare le operazioni di \texttt{join} si usano il \textbf{nested loop} (quando si joina un tabella piccola con una grande), ed il \textbf{merge scan} (vengono ordinate le tabelle prima di fare il join);
+    \item per le group by si usa un ordinamento una struttura di hash, l'ottimizzatore spesso anticipa le operazioni di group by (\textbf{group by push down}) diminuendo di molto la cardinalit\`a dei dati da analizzare;
+\end{itemize}
+
+Nelle condizioni di join vengon definite due tabelle:
+\begin{itemize}
+    \item \textbf{outer}: tabella letta in modo sequenziale;
+    \item \textbf{inner}: tabella letta n volte, tante quante le righe della tabella outer;
+\end{itemize}
+Le alternative per il join sono:
+\begin{itemize}
+    \item hash join;
+    \item nested loop: se la tebella \`e piccola comunque non si indicizza;
+\end{itemize}
+
+Se si decide di creare un indice composto \`e meglio che l'indice sia \textbf{coprente}, ovvero che leggendo l'indice si riesce a rispondere alla query senza leggere la tabella, altrimenti diventa troppo oneroso manterlo, diventa pi\`u efficace un indice su un solo attributo.
+
+
+
+\subsection{Ottimizzatore delle query}
+L'ottimizzatore delle query garantisce efficenza ed indipendenza dai dati. L'ottimizzatore genera un piando di esecuzione, basandosi su delle statistiche, come sulla distrubuzione dei valori e di come quei valori sono distribuiti nei vari blocchi fisici, le soluzioni sono dinamiche, infatti al cambiamento dei dati pu\`o cambiare anche il piano di esecuzione.
+
+L'ottimizzatore fa un controllo su:
+\begin{itemize}
+    \item errori lessicali: misspelled keywords;
+    \item errori sintattici: errori nella grammatica dell'sql;
+    \item errori semantici: viene utilizzato il data dictionary per contorllare se un oggetto esiste;
+\end{itemize}
+Effettuati i controlli genera un rappresentazione interna in algebra relazionale.
+
+Il passaggio successivo \`e l'ottimizzazione algebrica, creano un albero di esecuzione.
+
+Un volta creato l'albero viene fatta un'ottimizzazione basata sui costi di accesso, quindi ad ogni parte dell'albero vengono assegnati dei punti di accesso.
+
+
+L'ottimizzatore pu\`o essere utilizzato in due modalit\`a:
+\begin{itemize}
+    \item \textbf{compile and go}: una query non viene salvata, ma viene ricompilata ogni volta, utile quando i dati variano abbastanza frequentemente nel tempo;
+    \item \textbf{compile and store}: la query viene compilata e salavta per riutilizzi successivi;
+\end{itemize}
+
+
+\subsubsection{Ottimizzazione algebrica}
+Si basa su regole di ottimizzazione dell'algebra relazionale e sulle staistiche dei dati.
+
+\subsubsection{Ottimizzazione basata sui costi}
+Quando riceve un albero relazionale in base al fatto che
+
+Nel \textbf{data profile} sono presenti:
+\begin{itemize}
+    \item cardinalit\`a delle tuple;
+    \item numero di byte delle tuple;
+    \item numero di byte degli attributi di una tupla;
+    \item numero di valori distinti;
+    \item valori minimi e massimi di un attributo;
+\end{itemize}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

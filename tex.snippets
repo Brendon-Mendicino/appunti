@@ -39,6 +39,45 @@ def figure_label(t):
 def figure_caption(t):
 	t = t.replace('.png','').replace('.jpg','').replace('img/','').replace('-',' ').replace('_',' ').lower()
 	return t.title()
+
+def infer_figure():
+	import os
+	import json
+
+	current_files = [file for file in os.listdir('./img') if file.endswith('.png')]
+
+	if not os.path.exists('./img/log.json'):
+		with open('./img/log.json', 'w') as file:
+			json.dump(current_files, file)
+
+	result_string = ''
+	temp_file = False
+
+	with open('./img/log.json', 'r') as file:
+		used_images = json.load(file)
+		
+		for unused in set(current_files).difference(set(used_images)):
+			result_string = str(unused)
+			
+			new_used = used_images + [result_string]
+			temp_file = True
+			# create a temp_file to save the info  avoiding memory corruption in case of failure
+			with open('./img/log.json.temp', 'w') as file:
+				json.dump(new_used, file)
+
+			break
+
+
+	# switch the temp file
+	if temp_file:
+		with open('./img/log.json', 'w') as file:
+			json.dump(new_used, file)
+
+		return result_string
+    
+
+	return result_string
+
 endglobal
 
 
@@ -145,7 +184,7 @@ endsnippet
 snippet fig "Figure environment" bi
 \begin{figure}[${1:H}]
 	\centering
-	\includegraphics[width=${2:0.8}\textwidth]{$3}
+	\includegraphics[width=${2:0.8}\textwidth]{${3:`!p if not snip.c: snip.rv=infer_figure()`}}
 	\caption{${4:`!p snip.rv=figure_caption(t[3])`}}
 	\label{fig:${5:`!p snip.rv=figure_label(t[3])`}}
 \end{figure}
