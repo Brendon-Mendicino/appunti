@@ -776,7 +776,7 @@ $p(j|t) = $ frequenza della classe j al nodo t. Pi\`u il gini index si avvicina 
 
 Per la creazione di un albero va definito anche un criterio di stop:
 \begin{itemize}
-    \item ...
+    \item minamal gain;
     \item pre-pruning: se un nodo \`e quasi puro rimuovo non scendno pi\`u nell'albero;
     \item post-pruning: generato l'albero completo vado a tagliare i rami dell'albero con delle caratterisiche troppo specifiche;
 \end{itemize}
@@ -842,8 +842,8 @@ Le caratteristiche sono:
 \begin{theorem}{Teorema di Bayes}{teorema-di-bayes}
     \[ P(C,X) = P(X) \cdot P(C|X) \]
 \end{theorem}
-La classificazione bayesiana si basu sul teorema di bayes, questo tipo di classificazione presuppune un indipendenza statistica dei dati tra di loro, che solitamente \`e l'ipotesi sbagliata. Quando si vuole classificare una nuova tupla X rispetto ad un classe C si calcola $P(X|C)$ per ogni classe, il valore pi\`u alto trovato corrisponder\`a alla classe di apparteneza delle tupla. Per calcolare $P(X|C)$ si calcola:
-\[ \prod_{i=1}^{N} P(x_i|C)  \]
+La classificazione bayesiana si basu sul teorema di bayes, questo tipo di classificazione presuppune un indipendenza statistica dei dati tra di loro, che solitamente \`e l'ipotesi sbagliata. Quando si vuole classificare una nuova tupla X rispetto ad un classe C si calcola $P(X|C)P(C)$ per ogni classe, il valore pi\`u alto trovato corrisponder\`a alla classe di apparteneza delle tupla. Per calcolare $P(X|C)P(C)$ si calcola:
+\[ P(C) \prod_{i=1}^{N} P(x_i|C)  \]
 dove $x_i$ \`e un attributo della tupla X (\`e per questo motivo che si richiede l'indipendenza statistica, altrimenti quella moltiplicazione non sarebbe possibile).
 
 
@@ -936,21 +936,19 @@ La metrica  dell'accuratezza non \`e sempre affidabile, consideriamo un esempio:
 \end{table}
 assegnando un classificatore di default che assegna sempre la classe 0 la sua accuratezza sar\`a del 99\%, mentre la classe 1 non sar\`a mai predetta, questo \`e un esempio di caso in cui le classi sono sbilanciate, il nostro interesse in questi casi \`e predirre con precisione la classe minoritaria, come nella vita reale solo l'1\% della popolazione contrae una malattia, ma quell'1\% deve esere predetto con la maggiore precisione. Generalmente si danno delle metriche di valore per gli attributi di interesse, queste metriche calcolate pre una classe di interesse vengono dette, \textbf{recall} (numero di oggetti correttamente assegnati alla classe / numbero di oggetti che appartengono alla classe) e \textbf{precision} (numero di oggetti correttamente assegnati alla classe / numbero di oggetti assegnati alla classe). Queste metriche vanno massimizzate attraverso l'\textbf{F-measure} $= \frac{2rp}{r + p} $.
 
-L'ultima tecnica di classificazione dei modelli \`e la \textbf{curva ROC}, ...
-
-
-
-\section{Clustering fundamentals}
-... da rivedere
-
-
-\textbf{Bisecting K-means}
-
-
-
-
-
-
+\subsection{Curva ROC}
+ROC sta per (Receiver Operating Characteristics), questa curva caratterizza il trade-off tra numero positive di hits e falsi positivi. La curva ROC viene plottata su due assi:
+\begin{itemize}
+    \item \textbf{TPR}: true positive rate (y);
+    \item \textbf{FPR}: false positive rate (x);
+\end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{roc.png}
+    \caption{Roc}
+    \label{fig:roc}
+\end{figure}
+Generalmente un curva \`e buona se si trova al di sopra della diagonale.
 
 
 
@@ -1399,6 +1397,12 @@ Se si decide di creare un indice composto \`e meglio che l'indice sia \textbf{co
 
 \subsection{Ottimizzatore delle query}
 L'ottimizzatore delle query garantisce efficenza ed indipendenza dai dati. L'ottimizzatore genera un piando di esecuzione, basandosi su delle statistiche, come sulla distrubuzione dei valori e di come quei valori sono distribuiti nei vari blocchi fisici, le soluzioni sono dinamiche, infatti al cambiamento dei dati pu\`o cambiare anche il piano di esecuzione.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{schema-ottimizzatore.png}
+    \caption{Schema Ottimizzatore}
+    \label{fig:schema-ottimizzatore}
+\end{figure}
 
 L'ottimizzatore fa un controllo su:
 \begin{itemize}
@@ -1421,12 +1425,13 @@ L'ottimizzatore pu\`o essere utilizzato in due modalit\`a:
 
 
 \subsubsection{Ottimizzazione algebrica}
-Si basa su regole di ottimizzazione dell'algebra relazionale e sulle staistiche dei dati.
+Si basa su regole di ottimizzazione dell'algebra relazionale e sulle staistiche dei dati. Esistone delle trasformazioni che si possono applicare alle equazioni dell'algebra relazionale:
+\begin{itemize}
+    \item 
+\end{itemize}
 
 \subsubsection{Ottimizzazione basata sui costi}
-Quando riceve un albero relazionale in base al fatto che
-
-Nel \textbf{data profile} sono presenti:
+Per fare una ottimizzazione basata sui costi \`e necessario un modulo Nel \textbf{data profile} sono presenti:
 \begin{itemize}
     \item cardinalit\`a delle tuple;
     \item numero di byte delle tuple;
@@ -1434,7 +1439,7 @@ Nel \textbf{data profile} sono presenti:
     \item numero di valori distinti;
     \item valori minimi e massimi di un attributo;
 \end{itemize}
-
+Se la query \`e compile and go in output si avr\`a solamente le modalit\`a di accesso, altrimenti se le query \`e complilata insieme al piano di esecuzione vengono passete l'insieme di dipendenze, grazie a questo insieme si dicideranno se la query dovr\`a essere modificata per soddisfare i cambiamenti che avvengono al db col passare del tempo.
 
 
 

@@ -729,6 +729,12 @@ Se davanti ogni variabile non viene aggiunta la keyword \texttt{\textbf{volatile
 
 
 \section{Scheda}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{landtiger.png}
+    \caption{Landtiger}
+    \label{fig:landtiger}
+\end{figure}
 
 
 Per configurare gli \textbf{switch} (bottoni) in modo far scatenare un eccezione si ha bisogno di di settare i bit della porta a 01, per abilitare l'eccezione EINT0, si fa:
@@ -782,6 +788,12 @@ Alcuni sistemi (come il cortex), ci permette di utilizzare i temporizzartori, o 
 Se si vuole che i timer contino per un certo periodo allora sfruttiamo la formula: $time[s] = \frac{count}{colckPeriod[s]}$ (la costante che il simulatore vuole in input \`e il \emph{count}), ogni volta che passa questo periodo viene scatenata un eccezione.
 
 I timer a disposizione nel sistema sono 4, 2 sono attivi di default. Per assegnare un timer count, si incorre nel problema che il valore potrebbe essere pi\`u grande della grandezza di un registro, per risolvere questo problema l'lpc1768 funziona con un \textbf{prescaler}, ovvero usa un valore a 64 bit che richiede due registri. I \textbf{match register} sono dei registri particolari che matchano il timer counter, ogni qual volta vengono matchati si possono fare varie operazioni, come lanciare un eccezione, modificare il valore dei match registre o del timer, o controllare dei piedini.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{match-registers.png}
+    \caption{Match Registers}
+    \label{fig:match-registers}
+\end{figure}
 
 La libreria dei match register ci facilita la configurazoine, offrendo:
 \begin{itemize}
@@ -798,6 +810,44 @@ int main()
 }
 \end{lstlisting}
 \emph{La libreria dei timer (che fa un po schifo a detta del professore) possiede anche un wizard di configurazione}.
+
+
+
+Gli oscillatori esterni sono:
+\begin{itemize}
+    \item principale: pu\`o essere ad un cristallo esterno con frequenza tra 1MHz e 25MHz, attraverso una serie di processi aumenta la frequenza di base arrivando ai 100MHz;
+    \item intero ad RC (IRC): permette di far partire la scheda con un frequenza bassa, ha una frequenza di 4MHz, si pu\`o utilizzare per gestire il PLL;
+    \item RTC: permette di fare misure temporali, arriva fino a 32kHz;
+\end{itemize}
+Fra i registri di configurazione esiste anche la scelta del clock, il registro si chiama \texttt{CLKSRCSEL}.
+
+
+Il controllo sulla potenza ci da delle modalit\`a di consumo:
+\begin{itemize}
+    \item sleep mode;
+    \item deep sleep;
+    \item power-down;
+    \item deep power-down;
+\end{itemize}
+\emph{Le deep vanno evitate come la peste}.
+
+Per utilizzare delle modalit\`a di consumo minore sono dei registri di configurazione, come il PCON.
+PCON contiene il PM0 ed il PM1 che permette di configurare il sistema in power down mode. Il BODRPM permette di controllare in un piedino se l'alimentazione sta scendendo, il sistema pu\`o implementare un interruzione per capire quando il sistema sta perdendo potenza, il problema \`e che quando si utilizza il power down mode il BODRPM dovrebbe essere disabilitato, ma in questo modo non ci si rende conto se il sistema si sta spegnendo davvero, allora si tiene attivo lo stesso.
+
+Il registro di configurazione del power PCONP, ci permette di accendere la sua alimentazoine ai periferici.
+
+
+
+\subsection{Debuoncing}
+In molti casi quando si commuta un switch possono avvenire dei rimbalzi. Le soluzioni sono possono essere un'implementazione a livello hardware (costoso), oppure a livello software, una soluzione \`e quella di: ogni volta che arriva un interruzione da quel botton per un tot di secondi non si leggono pi\`u interruzioni da quel bottone.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{debouncing.png}
+    \caption{Debouncing}
+    \label{fig:debouncing}
+\end{figure}
+
+
 
 
 
