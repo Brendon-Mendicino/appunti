@@ -1496,14 +1496,221 @@ Esistono anche dei metodi di lettura relative agli index:
     \item \textbf{index range scan}: dalla lettura dell'indice si possono ottenere pi\`u rowid, ordinati in modo ascendente;
     \item \textbf{index full scan}: si legge tutto l'indece, questo si fa quando non si ha un predicato ben preciso, il vantaggio \`e che i dati vengono restituiti ordinati rispetto alla chiave dell'indice;
     \item \textbf{fast full index scan}: viene utilizzato quando l'indice \`e coprente (non si accede alla tabella), ma si perde l'ordinamento della chiave dell'indice;
-    \item \textbf{rowid}: riceve in input il rowid presente nell'index e poi legge la tabella;
+    \item \textbf{rowid}: riceve in input il rowid presente nell'index corrispondente a quella della riga della tabella a cui sta puntando;
 \end{itemize}
 
 
 
+Il data dictionary sono delle tabelle con statistiche sui dati presenti nelle tabelle del db, oracle per immagazzinare informazioni sulle colonne utilizza gli \textbf{istogrammi}. Gli istogrammi sono:
+\begin{itemize}
+    \item \textbf{height-balanced}: si ha la distribuzione dei valori assunti dall'attributo, i valori vengono distribuiti in intervalli di uguale lunghezza. L'istogramma divide gli intervalli in bucket, il loro valore corrisponde al valore pi\`u grande all'interno del bucket;
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.8\textwidth]{tipo-di-istogramma.png}
+            \caption{Tipo Di Istogramma}
+            \label{fig:tipo-di-istogramma}
+        \end{figure}
+    \item \textbf{frequency}: viene indicata le frequenza dei diversi valori, sempre tra i diversi bucket;
+\end{itemize}
+
+Un'altra opzione pu\`o essere la specifica per il miglior \textbf{throughput} (applicazioni batch) ed il miglior \textbf{response time} (applicazioni real time).
+
+\subsection{Regole per valutazione di ottimizzazione}
+
+\begin{theorem}{Regole ottimizzazione}{regole-ottimizzazione}
+    REGOLE EURISTICHE:
+    \begin{itemize}
+        \item tabella piccola:
+            \begin{itemize}
+                \item piccola se le tuple sono $ \leqslant10^{3}$, no indice;
+                \item medio/grande $ > 10^{3} ~ 10^{4}$, valutare indice;
+            \end{itemize}
+        \item valutazione predicato selettivo:
+            \begin{itemize}
+                \item selettivit\`a elevata $ \leqslant \frac{1}{10}$, valutazione indice;
+                \item selettivit\`a medio/bassa $ > \frac{1}{10} $, non si valuta l'indice per l'attributo;
+            \end{itemize}
+    \end{itemize}
+
+    PROCEDIMENTO:
+    \begin{itemize}
+        \item analise delle tabelle:
+            \begin{itemize}
+                \item statistiche;
+                \item cardinalit\`a tabella;
+                \item min-max attributo (hp distribuzione uniforme);
+                \item numero di valori distinti (hp distribuzione uniforme);
+                \item cardinalit\`a sulla selezione;
+            \end{itemize}
+        \item ispezionare istruzione sql:
+        \item definizione query tree;
+        \item valutazione delle cardinalit\`a:
+            \begin{itemize}
+                \item foglie;
+                \item nodi intermedi;
+                \item nodo finale;
+            \end{itemize}
+        \item definizione del piano di esecuzione (assegnare un metodo ad ogni nodo);
+        \item valutazion di possibili strutture fisiche accessorie per migliorare il piano di esecuzione:
+            \begin{itemize}
+                \item indicare la selettivit\`a;
+                \item aiuto nella group by | sort | join;
+                \item indice coprente oppure no;
+                \item primario (clustered) / secondario;
+                \item tipo di indice;
+            \end{itemize}
+        \item valutare anticipo group by;
+    \end{itemize}
+\end{theorem}
+
+\begin{example}{}{}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.8\textwidth]{ex-multa.png}
+        \caption{Ex Multa}
+        \label{fig:ex-multa}
+    \end{figure}
+    
+\begin{lstlisting}[language=sql]
+select data, count(*)
+from multa
+where data >= 1/10/2005 and data <= 30/11/2005
+group by data;
+\end{lstlisting}
+
+60 tuple; select statement
+\[ \pi_{data, count(*)} \]
+60 tuple; hash gb
+\[ gb_{data} \]
+selettvit\`a $2/12$, card = $2\cdot 10^{4}$
+\[ \sigma_{data \geqslant  1/10/2005 \& data \leqslant 30/11/2005} \]
+$10^{5}$ tuple, full table scan + filter
+\[ multa \]
+
+    Indice su data:
+    \begin{itemize}
+        \item predicato poco selettivo $(\frac{1}{6})$;
+        \item aiuta la gb (dati ordinati rispetto a data);
+        \item indice coprente;
+        \item indice secondario;
+    \end{itemize}
+\begin{lstlisting}[language=sql]
+create index myindex1 on multa(data);
+\end{lstlisting}
+
+    SOLUZIONE 1:
+    \begin{itemize}
+        \item select statement;
+        \item gb hash;
+        \item fast full index scan on myindex1
+    \end{itemize}
+
+    SOLUZIONE 2:
+    \begin{itemize}
+        \item select statement;
+        \item gb no sort;
+        \item full index scan on myindex1 or index range scan on myindex1;
+    \end{itemize}
+
+\end{example}
+
+\begin{example}{}{}
+\begin{lstlisting}[language=sql]
+selct data, count(*)
+from multa
+where data > = 1/10/2005 and data < = 30/11/2005
+    and tipoInfrazione = 'tipo10'
+group by data;
+\end{lstlisting} 
+    QUERY TREE:
+    \begin{itemize}
+        \item $\pi_{data, count(*)}$
+            \begin{itemize}
+                \item 60
+                \item select statement;
+            \end{itemize}
+        \item gb data;
+            \begin{itemize}
+                \item 60
+                \item gb sort
+            \end{itemize}
+        \item $\sigma_{data}$;
+            \begin{itemize}
+                \item $\frac{1}{6} 10^{3}$
+            \end{itemize}
+        \item $\sigma_{tipoinfrazione}$;
+            \begin{itemize}
+                \item $10^{3}$
+            \end{itemize}
+        \item multa
+            \begin{itemize}
+                \item 10^{5}
+                \item full table scan + filter
+            \end{itemize}
+    \end{itemize}
+
+
+    Indice su data (\emph{non conveniente}):
+    \begin{itemize}
+        \item bassa selettivit\`a;
+        \item poco aiuto a gb (pochi record);
+        \item richiede accesso alla tabella per attributo \texttt{tipoInfrazione};
+    \end{itemize}
+    Indice su tipo infrazione:
+    \begin{itemize}
+        \item selettivit\`a molto buona $\frac{1}{100}$;
+        \item non aiuta gb (per\`o i dati sono pochi);
+        \item accesso alla tabella (si ma solo $10^{3}$ tuple);
+    \end{itemize}
+
+    SOLUZIONE 1 (indice su tipoInfrazione):
+\begin{lstlisting}[language=sql]
+create index myindex2 on multa(tipoInfrazione);
+\end{lstlisting}
+    PIANO DI ESECUZIONE:
+    \begin{itemize}
+        \item select statement;
+        \item gb sort;
+        \item access by rowid;
+        \item index range scan on myindex2;
+    \end{itemize}
+
+    SOLUZIONE 2 (indice coprente):
+\begin{lstlisting}[language=sql]
+create index myindex3 on multa(tipoInfrazione, data);
+\end{lstlisting}
+    \texttt{tipoInfrazione} va per primo perch\`e \`e l'attributo pi\`u selettivo.
+    
+    PIANO DI ESECUZIONE:
+    \begin{itemize}
+        \item select statement;
+        \item gb sort;
+        \item fast full index scan on myindex3(i data sono $10^{5}$, si devono ordinare solo 100 record);
+    \end{itemize}
+\end{example}
 
 
 
+\begin{example}{}{}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.8\textwidth]{ex-studenti.png}
+        \caption{Ex Studenti}
+        \label{fig:ex-studenti}
+    \end{figure}
+
+\begin{lstlisting}[language=sql]
+select e.matricaola, name, avg(voto)
+from esami e, studenti s
+where e.matricola = s.matricola and voto >= 18
+grop by e.matricola, nome
+having avg(voto) >= 26
+order by e.matricola;
+\end{lstlisting}
+    
+   QUERY TREE:
+   $\pi_{matricola,nome,avg(voto)}$ $sort$ $\sigma_{avg(voto) \geqslant  26$ $ gb_{matricola,nome} ( \sigma_{voto \geqslant 18}(esami)$ $\bowtie_{matricola}$ $studenti )$
+\end{example}
 
 
 
