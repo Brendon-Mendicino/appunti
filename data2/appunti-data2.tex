@@ -1644,7 +1644,7 @@ group by data;
             \end{itemize}
         \item multa
             \begin{itemize}
-                \item 10^{5}
+                \item $10^{5}$
                 \item full table scan + filter
             \end{itemize}
     \end{itemize}
@@ -1709,7 +1709,7 @@ order by e.matricola;
 \end{lstlisting}
     
    QUERY TREE:
-   $\pi_{matricola,nome,avg(voto)}$ $sort$ $\sigma_{avg(voto) \geqslant  26$ $ gb_{matricola,nome} ( \sigma_{voto \geqslant 18}(esami)$ $\bowtie_{matricola}$ $studenti )$
+   $\pi_{matricola,nome,avg(voto)}$ $sort$ $\sigma_{avg(voto) \geqslant  26  gb_{matricola,nome} ( \sigma_{voto \geqslant 18}(esami)$ $\bowtie_{matricola}$ $studenti )$
 
 \end{example}
 
