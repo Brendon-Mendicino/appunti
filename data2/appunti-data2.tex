@@ -1444,7 +1444,60 @@ Se la query \`e compile and go in output si avr\`a solamente le modalit\`a di ac
 
 
 
+\subsection{Operatori di accesso}
+La reppresentazione interna dell'ottimizzatore \`e una query tree. Quando si effettua la lettura delle tabelle si valutano i predicati di selezione, il predicato viene applicato in fase di lettura, anche attraverso utilizzo di index. Anche il join \`e un operazione molto complessa, nei dbms esistono diversi tipi di join:
+\begin{itemize}
+    \item \textbf{nested loop}: ci sono due tabelle sbilanciata, una grande ed una piccola, per ogni tuple della outer table (grande) viene effettuata una scansione delle inner table (piccola), un eventuale indice creato sulla inner table potrebbe velocizzare l'operazione di join;
+    \item \textbf{merge scan join}: tiene conto dell'ordinamente delle tabelle rispetto all'attributo di join, se le tabelle non sono ordinate allora viene fatto un sort;
+    \item \textbf{hash join}: viene applicata una funzione di hash rispetto agli attributi della condizione di join, all'interno delle tabella vengono creati dei bucket, all'interno i dati vengono ordinati e poi viene fatto il join tra i bucket;
+    \item \textbf{bitmapped join}: \`e una specia di index definito sui dati (infatti questo join \`e dipendente dai dati, non come le altre tipologie di join), viene create una bitmap, ogni riga con la rowid della tabella orinale e gli attributi chee soddifano la query hanno un 1, mentre gli attributi che non la soddisfano hanno uno zero;
+\end{itemize}
 
+
+L'operazion di group by possono essere velocizzata con:
+\begin{itemize}
+    \item \textbf{sort based} prima con un ordinamento e poi con una selezione;
+    \item \textbf{hash based}: la tabella viene bucketizzata;
+    \item \textbf{materialized views}: con query rewriting;
+\end{itemize}
+
+
+
+\subsection{Piani di esecuzione}
+A differenza dell'obbittivo della query esistono diversi tipi di esecuzione:
+\begin{itemize}
+    \item se i dati servono il prima possibile si trovano dei metodi da inziare a mandare i dati, mentri nella applicazione di tipo batch ci\`o che conta \`e solo il tempo complessivo;
+\end{itemize}
+
+\begin{lstlisting}[language=sql]
+select snam, s.id
+from exam e, student s
+where s.sid = e.sid and score >= 27
+order by sname;
+\end{lstlisting}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{esecuzione1.png}
+    \caption{Esecuzione1}
+    \label{fig:esecuzione1}
+\end{figure}
+Esempio di piano di esecuzione.
+
+
+Gli accessi alle tabelle possono essere diretti o attraverso gli index, se gli index sono ricoprenti non c'\`e bisogno di accedere alla tabella.
+\begin{itemize}
+    \item \textbf{full table scan}: lettura sequenziale della tabella, processando in contemporanea i predicati della where, in oracle esiste una funzione che permette di leggere pi\`u pagine di una tabella per velocizzare le operazioni di IO, infatti quando il dbms legge un qualcosa viene sempre letta l'unit\`a minima (pagina), per sapre la distribuzione dei dati nella pagine esiste l'\textbf{index clustering factor}, ovvero quanto i dati sono vicini nei blocchi, se l'ICF \`e alto allora potrebbe essere ottimale leggere la tabella con un index, se \`e basso allora conviene leggere al tabella;
+    \item ...
+\end{itemize}
+
+Esistono anche dei metodi di lettura relative agli index:
+\begin{itemize}
+    \item \textbf{index unique scans}: viene utilizzato quando l'attributo su cui \`e stato creato l'indice \`e \texttt{UNIQUE}, l'indice per ogni valore della chiave ritorna un solo valore;
+    \item \textbf{index range scan}: dalla lettura dell'indice si possono ottenere pi\`u rowid, ordinati in modo ascendente;
+    \item \textbf{index full scan}: si legge tutto l'indece, questo si fa quando non si ha un predicato ben preciso, il vantaggio \`e che i dati vengono restituiti ordinati rispetto alla chiave dell'indice;
+    \item \textbf{fast full index scan}: viene utilizzato quando l'indice \`e coprente (non si accede alla tabella), ma si perde l'ordinamento della chiave dell'indice;
+    \item \textbf{rowid}: riceve in input il rowid presente nell'index e poi legge la tabella;
+\end{itemize}
 
 
 

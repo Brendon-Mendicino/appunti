@@ -1083,9 +1083,82 @@ Modi di Routing:
 
 
 
+\subsection{VPN via MPLS}
+(Layer 2)
+Si pu\`o creare una \textbf{pseudo wire emulation end-to-end}: due label edge router creano una LSP tra di loro, quindi in traffico viene trasportato solo tra questi due CE, vengono usati due label per maggiore scalabilit\`a, il problema \`e che le connessioni devo essere fatte manualmente.
+
+(Layer 3)
+La rete mpls che viene usata per collegare due sottoreti aziendali, i ce possono scambarsi dei dati sulle posizioni.
+
+
+I dispositivi CE scambia informazioni col la sottorete del'azienda per conoscere gli host presenti all'interno, parlando direttamente con il PE. Il PE viene configurato manualmente per sapere l'interfaccia a quale rete \`e collegata, infatti se tra le sottoreti collegati esistono dei duplicati la configurazione serve a distinguere se quale interfaccia mandare i pacchetti.
+
+I router P non hanno informazioni dei nodi all'interno della rete MPLS, quindi si ...
+
+I router PE scambiano informazioni di routing attraverso il protocollo IBGP (interio border gateway protocol), per creare un LSP per collegare la rete MPLS al raggiungimento dell'altra rete aziendale, i label edge router per scambiare informazioni tra di loro utilizzeranno EBGP (exterior BGP).
+
+Per immagazzinare le informazioni vengono utilizzate le \textbf{VRF} (vpn routing and forwarding) table, questo serve a distinguere le destinazioni.
+
+... da finire ...
+
+
+\subsection{6BE}
+Lo scenario \`e che ci sono diverse reti IPv6 che devono scambiare informazioni attraverso una rete MPLS con IPv4. Il problema \`e che sul piano di controllo scambiano informazioni di routing con gli indirizzi ipv4, mentre i capi sono con indirizzi ipv6. I PE a questo punto diventeranno dual stack e sar\`a il loro compito di creare l'LSP con l'altre label edge e creare un comunicazione tra i due punti, questa comunicazione \`e detta 6PE.
 
 
 
+\newpage
+\section{Reti ottiche}
+Nelle reti ottiche la commutazione \`e ottica, questa tecnologia \`e nata insiema al WDM (wavelenghet division multiplexing), dove vengono presi pi\`u segnali e vengono messi sulla stessa fibra, esistono due tipi di WDM:
+\begin{itemize}
+    \item Dense WDM: si possono trasmettere centinaia di messaggi;
+    \item Coarse WDM: si pu\`o mettere qualche onda;
+\end{itemize}
+Nel'ottica si usano delle zone di frequenze predefinite dette finestre, per cui l'attenuazione del segnale \`e minimo, il coarse usa un segnale per ogni finestra, mentre il dense riesce a mettere molte su ogni frequenze e non solo nelle finestre.
+
+Quando ho una fibra su cui passano pi\`u canali ottici per si untilizza un wavelenght switching ($\lambda$ switching), con questi switch ottici si costruir\`a una rete che compone la parte centrale della rete, dove ai bordi sono collegati ai router, attraverso dei canali ottici due router potranno comicare tra di loro.
+
+Gli switch ottici possono essere:
+\begin{itemize}
+    \item con un core ottico vs elettronico;
+    \item cross connect (configurazione statica) vs switch (configurazione dinamica);
+    \item wavelenght conversion;
+\end{itemize}
+
+Gli switch ideali hanno un \textbf{optical core} (completamente ottico), vengono usati solo degli specchi, per far questo si utilizza la tecnologia MEMS (micro electro mechanical systems), dove si costruiscono delle superfici riflettenti dell'ordine dei micrometri che sono orientabili con una differenza di potenzia, essendo che viene usata pochissima corrente non si deve dissipare la potenza prodotta.
+
+Mentre venivano progettati gli switch ottici con i memes si possono utilizzare gli switch con core elettronico, dove in entrata si prendono i bit di un canale e verrano commutati su un nuovo canale, dove viene fatto sparare un nuova laser.
+
+
+\subsection{Piano di Controllo}
+Per poter fare del provisioning o della protection in case di guasti si ha bisogno di un piano di controllo.
+
+
+Il motivo per cui si encapsula un pacchetto IP con un protocollo di livello 2 \`e perch\`e IP non ha nessuna informazione su dove inizia o finisce il pacchetto.
+
+
+
+
+\newpage
+\section{Qualit\`a del servizio}
+Ad esempio nello streaming video si utilizza un ritardo costante nella ricezione, per far si che il buffer al ricevitore sia sempre con pacchetti da far vedere all'utente e per dare tempo ai pacchetti che arrivino dalla rete. Con le applicazoini multimediali o \textbf{real time}, di deve far si che i dati arrivino con un ritardo controllato.
+
+
+Se si vogliono fornire dei ritradi bassi e costanti, esistono delle contromisure:
+\begin{itemize}
+    \item \textbf{classificazione del traffico};
+    \item \textbf{algoritmi di scheduling}, per i pacchetti che competono per delle risorse;
+    \item controllo sul traffico che entra nella rete;
+    \item QoS routing;
+\end{itemize}
+
+La classificazione va fatta in base alla quintupla: dest IP, src IP, transport protocol, dest port, src port. Basandosi su queste informazioni si pu\`o classificare le applicazioni in real time.
+
+Tra gli algoritmi di scheduling uno dei pi\`u efficenti \`e il \textbf{weighted fair queuing} (WFQ), che riesce a garantire che ogni applicazione della rete riesce ad avere il QoS che ha richiesto.
+
+
+Soluzioni standard al QoS in IP.
+Uno \`e \textbf{IntServ} (internet's ambitious solution), si garantisce un allocazione di risorse ad ogni applicazione della rete che ne richiede usando RSVP, e si garantisce il QoS.
 
 
 
