@@ -166,6 +166,12 @@ Si dovr\`a definire la latenza, ovvero il numero di colpi di clock che una unit\
     \item fadd: lat: 4: 1;
     \item div: lat: 24, int: 24;
 \end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{pipeline-units.png}
+    \caption{Pipeline Units}
+    \label{fig:pipeline-units}
+\end{figure}
 
 Solitamente la divisione ha la latenza identica all'intervallo di inizializzazione. Se un unit\`a \`e \textbf{pipelined} allora ha un colpo di clock come intervallo di inizializzazione, se l'unit\`a non \`e pipelined allora il suo intervallo di inizializzazione \`e uguale alla latenza.
 
@@ -183,29 +189,29 @@ In questo caso l.d e add.d scrivono nello stesso momento sul registro f2, essend
 
 
 
-\section{Exceptions}
+\subsection{Exceptions}
 Le eccezioni sono classificate in:
 \begin{itemize}
     \tolerance=1000
     \item \textbf{sincrone} e \textbf{asincrone};
     \item \textbf{user requested} (l'utente potrebbe creare un eccezione) o \textbf{coerced} (data da fattori esterni);
     \item \textbf{maskable} o \textbf{non-maskable}: alcune eccezioni non sono mascherabili ovvero forzare l'hardaware a non rispondere all'exception;
-    \item \textbf{within instructions} o \textbf{between instructions}: within all'interno delle istruzioni (metre un istruzione fa DI, ID, ...) oppure tra due istruzinoi (ld, add);
+    \item \textbf{within instructions} o \textbf{between instructions}: within all'interno delle istruzioni (metre un istruzione fa IF, ID, ...) oppure tra due istruzioni (ld, add);
 \end{itemize}
-Le macchine moderne sono chiamate \textbf{restartable machines} ovvero fanno ripartire il processore dallo stato in cui si trovava prima dell'eccezione. Quando una exception arriva il processore deve stoppare il IF, fermare la scrittura della pipeline e riuscire a tornare dalla procedura che ha chiamato l'exception.
+Le macchine moderne sono chiamate \textbf{restartable machines} ovvero fanno ripartire il processore dallo stato in cui si trovava prima dell'eccezione. Quando una exception arriva al processore deve stoppare l'IF, fermare la scrittura della pipeline e riuscire a tornare dalla procedura da dove \`e stata chiamata l'exception.
 
 \begin{example}{Interrupt protocal in 80x86}{interrupt-protocal-in-80x86}
     Quando la CPU rileva un interrupt, legge il tipo di interrupt dal bus, salva lo stato del processore
 \end{example}
 
-ARM: la CPU salva lo status, il PC ed il Processore Status Register nello stack, aggiorna i flag e salta al valore dell'exception
-
-Le eccezioni possono gestite in modo \textbf{preciso} o in modo \textbf{impreciso}:
+\begin{example}{Interrutp protocol in ARM}{interrutp-protocol-in-arm}
+    Lla CPU salva lo Status Register, il PC ed il ed altri registri nello stack, aggiorna i flag, link register e PC  e salta al valore dell'exception.
+\end{example}
+Le eccezioni possono essere gestite in modo \textbf{preciso} o in modo \textbf{impreciso}:
 \begin{itemize}
-    \item preciso: quando avviene un interruzione, tutte le istruzione prima che arrivi l'istruzione devono essere completate, tutte quelle dopo devono essere rimandate, gestire questo tipo di istruzioni \`e molto oneroso;
+    \item preciso: quando arriva un interruzione, tutte le istruzioni che si trovano all'interno della pipeline devono essere completate e tutte quelle dopo devono essere rimandate, gestire questo tipo di istruzioni \`e molto oneroso;
     \item impreciso: 
 \end{itemize}
-
 Nel MIPS le possibili exception sono:
 \begin{itemize}
     \item IF: page fault, accesso a memoria protetta;
@@ -214,7 +220,7 @@ Nel MIPS le possibili exception sono:
     \item MEM: stesse della IF;
     \item WB: nussuna;
 \end{itemize}
-Se due exception arrivano nello stesso momento: si pu\`u creare un flag di status associato ad ogni istruzione, guardande se l'istruzione pu\`o causare un eccezione, quando l'istruzione termina, l'exception viene scatenata, cos\`i si crea un coda evitando exception simultanee.
+Se due exception arrivano nello stesso momento si po\`u creare un flag di status associato ad ogni istruzione, guardando se l'istruzione pu\`o causare un eccezione o meno, quando l'istruzione termina l'exception viene scatenata, cos\`i si crea un coda evitando exception simultanee, infatti ogni exception pu\`o essere scatenata solo al termine di ogni istruzione.
 
 
 \section{Chache Memories}
