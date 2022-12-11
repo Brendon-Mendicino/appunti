@@ -2,6 +2,8 @@
 
 \usepackage{notestyle}
 
+\usepackage{bookmark}
+
 \graphicspath{{./img/}}
 
 
@@ -210,7 +212,17 @@ Le macchine moderne sono chiamate \textbf{restartable machines} ovvero fanno rip
 Le eccezioni possono essere gestite in modo \textbf{preciso} o in modo \textbf{impreciso}:
 \begin{itemize}
     \item preciso: quando arriva un interruzione, tutte le istruzioni che si trovano all'interno della pipeline devono essere completate e tutte quelle dopo devono essere rimandate, gestire questo tipo di istruzioni \`e molto oneroso;
-    \item impreciso: 
+    \item impreciso: un esempio eccezioni imprecise:
+\begin{lstlisting}[language=]
+div.d f0, f1, f2
+sub.d f12, f12, f13
+\end{lstlisting}
+    se sub.d causa un eccezione allora viene detta imprecisa, perch\'e un istruzione precedente (div.d) si trova ancora nella pipeline. Per risolvere questo problema ci sono diverse scelte:
+    \begin{itemize}
+        \item forzare l'unit\`a di FP a non schedulare nuove istruzioni se pensa che una corrente possa causare un eccezione;
+        \item bufferizzare il risultato finch\'e tutte le istruzioni precedenti non siano terminate;
+        \item implementare una soluzione precisa solo per una unit\`a (tipo FP);
+    \end{itemize}
 \end{itemize}
 Nel MIPS le possibili exception sono:
 \begin{itemize}
@@ -223,6 +235,38 @@ Nel MIPS le possibili exception sono:
 Se due exception arrivano nello stesso momento si po\`u creare un flag di status associato ad ogni istruzione, guardando se l'istruzione pu\`o causare un eccezione o meno, quando l'istruzione termina l'exception viene scatenata, cos\`i si crea un coda evitando exception simultanee, infatti ogni exception pu\`o essere scatenata solo al termine di ogni istruzione.
 
 
+\subsection{Instruction Level Parallelism}
+I processori cercano di sfruttare al massimo l'ILP, ovvero cercare di rischedulare le istruzioni in modo da evitare hazard il pi\`u possibile. L'ILP pu\`o essere:
+\begin{itemize}
+    \item \textbf{dinamico}: gestito dall'hrdware;
+    \item \textbf{statico}: gestito a livello software, ovvero dal compilatore;
+\end{itemize}
+Solitamente questi due approcci possono essere combinati.
+
+Il primo tipo di ILP \`e il \textbf{basic block}, dove si sceglie un blocco di istruzioni e si cerca di rischedularle per cercare di elimare gli hazard rispettando le dipendenze, questo blocco deve soddisfare due condizioni:
+\begin{itemize}
+    \item nessun branch pu\`o entrare nel blocco;
+    \item nessum branch pu\`o uscire dal blocco;
+\end{itemize}
+Il motivo \`e che se queste due condizioni fossero possibili il codice perderebbe consistenza.
+
+Un altro modo di aumentare il parallelismo \`e il \textbf{loop-level parallelism}, si cerca di fare un unrolling di un for loop (quando possibile), questo viene fatto per ridurre l'overhead causato dalle istruzioni di controllo.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{loop-unrolling.png}
+    \caption{Loop Unrolling}
+    \label{fig:loop-unrolling}
+\end{figure}
+Il problema con questo approccio \`e che si aumenta la dimensione del codice.
+
+
+
+
+
+
+
+
+\newpage
 \section{Chache Memories}
 \tolerance=1000
 Le cache volocizzano l'accesso al memoria secondaria che \`e il collo di bottiglia dell'intero sistema. Si \`e creata un gerarchia di memorie molto pi\`u veloci quanto pi\`u vicine si trovano al processore.
@@ -250,8 +294,8 @@ La cache funzionano grazie ai principi di localit\`a:
     Valori soliti per $h$ sono $0.9$.
 \end{theorem}
 
-\paragraph{Organizzazione della cache}
-Solitamente la cache \`e formata da una parte di contrllo contenente il \textbf{cache controller} che controlla se accedendo alla cache \`e stato fatto un hit o un miss e in caso recupera la porzione di memoria ed una parte di dati, che contiene le \textbf{cache line} fatte da:
+\subsection{Organizzazione della cache}
+Solitamente la cache \`e formata da una \textbf{parte di controllo} contenente il \textbf{cache controller} che controlla se accedendo alla cache \`e stato fatto un hit o un miss e in caso recupera la porzione di memoria, ed una \textbf{parte di dati} che contiene le \textbf{cache line} fatte da:
 \begin{itemize}
     \item validity bit: il bit ci dice se la riga \`e valida o meno;
     \item tag: identifica il blocco di memoria presente nella riga;
@@ -269,7 +313,7 @@ La cache si trovano tra il bus ed il processore, per evitare conflitti di utiliz
 
 Le cache moderne pi\`u vicine al processore sono separtate in \textbf{Instruction-Cache} e \textbf{Data-cache}, per evitare la lettura contemporanea di istruzioni e dati (structural hazard).
 
-\paragraph{Mappatura}
+\subsection{Mappatura}
 I tipi di mappatura (\textbf{associativity models}) sono:
 \begin{itemize}
     \item \textbf{direct mapped}: la posizione nella riga \`e uguale a: \#block\_memory mod \#cache\_block;
@@ -286,11 +330,15 @@ Gli aloritmi usati per decidere quale riga rimpiazzare sono:
     \item random: semplice ed efficace;
 \end{itemize}
 
-\paragraph{Update della Memoria}
+\subsection{Update della Memoria}
 Quando un operazione di scrittura \`e fatta sulla cache deve anche essere propagata sulla memoria, le due possibili soluzioni a questo problema sono:
 \begin{itemize}
     \item \textbf{write back}: per ongi riga della cache \`e introdotto un flag detto \textbf{dirty bit}, che indica quando i dati all'interno sono cambiati;
-    \item \textbf{write through}: ogni volta che la CPU effettua un operazione di scrittura, i dati vengono scritti sia in cach e che in memoria;
+    \item \textbf{write through}: ogni volta che la CPU effettua un operazione di scrittura, i dati vengono scritti sia in cache sia in memoria, questa \`e la soluzione pi\`u usata per due motivi:
+        \begin{itemize}
+            \item le operazioni di scrittura sono meno frequenti di quelle di lettura, quindi ci si pu\`o permettere un po di overhead;
+            \item in questo modo si risolvono tutti i problemi relativi alla gestione di scrittura in concorrenza, senza implementare altro hardware per la gestione di tale problematica;
+        \end{itemize};
 \end{itemize}
 
 
