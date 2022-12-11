@@ -1264,7 +1264,7 @@ Il bisecting
 
 
 \section{Introduzione ai DBMS}
-Il DBMS permette di avere una gestione concorrente delle informazioni, oltre ad avere delle routine che operano sui dati, la sua struttuare \`e molto complessa ed \`e strutturata in moduli, l'entry poiont \`e una query.
+Il DBMS permette di avere una gestione concorrente delle informazioni, oltre ad avere delle routine che operano sui dati, la sua struttura \`e molto complessa ed \`e strutturata in moduli, l'entry poiont \`e una query.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{architettura-dbms.png}
@@ -1285,12 +1285,12 @@ Il concetto fondamentale nel constesto dei db sono le \textbf{transazioni}: ovve
     \item \textbf{atomic}: tutte le operazione dovono andare a buon fine o nessuna, le operazioni che controllono lo stato del sistema sono \textbf{UNDO} o \textbf{REDO};
     \item \textbf{consistency}: non vanno violati i vincoli di consistenza del DBMS, vincoli di chiava, chiave esterna, ...;
     \item \textbf{isolation}: la transazioni operano in modo indipendente tra di loro, i dati intermedi non sono visibili all'esterno;
-    \item \textbf{durability}: i dati di una transazioni non possono essere perse, questa proprit\`a \`e garantata dal relieability manager;
+    \item \textbf{durability}: i dati di una transazione non possono essere persi, questa proprit\`a \`e garantita dal reliability manager;
 \end{itemize}
 
 
 \subsection{Buffer Manager}
-Il buffer manager ha accesso ad una parte della memoria principale a cui gli applicativi hanno accesso. Il buffer \`e organizzato in \textbf{parole} di dati, che \`e l'unit\`a minima trasferibile dalla memoria secondaria, per essere efficace nelle operazioni di IO le pagine devono essere presenti nel buffer per velocizzare le operazioni, per questo motivo si utilizza il principio di localit\`a. Ogni pagina deve avere:
+Il buffer manager ha accesso ad una parte della memoria principale a cui gli applicativi hanno accesso. Il buffer \`e organizzato in \textbf{parole} o \textbf{pagine} di dati, che \`e l'unit\`a minima trasferibile dalla memoria secondaria, per essere efficace nelle operazioni di IO le pagine devono essere presenti nel buffer per velocizzare le operazioni, per questo motivo si utilizza il principio di localit\`a. Ogni pagina deve avere:
 \begin{itemize}
     \item l'ID del file;
     \item l'ID del blocco;
@@ -1307,15 +1307,15 @@ Per ogni pagina esistono anche due stati:
     \label{fig:buffer-manager}
 \end{figure}
 
-Il buffer manager ha a disposizione una parte della memoria principale in cui salva della pagine di dati del DB qundo viene fatta query. Eisitono delle primitive per poter accedere a questa memoria:
+Il buffer manager ha a disposizione una parte della memoria principale in cui salva delle pagine di dati dal DB quando viene fatta una query. Eisitono delle primitive per poter accedere a questa memoria:
 \begin{itemize}
-    \item \textbf{fix}: richiesta dalla transazione, se la pagina \`e disponibile allora viene passata, altrimeti si fanno delle operazioni di IO per recuperare la pagina, se il buffer \`e pieno un'altra pagina deve essere rimpiazzata, solitamente sar\`a un pagina con il \textbf{count}=0, questa pagina viene detta \textbf{vittima} e verr\`a rimpiazzata con qualla richiesta dalla transazione, se durante la transazione una pagina ha il \textbf{dirty biy} = 1 allora deve essere fatta un operazione di IO per sincronizzare la pagina. Prima che la lettura inizii il count viene incrementato di 1;
+    \item \textbf{fix}: richiesta dalla transazione, se la pagina \`e disponibile allora viene passata, altrimeti si fanno delle operazioni di IO per recuperare la pagina, se il buffer \`e pieno un'altra pagina deve essere rimpiazzata, solitamente sar\`a un pagina con il \textbf{count}=0, questa pagina viene detta \textbf{vittima} e verr\`a rimpiazzata con qualla richiesta dalla transazione; se durante la transazione una pagina ha il \textbf{dirty biy} = 1 allora deve essere fatta un operazione di IO per sincronizzare la pagina. Prima che la lettura inizii il count viene incrementato di 1;
     \item \textbf{unfix}: viene richiesta dalla transazione quando la pagina non deve essere utilizzata;
     \item \textbf{set dirty}: setta il valore dirty ad una pagina quando viene fatta un'operazione di scrittura;
     \item \textbf{force}: richiede un trasferimento sincrono della pagina al disco, quindi si scrive la pagina, non \`e detto che la pagina venga rimossa;
-    \item \textbf{flush}: richiede un trasferimento asincrono della pagina al disco, questo traferimento;
+    \item \textbf{flush}: richiede un trasferimento asincrono della pagina al disco;
     \item \textbf{steal}: quando si utilizza steal il buffer manager pu\`o selezionare una pagina locked con un count=0, detta pagina \textbf{vittima}, e la rimuove dal buffer, se non-steal \`e settato non si pu\`o selezionare una pagina su cui sta avvenendo una transazione;
-    \item \textbf{force}: tutta la pagine di una transazione sono scritte in modo sincrono sul disco;
+    \item \textbf{force}: tutte la pagine di una transazione sono scritte in modo sincrono sul disco;
     \item \textbf{no-force}: utilizza flush per scrivere le pagine in modo asincrono sul disco;
 \end{itemize}
 Inoltre il buffer manager mette a disposizione:
@@ -1336,9 +1336,9 @@ Nelle strutture squenziali le tuple sono storicizzate nella pagina seguendo l'or
 
 Gli \textbf{heap file} utilizzano delle strutture secondarie per avvalersi di ricerca veloce, tutti i tipi di operazione sono identiche a quelle delle strutture sequenziali.
 
-Le \textbf{ordered sequential structures} sono delle strutture sequenziali ordinate in base ad una chiave di ordinamento. I dati oridinati servono per velocizzare le operazioni per quelle interrogazioni che usano la stessa chieve di ordinamento. Come contro le operazioni di delete e inserimento sono molto onerose. Viene lasciato dello spazio in pi\`u per eventuali operazioni di update, oppure viene implementato un file di \textbf{overflow}, dove vengono salvati la parte di dati che dopo un'update o insert non entra nella pagina.
+Le \textbf{ordered sequential structures} sono delle strutture sequenziali ordinate in base ad una chiave di ordinamento. I dati oridinati servono per velocizzare le operazioni per quelle interrogazioni che usano la stessa chiave di ordinamento. Come contro le operazioni di delete e inserimento sono molto onerose. Viene lasciato dello spazio in pi\`u per eventuali operazioni di update, oppure viene implementato un file di \textbf{overflow}, dove vengono salvati la parte di dati che dopo un'update o insert non entra nella pagina.
 
-Nelle \textbf{strutture ad albero} nei nodi si trovano solo le chivi per effettuare la ricerca, negli indice unclustered le foglie si trovano parte dei valori della tuple e il puntatore alla tupla originale, mentre in una struttura clustered le foglie corrispondono ai puntatori della tupla, inoltre da una folgia si pu\`o passare all'altra essendo tutte ordinate in modo seequenziale (come nei \textbf{B+-Tree}.
+Nelle \textbf{strutture ad albero} nei nodi si trovano solo le chiavi per effettuare la ricerca, negli indici unclustered le foglie si trovano parte dei valori della tuple e il puntatore alla tupla originale, mentre in una struttura clustered le foglie corrispondono ai puntatori della tupla, inoltre da una folgia si pu\`o passare all'altra essendo tutte ordinate in modo seequenziale (come nei \textbf{B+-Tree}.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{unclustered-b-tree.png}
@@ -1362,15 +1362,14 @@ I \textbf{bitmap index} sono delle strutture unclustered, che si portano bene a 
 
 
 \subsection{Progettazione Fisica}
-Per fare una buona progettazione fisica sono:
+Per fare una buona progettazione fisica servono
 \begin{itemize}
     \item il progetto logico;
-    \item il carico di lavoro in termine di query e freuqnza di esecuzione;
+    \item il carico di lavoro in termine di query e frequenza di esecuzione;
     \item engine del database;
 \end{itemize}
 Nella progettazione fisica dato il carico delle query vengono definiti uno o pi\`u indici e le strutture dati.
-
-Euristiche:
+\begin{theorem}{Euristiche sulla progettazione fisica}{euristiche-sulla-progettazione-fisica}
 \begin{itemize}
     \item mai indicizzare una tabella piccola;
     \item mai indicizzare un attributo con bassa cardinalit\`a;
@@ -1379,7 +1378,7 @@ Euristiche:
     \item per migliorare le operazioni di \texttt{join} si usano il \textbf{nested loop} (quando si joina un tabella piccola con una grande), ed il \textbf{merge scan} (vengono ordinate le tabelle prima di fare il join);
     \item per le group by si usa un ordinamento una struttura di hash, l'ottimizzatore spesso anticipa le operazioni di group by (\textbf{group by push down}) diminuendo di molto la cardinalit\`a dei dati da analizzare;
 \end{itemize}
-
+\end{theorem}
 Nelle condizioni di join vengon definite due tabelle:
 \begin{itemize}
     \item \textbf{outer}: tabella letta in modo sequenziale;
@@ -1390,7 +1389,6 @@ Le alternative per il join sono:
     \item hash join;
     \item nested loop: se la tebella \`e piccola comunque non si indicizza;
 \end{itemize}
-
 Se si decide di creare un indice composto \`e meglio che l'indice sia \textbf{coprente}, ovvero che leggendo l'indice si riesce a rispondere alla query senza leggere la tabella, altrimenti diventa troppo oneroso manterlo, diventa pi\`u efficace un indice su un solo attributo.
 
 
@@ -1403,21 +1401,13 @@ L'ottimizzatore delle query garantisce efficenza ed indipendenza dai dati. L'ott
     \caption{Schema Ottimizzatore}
     \label{fig:schema-ottimizzatore}
 \end{figure}
-
 L'ottimizzatore fa un controllo su:
 \begin{itemize}
     \item errori lessicali: misspelled keywords;
     \item errori sintattici: errori nella grammatica dell'sql;
     \item errori semantici: viene utilizzato il data dictionary per contorllare se un oggetto esiste;
 \end{itemize}
-Effettuati i controlli genera un rappresentazione interna in algebra relazionale.
-
-Il passaggio successivo \`e l'ottimizzazione algebrica, creano un albero di esecuzione.
-
-Un volta creato l'albero viene fatta un'ottimizzazione basata sui costi di accesso, quindi ad ogni parte dell'albero vengono assegnati dei punti di accesso.
-
-
-L'ottimizzatore pu\`o essere utilizzato in due modalit\`a:
+Effettuati i controlli genera un rappresentazione interna in algebra relazionale. Il passaggio successivo \`e l'ottimizzazione algebrica, creando un albero di esecuzione. Un volta creato l'albero viene fatta un'ottimizzazione basata sui costi di accesso, quindi ad ogni parte dell'albero vengono assegnati dei punti di accesso. L'ottimizzatore pu\`o essere utilizzato in due modalit\`a:
 \begin{itemize}
     \item \textbf{compile and go}: una query non viene salvata, ma viene ricompilata ogni volta, utile quando i dati variano abbastanza frequentemente nel tempo;
     \item \textbf{compile and store}: la query viene compilata e salavta per riutilizzi successivi;
@@ -1425,7 +1415,7 @@ L'ottimizzatore pu\`o essere utilizzato in due modalit\`a:
 
 
 \subsubsection{Ottimizzazione algebrica}
-Si basa su regole di ottimizzazione dell'algebra relazionale e sulle staistiche dei dati. Esistone delle trasformazioni che si possono applicare alle equazioni dell'algebra relazionale:
+Si basa su regole di ottimizzazione dell'algebra relazionale e sulle staistiche dei dati. Esistono delle trasformazioni che si possono applicare alle equazioni dell'algebra relazionale:
 \begin{itemize}
     \item 
 \end{itemize}
