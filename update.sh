@@ -8,10 +8,11 @@ for file in $(ls -C); do
     ! [ -d "$file" ] && continue
     ! [ $(ls $file | grep -E "^.*\.tex$") ] && continue
 
-    # if the file has not been changed then go to the next one
-    ! [ $(git ls-files -m | grep "$file") ] && continue
-
     cd $file
+
+    # if the file contains not tex file changed go to the next one
+    ! [ $(git ls-files -m | grep -E "^.*\.tex$") ] && cd .. && continue
+
     echo $(pwd)
     echo "Converting $(ls | grep -E "^.*\.tex$") ..."
     pdflatex "$(ls | grep -E "^.*\.tex$")"

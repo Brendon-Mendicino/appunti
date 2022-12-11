@@ -8,9 +8,6 @@ for file in $(ls -C); do
     ! [ -d "$file" ] && continue
     ! [ $(ls $file | grep -E "^.*\.tex$") ] && continue
 
-    # Removed in the force update version.
-    ## if the file has not been changed then go to the next one
-    ##! [ $(git ls-files -m | grep "$file") ] && continue
 
     cd $file
     echo $(pwd)
