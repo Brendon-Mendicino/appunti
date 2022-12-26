@@ -1994,7 +1994,7 @@ CouchDB (cluster of unrelieable comodity hardware). I punti pricipali dell'archi
 
 \subsubsection{MapReduce}
 Esempio di mapReduce:
-\begin{lstlisting}[language=]
+\begin{lstlisting}[language=javascript]
 // Map function
 function(doc) {
     key = doc.matricola
@@ -2056,7 +2056,7 @@ In MongoDB:
     \item column = field;
 \end{itemize}
 Esempio di query su mongoDB:
-\begin{lstlisting}[language=]
+\begin{lstlisting}[language=javascript]
 db.<collection name>.find( {<conditions>}, {<fields of interest>});
 
 // mongoDB
@@ -2067,7 +2067,7 @@ select *
 from people;
 \end{lstlisting}
 Filtraggio:
-\begin{lstlisting}[language=]
+\begin{lstlisting}[language=javascript]
 db.people.find({age:55});
 
 db.people.find({}, {user_id: 1, status: 1});
@@ -2081,7 +2081,7 @@ db.people.find({ status: {\$in: ["A", "B"]} });
 In mongoDB per recuperare altri documenti si possono usare l'\textbf{objectId} ed il \textbf{DBRef}.
 
 Si possono anche usare degli operatori aggreganti con il metodo \texttt{.aggregate()}.
-\begin{lstlisting}[language=]
+\begin{lstlisting}[language=javascript]
 db.people.aggregate([
   { \$group: {
     _id: null,
@@ -2091,7 +2091,7 @@ db.people.aggregate([
 }]);
 \end{lstlisting}
 Per utilizzare le coordinate spaziali si utilizza GeoJSON:
-\begin{lstlisting}[language=json]
+\begin{lstlisting}[language=javascript]
 {
   _id: "...",
   location: {
@@ -2104,7 +2104,7 @@ Per utilizzare le coordinate spaziali si utilizza GeoJSON:
 }
 \end{lstlisting}
 Poi si crea un indice sul campo:
-\begin{lstlisting}[language=]
+\begin{lstlisting}[language=javascript]
 db.collection.createIndex({location: "2dsphere"});
 
 db.collection.find({location: {
