@@ -1051,8 +1051,57 @@ In molti casi quando si commuta un switch possono avvenire dei rimbalzi. Le solu
 \end{figure}
 
 
+\subsection{RIT}
+Il RIT (Repetitive Interrupt Timer), \`e un timer di sistema che scatena delle eccezioni ad intervalli regolari, di default \`e spento infatti va abilitato
+\begin{lstlisting}[language=C]
+uint32_t init_RIT ( uint32_t RITInterval )
+{
+  LPC_SC->PCLKSEL1  &= ~(3<<26);
+  LPC_SC->PCLKSEL1  |=  (1<<26);   // RIT Clock = CCLK
+  LPC_SC->PCONP     |=  (1<<16);   // Enable power for RIT
+
+  LPC_RIT->RICOMPVAL = RITInterval;      // Set match value
+  LPC_RIT->RICTRL    = (1<<1) |    // Enable clear on match
+					   (1<<2) ;	   // Enable timer for debug
+  LPC_RIT->RICOUNTER = 0;          // Set count value to 0
+
+  NVIC_EnableIRQ(RIT_IRQn);
+  return (0);
+}
+\end{lstlisting}
+Se si vuole gestire il debouncing dei pulsanti con il RIT, gestire pi\`u pulsanti per\`o \`e complicato.
 
 
+
+
+\subsection{Schermo}
+Lo schermo contiene due periferiche (gestite in modo separato) il touchscreen (capacitivo) e lo schermo (LCD).
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{schema-schermo.png}
+    \caption{Schema Schermo}
+    \label{fig:schema-schermo}
+\end{figure}
+
+Il contrllore del display fa avvenire parte delle sue comunicazioni in parallelo sulla porta 2, infatti quando si utilizza si potranno vedere i LED sfarfallare. Il controllore scrive sullo schermo una linea alla volta, lo schemro \`e 240RGBx320.
+
+
+Per utilizzare lo schermo LCD si dovr\`a utilizzare la libreria. Quando si utilizza la libreria le operazioni di scrittura andranno a toccare dei registri di configurazione per scrivere il tipo di operazione da effettuare.
+
+Mentre il touch \`e collegato ad un covertitore A/G che converte il tocco in due corrdinate.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{convertitore-touch.png}
+    \caption{Convertitore Touch}
+    \label{fig:convertitore-touch}
+\end{figure}
+All'utilizzo del touch deve essere calibrato prima dell'utilizzo.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{errori-configurazione.png}
+    \caption{Errori Configurazione}
+    \label{fig:errori-configurazione}
+\end{figure}
 
 
 

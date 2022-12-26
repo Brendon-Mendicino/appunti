@@ -1327,6 +1327,13 @@ Inoltre il buffer manager mette a disposizione:
 
 
 
+
+
+
+
+
+
+
 \subsection{Accesso alla Memoria}
 L'access methods manager riceve dall'ottimizzatore il piano di esecuzione e decide quale metodo di accesso utilizzare per leggere o scirvere i dati, vengono poi selezionati i blocchi dei file da prendere dalla memoria principale, questi dati sono richiesti al buffer manager.
 
@@ -1441,10 +1448,8 @@ La reppresentazione interna dell'ottimizzatore \`e una query tree. Quando si eff
     \item \textbf{nested loop}: ci sono due tabelle sbilanciata, una grande ed una piccola, per ogni tuple della outer table (grande) viene effettuata una scansione delle inner table (piccola), un eventuale indice creato sulla inner table potrebbe velocizzare l'operazione di join;
     \item \textbf{merge scan join}: tiene conto dell'ordinamente delle tabelle rispetto all'attributo di join, se le tabelle non sono ordinate allora viene fatto un sort;
     \item \textbf{hash join}: viene applicata una funzione di hash rispetto agli attributi della condizione di join, all'interno delle tabella vengono creati dei bucket, all'interno i dati vengono ordinati e poi viene fatto il join tra i bucket;
-    \item \textbf{bitmapped join}: \`e una specia di index definito sui dati (infatti questo join \`e dipendente dai dati, non come le altre tipologie di join), viene create una bitmap, ogni riga con la rowid della tabella orinale e gli attributi chee soddifano la query hanno un 1, mentre gli attributi che non la soddisfano hanno uno zero;
+    \item \textbf{bitmapped join}: \`e una specie di index definito sui dati (infatti questo join \`e dipendente dai dati, non come le altre tipologie di join), viene create una bitmap, ogni riga con la rowid della tabella originale e gli attributi che soddisfano la query hanno un 1, mentre gli attributi che non la soddisfano hanno uno zero;
 \end{itemize}
-
-
 L'operazion di group by possono essere velocizzata con:
 \begin{itemize}
     \item \textbf{sort based} prima con un ordinamento e poi con una selezione;
@@ -1455,32 +1460,25 @@ L'operazion di group by possono essere velocizzata con:
 
 
 \subsection{Piani di esecuzione}
-A differenza dell'obbittivo della query esistono diversi tipi di esecuzione:
-\begin{itemize}
-    \item se i dati servono il prima possibile si trovano dei metodi da inziare a mandare i dati, mentri nella applicazione di tipo batch ci\`o che conta \`e solo il tempo complessivo;
-\end{itemize}
-
+A differenza dell'obbittivo della query esistono diversi tipi di esecuzione, se i dati servono il prima possibile si trovano dei metodi da inziare a mandarli appena sono disponibili, mentre nella applicazione di tipo batch ci\`o che conta \`e solo il tempo complessivo;
 \begin{lstlisting}[language=sql]
 select snam, s.id
 from exam e, student s
 where s.sid = e.sid and score >= 27
 order by sname;
 \end{lstlisting}
+Esempio di piano di esecuzione.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{esecuzione1.png}
     \caption{Esecuzione1}
     \label{fig:esecuzione1}
 \end{figure}
-Esempio di piano di esecuzione.
-
-
 Gli accessi alle tabelle possono essere diretti o attraverso gli index, se gli index sono ricoprenti non c'\`e bisogno di accedere alla tabella.
 \begin{itemize}
     \item \textbf{full table scan}: lettura sequenziale della tabella, processando in contemporanea i predicati della where, in oracle esiste una funzione che permette di leggere pi\`u pagine di una tabella per velocizzare le operazioni di IO, infatti quando il dbms legge un qualcosa viene sempre letta l'unit\`a minima (pagina), per sapre la distribuzione dei dati nella pagine esiste l'\textbf{index clustering factor}, ovvero quanto i dati sono vicini nei blocchi, se l'ICF \`e alto allora potrebbe essere ottimale leggere la tabella con un index, se \`e basso allora conviene leggere al tabella;
     \item ...
 \end{itemize}
-
 Esistono anche dei metodi di lettura relative agli index:
 \begin{itemize}
     \item \textbf{index unique scans}: viene utilizzato quando l'attributo su cui \`e stato creato l'indice \`e \texttt{UNIQUE}, l'indice per ogni valore della chiave ritorna un solo valore;
@@ -1489,9 +1487,6 @@ Esistono anche dei metodi di lettura relative agli index:
     \item \textbf{fast full index scan}: viene utilizzato quando l'indice \`e coprente (non si accede alla tabella), ma si perde l'ordinamento della chiave dell'indice;
     \item \textbf{rowid}: riceve in input il rowid presente nell'index corrispondente a quella della riga della tabella a cui sta puntando;
 \end{itemize}
-
-
-
 Il data dictionary sono delle tabelle con statistiche sui dati presenti nelle tabelle del db, oracle per immagazzinare informazioni sulle colonne utilizza gli \textbf{istogrammi}. Gli istogrammi sono:
 \begin{itemize}
     \item \textbf{height-balanced}: si ha la distribuzione dei valori assunti dall'attributo, i valori vengono distribuiti in intervalli di uguale lunghezza. L'istogramma divide gli intervalli in bucket, il loro valore corrisponde al valore pi\`u grande all'interno del bucket;
@@ -1503,8 +1498,10 @@ Il data dictionary sono delle tabelle con statistiche sui dati presenti nelle ta
         \end{figure}
     \item \textbf{frequency}: viene indicata le frequenza dei diversi valori, sempre tra i diversi bucket;
 \end{itemize}
-
 Un'altra opzione pu\`o essere la specifica per il miglior \textbf{throughput} (applicazioni batch) ed il miglior \textbf{response time} (applicazioni real time).
+
+
+
 
 \subsection{Regole per valutazione di ottimizzazione}
 
@@ -1701,13 +1698,426 @@ order by e.matricola;
     
    QUERY TREE: \\
    $\pi_{matricola,nome,avg(voto)}$ $sort$ $\sigma_{avg(voto) \geqslant  26} $  $ gb_{matricola,nome} ( \sigma_{voto \geqslant 18}(esami)$ $\bowtie_{matricola}$ $studenti )$
-
-
-
 \end{example}
 
 
 
+
+
+
+\subsection{Concurrency Control}
+Grazie al concurrency control si cerca di massimizzare il throughput del numero di transazioni. I sistemi della gestione concorrente sono gestite da uno scheduler, che riceve operazioni di lettura e scrittura. Esistono una serie di problemi di concorrenza, detti \textbf{anomalie}:
+\begin{itemize}
+    \item \textbf{lost update}: (bot = begin of transaction)
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.8\textwidth]{lost-update.png}
+            \caption{Lost Update}
+            \label{fig:lost-update}
+        \end{figure}
+    \item \textbf{dirty read}:
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.8\textwidth]{dirty-read.png}
+            \caption{Dirty Read}
+            \label{fig:dirty-read}
+        \end{figure}
+    \item \textbf{inconsistent read}:
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.8\textwidth]{inconsisten-read.png}
+            \caption{Inconsisten Read}
+            \label{fig:inconsisten-read}
+        \end{figure}
+    \item \textbf{ghost update (a)}:
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.8\textwidth]{ghost-read.png}
+            \caption{Ghost Read}
+            \label{fig:ghost-read}
+        \end{figure}
+    \item \textbf{ghost update (b)}: come di tipo (a) per\`o viene usato un costrutto aggregato in lettura;
+\end{itemize}
+Lo schedurel deve decidere se la schedulazione che arriva potrebbe causare dei problemi, per il momento rimuoviamo il problema del dirty read (l'ipotesi \`e che tutte le transazioni vanno a boun fine).
+
+Si parla di \textbf{schedule seriale}, quando le transazioni vengono eseguite fino alla fine, senza mescolare operazioni di transazioni diverse. Si pu\`o dimostrare che quando uno schedule con delle operazione intercalate \`e equivalente ad uno schedule seriale, allore si dice che questo schedule \`e \textbf{serializzabile}. Per avere uno scheduler efficente non si cerca ricostruire in modo perfetto uno scheduling ma il problama viene diviso in classi di equivalenza. Esistono diverse classi di equivalenza:
+\begin{itemize}
+    \item \textbf{view equivalance}
+    \item \textbf{conflict equivalence}
+    \item \textbf{2 phase locking}
+\end{itemize}
+
+
+\subsubsection{View Equivalance}
+In questo caso vengono definiti due insiemi, \textbf{reads-from}, si ha una lettura $r_i(x)$ preceduta da $w_j(x)$, e nessun altra scrittura in mezzo, ed un isnsime \textbf{final write}, sono le ultime scritture che avvengono sui dati, dopo non vengono pi\`u scritte; si dice che due schedule sono \textbf{equivalenti} se hanno gli stessi set, se lo schedule seriale \`e equivalente allo schedule intercalato allora si dice che \`e \textbf{view serializable}. Questa classe di equivalenze riconosce il lost update, l'inconsistence read ed il ghost update (a). Questo problema \`e di classe NP, il motivo \`e che si devono provare tutti gli ordinamenti, roccogliendo una classe molto ampia di casistiche.
+
+
+\subsubsection{Conflict Equivalance}
+Per questa tipologia di equivalanza vanno definite le azioni conflittutali \textbf{appartengono a transazioni diverse} e \textbf{operano sulla stesso dato}, le azioni sono:
+\begin{itemize}
+    \item read-write/write-read;
+    \item write-write;
+\end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{conflict-equivalance.png}
+    \caption{Conflict Equivalance}
+    \label{fig:conflict-equivalance}
+\end{figure}
+Per migliorare questo metodo si utilizza un \textbf{grafo dei conflitti}, ogni nodo rappresenta una transazione, si mette un arco orientato per ogni conflitto che si trova, se il grafo dei conflitti \`e aciclico allora lo schedule \textbf{conflict serializable}, altrimenti no.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{grafo-dei-conflitti.png}
+    \caption{Grafo Dei Conflitti}
+    \label{fig:grafo-dei-conflitti}
+\end{figure}
+
+
+\subsubsection{2 Phase Locking}
+Qusto metodo \`e molto utilizzata, si utilizza un \textbf{lock}, questo lock viene usato per le letture e per le scritture. I lock sono condivisi dalle transazioni. Lo scheduler diventa in questa situazione un \textbf{lock manager} decidento se tolgiere o dare dei lock in base allo stato del sistema, una volta che la transazione riceve il lock allora pu\`o accedere alla pagina, altrimenti aspetta il rilascio del lock in possesso di un altra transazione. Il lock manager guarda una tabella dei lock per decidere quale lock dare e la tabella dei conflitti, dove vengono salvate le richieste.
+
+Il lock manager controlla il valore dei lock per decidere cosa fare qundo una transazione ne richede uno. Nei db si utilizzano i \textbf{2 phase lockgin}, esiste una prima fase detta \textbf{growing phase}, dove si acquisiscono i lock, ed una fase detta \textbf{shrinking phase}, questo si inizia a rilasciare i lock non \`e pi\`u possibile acquisirne di nuovi fino allo svuotarsi completo.
+
+Su utilizziamo il \textbf{strict 2 phase locking}, ovvero abilitare il drop dei lock solo dopo il commit o l'abort di un transazione, si risolve anche il problema del \textbf{dirty read}.
+
+Le primitivi di lock sono:
+\begin{itemize}
+    \item \texttt{R-lock(T, x, ErrorCode, TimeOut)};
+    \item \texttt{W-lock(T, x, ErrorCode, TimeOut)};
+    \item \texttt{UnLock(T, x)};
+\end{itemize}
+Un transazione chiede un lock, il db controlla la tabella dei conflitti, se \`e disponibile allora il lock gli viene assegnato, se la richiesta non pu\`o essere soddisfatta, allora la transazione viene messa in una coda, sar\`a ripescata quando la risorsa sar\`a disponibile.
+
+
+\subsubsection{Locking Gerarchico}
+Si pu\`o decidere la granuralit\`a del locking:
+\begin{itemize}
+    \item l'intera tabella;
+    \item gruppi di tuple (frammenti);
+    \item l'intera pagina;
+    \item la singola tupla;
+    \item il singolo attributo;
+\end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{gerarchia-dei-lock.png}
+    \caption{Gerarchia Dei Lock}
+    \label{fig:gerarchia-dei-lock}
+\end{figure}
+Per creare questo tipo di lock vengono prese le primitivi dei lock con in aggiunta una \textbf{intenzione}.
+\begin{itemize}
+    \item Shared Lock (SL) = Read Lock;
+    \item Exclusive Lock (XL) = Write Lock;
+\end{itemize}
+
+I lock vengono assegnati a partire dalla radice dell'albero, mentre vengono rilasciati dalle foglie, se si vuole richiedere un SL (Shared Lock) o un ISL (Intention SL) su un nodo, una transazione devo possedere un ISL o un IXL (Intention Exlusive Lock) del nodo padre.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{compatibility-matric.png}
+    \caption{Compatibility Matric}
+    \label{fig:compatibility-matric}
+\end{figure}
+
+
+\subsubsection{Predicate Locking}
+Il 2 phase locking non riesce a bloccare il ghost update (b), il predicate locking risolve questo problema \textbf{mettendo un lock sulle tuple che soddifano un predicato}. Solitamnte \`e presente un indice per quel predicato, ed il problema del predicate locking bloccando proprio l'indice, in questo modo non viene bloccata l'intera tabella.
+
+
+\subsubsection{Locking in SQL}
+In sql si possono definire i tipi di transazione:
+\begin{itemize}
+    \item read-write (default);
+    \item read only;
+    \item livelli di isolamento;
+\end{itemize}
+I livelli di isolamento sono:
+\begin{itemize}
+    \item \textbf{serializable}: include il predicate locking;
+    \item \textbf{reapeatable read}: strict 2pl;
+    \item \textbf{read committed}: non pi\`u 2pl, i lock in scrittura vengono rilasciati dopo il commit;
+    \item \textbf{read uncommitted}: non 2pl, si legge senza acquisire il lock;
+\end{itemize}
+La sintassi \`e:
+\begin{lstlisting}[language=sql]
+set transaction
+[isolation level <isolation_level>]
+[read only]
+[read write]
+\end{lstlisting}
+
+
+\subsubsection{Deadlock}
+Per risolvere con certezza il problema del deadlock \`e l'uso di un timeout, alla termine di questo timeout la transazione viene uccisa. Un modo di prevenire il deadlock \`e il \textbf{2pl pessimistico}, ovvero richiedere a priori tutti i lock di cui la transazoine ha bisogno, un altro metodo \`e l'\textbf{analisi del timestamp}, quando due transazioni richiede un lock si da la precedenza alla transazioni pi\`u giovani. Si pu\`o anche utilizzare un \textbf{grafo delle attese} (se \`e ciclico c'\`e un deadlock), solitamnte viene utilizzato in pochi casi di db distribuiti, il motivo \`e che questa tecnica \`e molto costosa.
+
+
+
+\subsection{Reliability Manager}
+La gestione dall'affidabilit\`a garantisce due propriet\`a, l'\textbf{atomicit\`a} e la \textbf{durabilit\`a}. Il manager deve gestire delle letture e scritture ulteriori per garantire la correttezza delle operazione fatte sul db, queste informazioni sono contenute nei \textbf{file di log}, che si trovano nella \textbf{memoria stabile}. La memoria stabile si tratta di un memoria che non pu\`o subire guasti (non realistico), questo si ottiene con della ridondanza, supponiamo che i guasti del db non hanno effetto sulla memoria stabile.
+
+I log sono dei file sequenziali che registrano le attivit\`a delle transazioni, scritti in modo efficiente. Esistono dei delimitatori delle transazioni:
+\begin{itemize}
+    \item \textbf{begin} B(T);
+    \item \textbf{commit} C(T);
+    \item \textbf{abort} A(T);
+\end{itemize}
+Le modificazioni sono (O = object, AS = after state, BS = before state):
+\begin{itemize}
+    \item insert I(T,O,AS);
+    \item delete D(T,O,BS);
+    \item update U(T,O,BS,AS);
+\end{itemize}
+Fare \textbf{UNDO} di un oggetto, vuol dire rimuover quell'oggetto della base dati, il \textbf{REDO} \`e rifare l'azione sull'oggetto. Su questa operazioni deve valere la propriet\`a di \textbf{idempotenza}:
+\[ undo(undo(action)) = undo(action) \]
+Il gestore richiede il \textbf{checkpoint}, il cui unico obbiettivo \`e quello di velocizzare l'operazione di recovery, ovvere il punto in cui viene scirtto il db.
+
+Il \textbf{DUMP} crea una copia fisica dell'intero db, quando si termina l'operazione si scrive nei log, e dal quel punto \`e possibile fare un recovery in caso di guasti.
+
+Esistono dei protocolli per la gestione del log:
+\begin{itemize}
+    \item \textbf{Write Ahead Log} (WAL), \`e un protocollo che prima di scrivere sul db tutta l'informazione viene prima scritta nel log il BS, e poi viene fatta l'operazione.
+    \item \textbf{Commit Precedence}, prima di fare commit si scrive prima valore dell'AS e poi viene fatto il commit.
+\end{itemize}
+Per questi due protocolli il BS e l'AS vengono scritti insieme. Il log viene scritto in modo \textbf{sincrono} quando un pagina viene scaricata su disco (force) o quando viene fatto un commit, in modo \textbf{asincrono} quando si fa un dump del db. Se nei log non si trova il record del commit (in caso di guasto), la transazione deve essere ripetuta.
+
+A fronte di guasto, che possono essere di \textbf{sistema} (sistema operativo) o \textbf{media} (supporti fisici). Esiste il modello del \textbf{fail-stop}, quando si cerca di fare del recovery, viene continuato a fare fino a quando non si \`e sicuri di avere dei dati consistenti.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{fail-stop.png}
+    \caption{Fail Stop}
+    \label{fig:fail-stop}
+\end{figure}
+Esistono due tipi di restart:
+\begin{itemize}
+    \item \textbf{warm restart}: system failure;
+    \item \textbf{cold restart}: media failure;
+\end{itemize}
+
+\subsubsection{Warm restart}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{warm-restart.png}
+    \caption{Warm Restart}
+    \label{fig:warm-restart}
+\end{figure}
+In questo caso:
+\begin{itemize}
+    \item 1: non bisogno di operazioni di recovery;
+    \item 2, 4: hanno bisogno di redo;
+    \item 3, 5: hanno bisogno di undo;
+\end{itemize}
+L'algoritmo di ripristino funziona nel segutne modo:
+\begin{enumerate}
+    \item legge il log al contrario e cerca il checkpoint pi\`u recente;
+    \item inizia a cercare le transazioni da cui fare undo e redo;
+    \item crea due liste per undo e redo e mette nella lista di undo tutte le transazoini trovate che si trovano nel checkpoint;
+    \item legge il log dal checkpoint fino all'ultimo log e per ogni commit che trova sposta la transazione dall lista di undo alla lista di redo, e per ogni begin che trovo sposta la lista nella lista degli undo;
+    \item si parte dall'ultima entra e percorrendo il log si fanno tutte le azioni di undo;
+    \item si parte dall'operazione pi\`u vecchia di tutte le transazioni presenti nella lista dei redo e andando in avanti si fanno tutte le operazioni di redo;
+\end{enumerate}
+
+
+\subsubsection{Cold Restart}
+Una parte del db \`e andato perduto per un guasto fisico, di parte dall'ultimo record di dump e si fanno tutte le operazioni transazionionali presenti nel log e al termine si fa un warm restart per ripristinare lo stato consistente dei dati.
+
+
+
+
+
+\newpage
+\section{DBMS Distribuiti}
+L'obbiettivo dei db distribuiti \`e quello di distribuire dati e computazione su macchine diverse. I vari tipi di architettura possono essere:
+\begin{itemize}
+    \item client/server;
+    \item database distribuito, ogni db \`e indipendente, le proprit\`a acid devono essere valide anche con i dati distribuiti;
+    \item db replicati, detti server di replicazione;
+    \item architetture parallele;
+\end{itemize}
+Nello scenario dei db distribuiti si ha la situazione in cui un client potrebbe acedere a pi\`u nodi, ed ogni nodo opera in maniera indipendetne. Distribuire i dati permette di  avere una localizzazione, maggior disponibilit\`a di dati e maggiore scalabilit\`a, oltre a risolver il prblema di single point of failure.
+
+I dati possono essere frammentati tra i diversi db, pu\`o avvinere a livello di tabella come proiezione, selezione, o un mix. Quando si applica una selezione per ricostruire la tabella basta un operazione di unione. Se si frammenta a in modo verticale la chiave primaria deve essere necessariamente aggiunta, per ricostruire la tabella basta fare un join. Quando si decide di frammentare la relazione, la tabella orinale non esister\`a pi\`u ma sar\`a possibiel ricostruirla opportunamente attraverso degli schema, ognuno di questi frammenti sar\`a gestito in modo indipendente da ogni db su cui si trova. Avere dei dati frammentati permette di avere una ridondanza dei dati, avendo un costo maggiore per operazioni di aggiornamento.
+
+Esistono vari livelli di trasparenza per i frammenti quando si scrivono delle query sql per sapere da dove prendere i dati:
+\begin{itemize}
+    \item \textbf{fragmentation transparency}: la query viene scritta come se la tabella su un unico db;
+    \item \textbf{allocation transparency}: la query viene scritta essendo a conoscenza dei frammenti, senza sapere per\`o su quele server si trovano;
+    \item \textbf{language transparency}: la query viene scritta richiedendo i dati da un server specifico;
+\end{itemize}
+Le transazioni possono essere classificate.
+\begin{itemize}
+    \item \textbf{remote request}: solo lettura;
+    \item \textbf{remote transaction}: eseguire un comando qualunque si un singolo server;
+    \item \textbf{distributed transaction}: si esegue qualsisi comando sql, ogni comando \`e riferito ad un singolo nodo, in questo caso la gestione delle transazione deve essere pi\`u robusto (2 phase commit);
+    \item \textbf{distibuted request}: ogni comando pu\`o far riferimento a dati distribuiti su server diversi, mi garantisce la trasparenza di frammentazione;
+\end{itemize}
+
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{acid-propreties-in-distributed-dbms.png}
+    \caption{Acid Propreties In Distributed Dbms}
+    \label{fig:acid-propreties-in-distributed-dbms}
+\end{figure}
+
+
+
+
+...
+
+
+
+\section{NoSQL}
+Le caratteristiche principali sono dei NoSql sono:
+\begin{itemize}
+    \item nessuna possibilit\`a di fare join;
+    \item nessuno schema;
+    \item scalabilit\`a orizzontale (aggiungere molte cpu in parallelo);
+\end{itemize}
+Nei db non-relazionali non esistono tabelle ma documenti, o key-value, graph based, columnar storage.
+
+I tipi di db nosql sono:
+\begin{itemize}
+    \item \textbf{key-value pair}: sono veloci ed efficenti, tutti i dati vengono messi in cache;
+    \item \textbf{column oriented}: simili ai datawarehouse;
+    \item \textbf{graph db}: usati quando dei dati hanno delle relazioni tra di loro;
+    \item \textbf{documento}: ogni documento possiede degli attributi chiave valore, i documneti possono essere nestati tra di loro;
+\end{itemize}
+
+\subsection{CouchDB}
+CouchDB (cluster of unrelieable comodity hardware). I punti pricipali dell'architettura di coudchdb sono:
+\begin{itemize}
+    \item possibilit\`a di fare \textbf{mapreduce}: ogni nodo pu\`o fare in modo distribuito del mapping e del reducing su uno stream di dati;
+    \item \textbf{replicazione} dei dati nei vari nodi;
+    \item \textbf{distribuzione} del sistema;
+    \item interrogazioni attraverso un API HTTP;
+\end{itemize}
+
+\subsubsection{MapReduce}
+Esempio di mapReduce:
+\begin{lstlisting}[language=]
+// Map function
+function(doc) {
+    key = doc.matricola
+    value = [doc.mark, doc.cfu]
+    emit(key, value);
+}
+
+// Reduce function
+function(key, values) {
+    S = sum([ X*Y for X,Y in values])
+    N = sum([ Y for X,Y in values])
+    AVG = S/N
+    return AVG;
+\end{lstlisting}
+
+
+
+\subsubsection{Replication}
+Un approccio alla replicazione \`e il \textbf{master-slave}, dove un unico server \`e il master, che prende tutte le scritture e gli update, tutti gli altri nodi sono degli slave, da cui \`e possibile solo leggere i dati, i cambiamenti possono essere propagati in maniera sincrona (simile al 2PC), oppure l'asynchronous replication dove il master fa un commit locale, ogni slave fa il fetch indipendenti dei nuovi dati.
+
+
+\subsubsection{Distribuzione}
+Le caratteristica di un sistema sono:
+\begin{itemize}
+    \item \textbf{Consistenti};
+    \item \textbf{Availability};
+    \item \textbf{Partizionamento};
+\end{itemize}
+Da qui nasci il \textbf{teorema CAP}.
+\begin{theorem}{CAP}{cap}
+    In ogni istante \`e possibile ottenere solo due caratteristiche contemporaneamente.
+\end{theorem}
+\begin{itemize}
+    \item CA: si ricade nel db singolo;
+    \item CP: quando si fa il 2PC;
+    \item AP: non ci importa della global consistency;
+\end{itemize}
+Lo combinazioni possono essere intercambiate in tempi diversi in modo continuo. Infatti nel mondo non relazionale esiste la caratteristica \textbf{BASE}, (al contrario di ACID):
+\begin{itemize}
+    \item Basically Available;
+    \item Soft state;
+    \item Eventually consistent;
+\end{itemize}
+Per la risoluzione dei conflitti si possono utilizzare:
+\begin{itemize}
+    \item revision: come con il version control, quando si fetcha una revision si prende quella con il numero pi\`u basso e con l'hash ordinato;
+    \item 
+\end{itemize}
+
+
+Nel mondo non relazionale non esistono le transazioni, pi\`u operazioni infatti non possono essere rese atomiche, per\`o le operazioni su in singolo documento sono transazionali, quindi un modo di procedere \`e quello di modellare il documento come una transazione.
+
+
+\subsection{MongoDB}
+In MongoDB:
+\begin{itemize}
+    \item table = collection;
+    \item record = document;
+    \item column = field;
+\end{itemize}
+Esempio di query su mongoDB:
+\begin{lstlisting}[language=]
+db.<collection name>.find( {<conditions>}, {<fields of interest>});
+
+// mongoDB
+db.people.find();
+
+// sql
+select *
+from people;
+\end{lstlisting}
+Filtraggio:
+\begin{lstlisting}[language=]
+db.people.find({age:55});
+
+db.people.find({}, {user_id: 1, status: 1});
+
+db.people.find({age: {\$gt: 25, \$lte: 50} });
+
+db.people.find({\$or: [{status: "A"}, {age: 55}] });
+
+db.people.find({ status: {\$in: ["A", "B"]} });
+\end{lstlisting}
+In mongoDB per recuperare altri documenti si possono usare l'\textbf{objectId} ed il \textbf{DBRef}.
+
+Si possono anche usare degli operatori aggreganti con il metodo \texttt{.aggregate()}.
+\begin{lstlisting}[language=]
+db.people.aggregate([
+  { \$group: {
+    _id: null,
+    mytotal: { \$sum: "\$age"},
+    mycount: { \$sum: 1}
+  }
+}]);
+\end{lstlisting}
+Per utilizzare le coordinate spaziali si utilizza GeoJSON:
+\begin{lstlisting}[language=json]
+{
+  _id: "...",
+  location: {
+    type: "Point",
+    coordinates: [
+      45.324,   // lat
+      52,123    // lng
+    ] 
+  }
+}
+\end{lstlisting}
+Poi si crea un indice sul campo:
+\begin{lstlisting}[language=]
+db.collection.createIndex({location: "2dsphere"});
+
+db.collection.find({location: {
+    \$near: {
+      type: "Point",
+      coordinates: [34.353, 4.535]
+    },
+    \$maxDistance: 435,
+    \$minDistance: 43
+  }
+});
+\end{lstlisting}
+I risultati vengono restituti in ordine dal pi\`u vicino al pi\`u lontano.
 
 
 
