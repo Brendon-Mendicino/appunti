@@ -376,13 +376,11 @@ as
     \item on demand: viene definito dall'utente quando aggiornare la vista;
     \item enable query rewrite: abilita il dbms ad usare la vista per accellerary le query;
 \end{itemize}
-
-Per effetturare il refresh esistono dei tipi di job (a differenza del tipo di prodotto). Quando abbiamo bisogno del fast refresh, la tabella ha bisogno delle informazioni aggiuntive, ovvero dei file di log che ci informano delle nuove informazioni aggiunte al db, la \textbf{materialized view log} \`e associata ad una tabella che ha subito delle variazioni:
+Quando si ha bisogno del \textbf{fast refresh}, la vista meterializzata ha bisogno di informazioni aggiuntive, che vengono fornita da tabella di log che informano delle nuove operazioni (insert, delete, update) effettuate sul db, la \textbf{materialized view log} \`e associata ad una tabella che ha subito delle variazioni:
 \begin{lstlisting}[language=sql]
-create materialized view log on
-    TABELLA
+create materialized view log on TABELLA
 with sequence, rowid
-    (Attributo, ...)
+(COLONNA, ...)
 including new values;
 \end{lstlisting}
 \begin{itemize}
@@ -390,6 +388,63 @@ including new values;
     \item rowid: indica la tupla che ha subito una modifiche;
 \end{itemize}
 Su queste keyword si deve difinire una lista di attributi da monitorare, si aggiunge \textbf{including new values} per supportare l'inserimento di nuove tuple.
+
+Per poter usare insieme l'opzione \textbf{fast refresh}, il log deve essere creato su tutte le colonne utilizzate all'interno della query della vista meterializzata, esempio:
+\begin{lstlisting}[language=sql]
+CREATE MATERIALIZED VIEW VIEW1
+BUILD IMMEDIATE
+REFRESH FAST ON COMMIT
+ENABLE QUERY REWRITE
+AS
+    SELECT
+        TRI,
+        SEM,
+        ANNO,
+        SETTORE,
+        UNIVERISTA,
+        STATO,
+        SUM(NUM_PUBBLICAZIONI)
+    FROM
+        PUBBLICAZIONI P,
+        AUTORE_MAIN   A,
+        DATA          D
+    WHERE
+        P.IDDATA = D.IDDATA
+        AND P.IDAUTORE = A.IDAUTORE
+        AND P.IDLOUGO = L.IDLOUGO
+    GROUP BY
+        TRI,
+        SEM,
+        ANNO,
+        SETTORE,
+        UNIVERSITA,
+        STATO;
+
+-- logs
+CREATE MATERIALIZED VIEW LOG ON DATA WITH ROWID,
+SEQUENCE (
+    IDDATA,
+    TRI,
+    SEM,
+    ANNO
+) INCLUDING NEW VALUES;
+
+CREATE MATERIALIZED VIEW LOG ON AUTORE_MAIN WITH ROWID,
+SEQUENCE (
+    IDAUTORE,
+    SETTORE,
+    UNIVERSITA,
+    STATO
+) INCLUDING NEW VALUES;
+
+CREATE MATERIALIZED VIEW LOG ON PUBBLICAZIONI WITH ROWID,
+SEQUENCE (
+    IDDATA,
+    IDLOUGO,
+    IDAUTORE,
+    NUM_PUBBLICAZIONI
+) INCLUDING NEW VALUES;
+\end{lstlisting}
 
 
 
@@ -544,6 +599,7 @@ I data lake sono dei repositori di dati, storicizzati per utilizzo futuro cos\`i
 
 I data lake danno la possibilit\`a di storicizzare i dati per un uso futuro, inoltre tutti i dati sono contunuti in un repository comune, infatti \`e caratterizzato da bassi costi di storage e mantenimento, per\`o pu\`o essere difficile estrapolare dei dati.
 
+\newpage
 \section{Data processing}
 Una collezione \`e costituita da oggetti di dato,
 \begin{itemize}
@@ -572,13 +628,13 @@ Esistono vari tipi di dato:
 
 
 
-\subsection{Data aggregation}
-Consente di combinare pi\`u record o pi\`u attributi, si fa questo per effettuare una riduzione della quantit\`a di dati, ed avere dei dati pi\`u stabili con una vairiabilit\`a minore.
-
-\subsection{Data reduction}
-Si possono effetuare due tipi di riduzione: riduzione degli attributi o riduzione dei valori. Per effettuare queste riduzioni esistono delle tecniche specifiche.
-
-Una di esse \`e il \textbf{sampling} \`e una tecnica di statistica di analisi, ad esempio nella pipeline di datascience il sampling serve per trovare delle rappresentazioni adatte al dataset, facendo N esperimenti su un sample preso dal dataset si andranno a fare dei test sull'intero dataset per verificare che le ipotesi siano confermate, in figura si pu\`o vedere come il grafico col numero pi\`u piccolo di campia non sia pi\`u rappresentativo del dataset originale.
+\subsection{Data preprocessing}
+Le tecniche di preprocessing sono:
+\begin{itemize}
+    \item \textbf{data aggregation}: Consente di combinare pi\`u record o pi\`u attributi, si fa questo per effettuare una riduzione della quantit\`a di dati, ed avere dei dati pi\`u stabili con una vairiabilit\`a minore.
+    \item \textbf{data reduction}: Si possono effetuare due tipi di riduzione: riduzione degli attributi o riduzione dei valori. Per effettuare queste riduzioni esistono delle tecniche specifiche.
+\end{itemize}
+Un altra tecnica di data preprocessing \`e il \textbf{sampling} \`e una tecnica di statistica di analisi, ad esempio nella pipeline di datascience il sampling serve per trovare delle rappresentazioni adatte al dataset, facendo N esperimenti su un sample preso dal dataset si andranno a fare dei test sull'intero dataset per verificare che le ipotesi siano confermate, in figura si pu\`o vedere come il grafico col numero pi\`u piccolo di campia non sia pi\`u rappresentativo del dataset originale.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{sampling-example.png}
@@ -591,10 +647,11 @@ I tipi di sampling possono essere:
     \item con rimpiazzo: un dato estratto pu\`o essere riestratto;
     \item sampling stratificato (pi\`u utilizzato): si pu\`o stratificare il dataset a partire da uno o pi\`u attributi (le partizioni vengono detti bucket), e poi vengono presi dei valori casuali;
 \end{itemize} 
-Il problema con questi titi di approccio \`e che all'umentare delle dimensioni i dati diventano pi\`u distanti tra loro. Per ridurre gli effetti di avere troppe dimnesioni si possono applicare delle tecniche di riduzione dimensionale. Per questo motivo vengono utilizzate tecniche di \textbf{dimensionality reduction}, alcune di queste sono:
+Il problema con questi titi di approccio \`e che all'umentare delle dimensioni i dati diventano pi\`u distanti tra loro, questo fenomeno viene detto \textbf{curse of dimensionality} e causa tutte le tecniche di identificazione di outliers o dati sparsi inutile, il motivo \`e che per trovare questi dati le tecniche si basano su calcoli di distanze ma, se tutti i dati sono molto distanti tra di loro queste vengono rese inefficaci. Per ridurre gli effetti di avere troppe dimnesioni si possono applicare delle tecniche di riduzione dimensionale. Per questo motivo vengono utilizzate tecniche di \textbf{dimensionality reduction}, alcune di queste sono:
 \begin{itemize}
     \item \textbf{pca, svd, ...}: tecniche statistiche;
     \item \textbf{feature selection}: si vuole avere la proiezione del dato su un nuovo attributo in modo da aumentare la varianza, in qualche modo ridurre le feature ridondanti: le tecniche di feature selection sono: brute force; embedded approach (tramite un albero di selezione si selezionano solo i dati pi\`u significativi, pu\`o essere fatto quando gli attributi non sono elevati); filter (basiti sull'analisi di correlazione, per verificare se esistono delle correlazioni lineari); wrapper (viene utilizzato del data mining come black-box per identificare delle combinazioni di feature); feature creation (consiste nel combinare pi\`u variabili in una solo variabile, viene effettuato anche un processo di feature selection);
+    \item \textbf{data creation}: consente di creare nuovi attributi a partire da vecchi attributi che rappresentano melgio il dato;
     \item \textbf{discretizzazione}: per effettuare una discretizzazione si deve mappare un valore continuo in un range di numeri discreti, una tecnica \`e quella di generare degli intervalli di uguale lunghezze e se la variabile ricade un in intrvalallo gli viene associato il simbolo corrispondente, questo potrebbe modellare dei volori outliers o rumorosi, si potrebbe anche usare del clustering, ovvero l'aggregazione di dati in base alla distanza tra vari valori, solitamente vengono usate due tecniche per validare i dati dopo la pipeline. Un caso particolare della discretizzazione \`e la \textbf{binarizzazione} che consiste nel discretizzare una variabile e poi  viene fatto il one-hot encoding (i valiri vengono mappati su una bitmap);
     \item \textbf{trasformazione}: un attributo va trasformato quando si vogliono riportare i valori in un'altra scala, una delle tecniche pi\`u comuni \`e la normalizzazine, ad esempio negli algoritmi di clustering viene definito uno spazio normato per calcolare la distanza tra i valori, le normalizzazioni pi\`u usate sono:
         \begin{theorem}{min-max}{min-max}
