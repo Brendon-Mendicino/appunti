@@ -411,7 +411,6 @@ AS
     WHERE
         P.IDDATA = D.IDDATA
         AND P.IDAUTORE = A.IDAUTORE
-        AND P.IDLOUGO = L.IDLOUGO
     GROUP BY
         TRI,
         SEM,
@@ -448,16 +447,6 @@ SEQUENCE (
 
 
 
-\newpage
-\section{Progettazione fisica}
-Fare una progettazione fisica comporta analizzare il carico di
-Si difiniscono delle strutture fisiche accessorie per velocizzare le operazioni. Si possono definire delle viste oppure degli indici, ad esempio: indici bitmap, indice di join, ...
-
-La progettazione fisica \`e dipendente dal carico di lavoro. 
-
-La progettazione fisica \`e caratterizzata da una fase di tuning, utilizzata per testare gli indici e le viste create e decidere se matenerli o meno. 
-
-Gli inidici si possono creare sugli attributi che vengono selezionati pi\`u frequentemente, se il dominio \`e ridotto (come quelle categorici dei DW) si utilizza un a bitmap, altrimenti un B-tree.
 
 
 \newpage
@@ -643,17 +632,26 @@ Un altra tecnica di data preprocessing \`e il \textbf{sampling} \`e una tecnica 
 \end{figure}
 I tipi di sampling possono essere:
 \begin{itemize}
-    \item randomici: un dato estratto non viene reinserito;
-    \item con rimpiazzo: un dato estratto pu\`o essere riestratto;
-    \item sampling stratificato (pi\`u utilizzato): si pu\`o stratificare il dataset a partire da uno o pi\`u attributi (le partizioni vengono detti bucket), e poi vengono presi dei valori casuali;
+    \item \textbf{randomici}: un dato estratto non viene reinserito;
+    \item \textbf{con rimpiazzo}: un dato estratto pu\`o essere riestratto;
+    \item \textbf{sampling stratificato} (pi\`u utilizzato): si pu\`o stratificare il dataset a partire da uno o pi\`u attributi (le partizioni vengono detti bucket), e poi vengono presi dei valori casuali;
 \end{itemize} 
 Il problema con questi titi di approccio \`e che all'umentare delle dimensioni i dati diventano pi\`u distanti tra loro, questo fenomeno viene detto \textbf{curse of dimensionality} e causa tutte le tecniche di identificazione di outliers o dati sparsi inutile, il motivo \`e che per trovare questi dati le tecniche si basano su calcoli di distanze ma, se tutti i dati sono molto distanti tra di loro queste vengono rese inefficaci. Per ridurre gli effetti di avere troppe dimnesioni si possono applicare delle tecniche di riduzione dimensionale. Per questo motivo vengono utilizzate tecniche di \textbf{dimensionality reduction}, alcune di queste sono:
 \begin{itemize}
     \item \textbf{pca, svd, ...}: tecniche statistiche;
-    \item \textbf{feature selection}: si vuole avere la proiezione del dato su un nuovo attributo in modo da aumentare la varianza, in qualche modo ridurre le feature ridondanti: le tecniche di feature selection sono: brute force; embedded approach (tramite un albero di selezione si selezionano solo i dati pi\`u significativi, pu\`o essere fatto quando gli attributi non sono elevati); filter (basiti sull'analisi di correlazione, per verificare se esistono delle correlazioni lineari); wrapper (viene utilizzato del data mining come black-box per identificare delle combinazioni di feature); feature creation (consiste nel combinare pi\`u variabili in una solo variabile, viene effettuato anche un processo di feature selection);
-    \item \textbf{data creation}: consente di creare nuovi attributi a partire da vecchi attributi che rappresentano melgio il dato;
-    \item \textbf{discretizzazione}: per effettuare una discretizzazione si deve mappare un valore continuo in un range di numeri discreti, una tecnica \`e quella di generare degli intervalli di uguale lunghezze e se la variabile ricade un in intrvalallo gli viene associato il simbolo corrispondente, questo potrebbe modellare dei volori outliers o rumorosi, si potrebbe anche usare del clustering, ovvero l'aggregazione di dati in base alla distanza tra vari valori, solitamente vengono usate due tecniche per validare i dati dopo la pipeline. Un caso particolare della discretizzazione \`e la \textbf{binarizzazione} che consiste nel discretizzare una variabile e poi  viene fatto il one-hot encoding (i valiri vengono mappati su una bitmap);
-    \item \textbf{trasformazione}: un attributo va trasformato quando si vogliono riportare i valori in un'altra scala, una delle tecniche pi\`u comuni \`e la normalizzazine, ad esempio negli algoritmi di clustering viene definito uno spazio normato per calcolare la distanza tra i valori, le normalizzazioni pi\`u usate sono:
+    \item \textbf{feature selection}: si vuole avere la proiezione del dato su un nuovo attributo in modo da aumentare la varianza, in qualche modo ridurre le feature ridondanti, le tecniche di feature selection sono: 
+    \begin{itemize}
+        \item \textbf{brute force};
+        \item \textbf{embedded approach}: tramite un albero di selezione si selezionano solo i dati pi\`u significativi, pu\`o essere fatto quando gli attributi non sono elevati;
+        \item \textbf{filter}: basiti sull'analisi di correlazione, per verificare se esistono delle correlazioni lineari;
+        \item \textbf{wrapper}: viene utilizzato del data mining come black-box per identificare delle combinazioni di feature;
+        \item \textbf{feature creation}: consiste nel combinare pi\`u variabili in una solo variabile, viene effettuato anche un processo di feature selection;
+    \end{itemize}
+    \item \textbf{data creation}: consente di creare nuovi attributi a partire da vecchi attributi che rappresentano melgio il dato:
+    \begin{itemize}
+        \item \textbf{discretizzazione}: per effettuare una discretizzazione si deve mappare un valore continuo in un range di numeri discreti, una tecnica \`e quella di generare degli intervalli di uguale lunghezze e se la variabile ricade un in intrvalallo gli viene associato il simbolo corrispondente, questo potrebbe modellare dei volori outliers o rumorosi, si potrebbe anche usare del clustering, ovvero l'aggregazione di dati in base alla distanza tra vari valori, solitamente vengono usate due tecniche per validare i dati dopo la pipeline. Un caso particolare della discretizzazione \`e la \textbf{binarizzazione} che consiste nel discretizzare una variabile e poi  viene fatto il one-hot encoding (i valiri vengono mappati su una bitmap);
+        \item \textbf{trasformazione}: un attributo va trasformato quando si vogliono riportare i valori in un'altra scala, una delle tecniche pi\`u comuni \`e la normalizzazine, ad esempio negli algoritmi di clustering viene definito uno spazio normato per calcolare la distanza tra i valori, le normalizzazioni pi\`u usate sono:
+    \end{itemize}
         \begin{theorem}{min-max}{min-max}
             \[ v' = \frac{v - min}{max - min} (new\_max - new\_min) + new\_min \]
         \end{theorem}
@@ -666,16 +664,35 @@ Il problema con questi titi di approccio \`e che all'umentare delle dimensioni i
         \end{theorem}
 \end{itemize}
 
-La similarit\`a e la dissimilarit\`a ci permattono di dire quando degli attributi sono simili o dissimili tra di loro, la similarit\`a viene espresso in un intrevallo $[0, 1]$, con 1 = identici, per definire la similarit\`a si definisce un concetto di distanza, ed una \textbf{matrice di similarit\`a}, in cui ogni riga e colonna sono presenti i valori, ogni celle rappresenta le distanze tra i due valori. Le tre distanze utlizzate sono: Manhattan, Euclidea, Mikowski. In coso queste distanze non soddifisfino i criteri si definisc una distanza attraverso uno spazio vettoriale.
-
-Una distanza importante \`e la \textbf{distanza di mahalanobis}, che mostra quanto due punti sono distanti in una distribuzione.
+\subsection{Similarit\`a}
+La similarit\`a e la dissimilarit\`a ci permattono di dire quando degli attributi sono simili o dissimili tra di loro, la similarit\`a viene espresso in un intrevallo $[0, 1]$, con 1 = identici, per definire la similarit\`a si definisce un concetto di distanza, ed una \textbf{matrice di similarit\`a}, in cui ogni riga e colonna sono presenti i valori, ogni celle rappresenta le distanze tra i due valori. Le tre distanze utlizzate sono: Manhattan, Euclidea, Mikowski. In coso queste distanze non soddisfino i criteri si definisce una distanza attraverso uno spazio vettoriale. Alcune delle distanze sono:
+\begin{itemize}
+    \item \textbf{manhattan};
+    \item \textbf{euclidea};
+    \item \textbf{minkowski};
+    \item \textbf{mahalanobis}: una distanza importante \`e la \textbf{distanza di mahalanobis}, che mostra quanto due punti sono distanti in una distribuzione.
 \begin{theorem}{Mahalanobis}{mahalanobis}
     \[ Maha(\vv{x}, \vv{y}) = (\vv{x} - \vv{y})^{T} \Sigma^{-1} (\vv{x} - \vv{y}) \]
     $\Sigma$ matrice delle covarianze.
 \end{theorem}
+\end{itemize}
+Un altro modo per misare la similarit\`a tra due vettori (di valori binari) sono:
+\begin{itemize}
+    \item \textbf{Simple Matching}: SMC;
+    \item \textbf{Coefficente di Jaccard};
+    \item \textbf{Cosine Similarity}: dati due vettori $\vv{a}$ e $\vv{b}$ \`e definito come il prodotto scalare fratto le norme:
+        \begin{theorem}{Cosine Similarity}{cosine-similarity}
+            \[ \cos(\vv{a}, \vv{b}) = \frac{\vv{a} \cdot \vv{b}}{||\vv{a}|| \; ||\vv{b}||}  \]
+        \end{theorem}
+\end{itemize}
 
-La correlazione \`e molto importante per trovare relazioni tra i dati. Una tecnica molto usata \`e trovare le combinazioni lineari attraverso il coefficente di pearson.
 
+\subsection{Correlazione}
+Si cercano delle correlazioni negli attibuti di un tabella per poter effettuare una riduzione di essi, infatti se due attributi sono correlati uno di loro pu\`o essere eliminato. Per computare la corrlezione di due attributi (colonne = vettori) esiste il coefficente di correlazione:
+\begin{definition}{Coefficente di Pearson}{coefficente-di-pearson}
+    \[ coeff(x, y) = \frac{cov(x, y)}{stddev(x) stddev(y)} \]
+\end{definition}
+Pi\`u il valore si avvicina a 1 pi\`u sono correlati (-1 sono inversamente correlati), mentre vicino allo 0 non sono correlati.
 
 
 \newpage
@@ -704,7 +721,6 @@ Definizioni:
     \[ \#{Roma, Colosseo} = 2 \]
     \[ sup(Roma, Colosseo) = 2 \]
 \end{definition}
-
 Data una regola di associazione $A \implies B$:
 \begin{definition}{Supporto}{supporto}
     \[ \frac{\#{A,B}}{|T|} \]
@@ -714,8 +730,7 @@ Data una regola di associazione $A \implies B$:
     \[ \frac{sup(A,B)}{sup(A)} \]
     \`E la frequenza delle transazioni B che contengono anche A.
 \end{definition}
-
-Per creare dei modelli per estrarre  le relazioni, vengono definiti due paramtri che indicano la frequenza con quele frequnza devono apparire le relazione:
+Per creare dei modelli per estrarre  delle relazioni, vengono definiti due paramtri che indicano la frequenza con la quale devono apparire le relazioni:
 \begin{itemize}
     \item supporto $>$ \textbf{minsup} threshold;
     \item confidenza $>$ \textbf{minconf} threshold;
@@ -729,46 +744,78 @@ L'estrazione si compone di due fasi:
 \end{enumerate}
 Il passo pi\`u oneroso \`e l'estrazione degli itemset frequenti.
 
-Il \textbf{candidato} \`e l'oggetto che potrebbe essere estratto, il \textbf{frequente} \`e l'oggetto che supera il valore di minsup. Per migliorare 
+Il \textbf{candidato} \`e l'oggetto che potrebbe essere estratto, il \textbf{frequente} \`e l'oggetto che supera il valore di minsup.
 
-\subsection{Algoritmi Di Estrazione Di Itemsets}
+\subsection{Algoritmi Di Estrazione Di Itemsets Frequenti}
+\subsubsection{Forza Bruta}
+Si compara ogni possibile condidato con il supporto di ogni elemento nel db. I possibili candidati sono $2^{d}$ dove d sono il numero di items. La complessit\`a \`e $O(|T| \cdot 2^{d} \cdot lunghezzaTransazione)$.
+
+
 \subsubsection{Apriori}
-\textbf{Apriori} si basa sul principio di quanto un itemset \`e frequnte, allora la porzione di lattice che ha come radice l'itemset allora si pu\`o esplorare il sottospazione dell'itemset, altrimenti no.
+L'algoritmo di \textbf{Apriori} si basa sul principio di quanto un itemset \`e frequnte, infatti il principio di apriori dice che:
+\begin{center}
+    \emph{"Se un itemset \`e frequente, allora tutti i suoi sottoinsiemi devono essere frequenti"}
+\end{center}
+La porzione di lattice (spazio delle soluzioni possibili) che ha come radice un itemset frequente (ovvere il suo sottoinsieme) pu\`o essere esplorata, altrimenti no.
 \[ A \subset B \implies sup(A) \geqslant  sup(B) \]
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{principio-di-apriori.png}
+    \caption{Principio Di Apriori}
+    \label{fig:principio-di-apriori}
+\end{figure}
+L'\textbf{algoritmo di Apriori} si basa sulla suddivisione degli'itemset in  livelli, in ogni livello si prendono dei candidati, facendo il join tra candidati frequenti (che superano la minconf) di livello k si generano candidati di livello k+1, per itemset che non rispettano il criterio di frequenza veiene fatto il pruning dell'albero delle scelte.
 
-L'algoritmo di \textbf{Apriori} si basa sulla suddivide degli'itemset in  livelli, in ogni livello si prendono dei candidati, facendo il join tra candidati frequenti (che superano la minconf) di livello k si generano candidati di livello k+1, per itemset che non rispettano il criterio di frequenza veiene fatto il pruning dell'albero delle scelte.
+Sui candidati di lunghezza 2 va applicato il pruning (apriori). Alla fine si trover\`a l'insieme delle soluzioni che sar\`a l'unione di tutti gli itemset estratti. Pseudocodice:
+\begin{lstlisting}[language=java]
+candidateItemset = new List<List<Transaction>, List<Integer>>;
+frequentItemset = new List<List<Transaction>>;
 
-Sui candidati di lunghezza 2 va applicato il pruning (apriori). Alla fine si trover\`a l'insieme delle soluzioni che sar\`a l'unione di tutti gli itemset estratti.
+frequentItemset[1] = {frequentItems};
+for (int k = 1; frequentItemset[k].notEmpty(); k++) {
+    condidateItemset[k+1] = frequentItemset[k];
+
+    for (Transaction t : db) {
+        if (transaction of candidateItemset[k+1] is contained in t) {
+            increase the coutnter of that transaction in candidateItemset[k+1];
+        }
+    }
+
+    frequentItemset[k+1] = candidateItemset[k+1].filter(t -> t has count greater than minsup);
+}
+
+return frequentItemset.union();
+\end{lstlisting}
 
 \tolerance=1000
-Le limitazioni principali di questo algoritmo sono i costi di scansione del database, infatti dovr\`a essere letta pi\`u volte, inoltre se le transazioni sono molto lunghe l'algoritmo dovr\`a essere ripetuto n+1 volte (n = lunghezza transazoine), per superare questo limite si posso usare degli algoritmi per diminuire i costi legati alla lettura.
+Le limitazioni principali di questo algoritmo sono i costi di scansione del database, infatti dovr\`a essere letto pi\`u volte, inoltre se le transazioni sono molto lunghe l'algoritmo dovr\`a essere ripetuto n+1 volte (n = lunghezza transazoine), per superare questo limite si posso usare degli algoritmi per diminuire i costi legati alla lettura.
 
 
 \subsubsection{FP-Growth}
 Sono state proposte delle varianti dell'algoritmo per ottimizzare i problemi . Negli anni 2000 \`e stato proposto un nuovo algoritmo basato sulla memorizzazione. L'algoritmo \textbf{FP-growth}, instazia in memoria un albero dove si trova la proiezione del database originale che considera gli item che soddisfano la soglia di supporto, una volta creata la struttura di supporto in memoria non si accede pi\`u in memoria secondaria, ottimizzando la lettura degli item. La struttura in memoria prende il nome di \textbf{FP-tree}. L'algoritmo funziona nel seguente modo:
 \begin{enumerate}
     \tolerance=1000
-    \item vengono contati gli item e vengono scartati quelli con sotto la soglia;
-    \item viene creata una header table con gli item in orine descrescente rispetto al supporto;
-    \item viene scansionata per l'ultima volta il database, le transazioni vengono ordinate in base alla header table;
-    \item ogni scansione di una transazine ordinata, viene preso l'item ed inserito nell'albero, ogni nodo contiene l'item ed il numero di volte che \`e stato trovato per ogni transazione letta;
-    \item l'inserimento nell'albero viene fatto a partire dall'ordine degli item nella transazione (simile algi alberi formati a partire da ogni lettera di di parole), ogni volta che si passa da un nodo gi\`a inserito il suo contatore aumenta;
+    \item le transazioni nel db vengono ordinati in base alla cardinalit\`a;
+    \item viene creata una header table con le transazioni in orine descrescente, con supporto maggiore della soglia (minsup);
+    \item viene scansionato per l'ultima volta il database per creare l'FP-tree;
+    \item per ogni transazione viene preso l'item ed inserito nell'albero, ogni nodo contiene l'item ed il numero di volte che \`e stato trovato per ogni transazione letta;
+    \item l'inserimento nell'albero viene fatto a partire dall'ordine degli item nella transazione (simile algi alberi formati a partire da ogni lettera di parole), ogni volta che si passa da un nodo gi\`a inserito il suo contatore aumenta, altrimenti si crea un nodo nuovo con count = 1;
     \item \`e importante collegare la header table ai nodi nell'albero, questo viene fatto attraverso una \textbf{node link chain}: l'header punta ad un nodo con lo stesso item, quando percorrendo l'abero si trova un altro item il nodo precedente avr\`a come nodo successivo il nodo corrente;
 \end{enumerate}
 
-Viene poposto anche un algoritmo di visita per esrarre gli itemset:
+Viene poposto anche un algoritmo di visita per estrarre gli itemset:
 \begin{enumerate}
     \item viene letta la header table dall'item col supporto pi\`u basso;
-    \item viene creato un \textbf{conditional pattern base} di un item, una proiezione dell'fp-tree condizionato ad un item;
+    \item viene creato un \textbf{conditional pattern base} (CPB) di un item, una proiezione dell'fp-tree condizionato ad un item;
     \item il CPB viene visitato ricorsivamente per travore i candidati;
-    \item ad ogni nodo visitato viene recuperato il path dell'albero fino ad esso, se il supporto del nodo \`e minore del minsup il path viene scartato, e si passo al prossimo nodo della node-link chain;
+    \item ad ogni nodo visitato viene recuperato il path dell'albero fino ad esso, se il supporto del nodo \`e minore del minsup il path viene scartato, e si passa al prossimo nodo della node-link chain;
         \begin{figure}[H]
             \centering
             \includegraphics[width=0.8\textwidth]{cpd-di-d.png}
             \caption{Cpd di D al terzo step}
             \label{fig:cpd-di-d}
         \end{figure}
-    \item data la cpb va creata una Conditional header table, da questa header table, si crea un'altro fp-tree, questo si applica ricorsivamente, ogni chiamata \`e condizionata (ovvero la cpd sar\`a preceduta dall'itemset del chiamante: D -> DC -> ...);
+    \item data la cpb va creata una Conditional header table, da questa header table, si crea un'altro fp-tree, questo si applica ricorsivamente, ogni chiamata \`e condizionata (ovvero la cpd sar\`a preceduta dall'itemset del chiamante: $ D -> DC -> \dots$);
     \item quando non si riesce a creare una header table si torna al chiamante e si passa alla entry superiore nella header table del chiamante;
     \item prima di creare la nuova cpb, si prende l'itemset che arriva dal chiamante e se il valore nell'header tabel del item corrente \`e maggiore del minsup allora l'itemset concatenato all'item corrente viene insireti negli itemset frequenti;
         \begin{figure}[H]
@@ -781,12 +828,18 @@ Viene poposto anche un algoritmo di visita per esrarre gli itemset:
 Questo algoritmo funziona molto bene se la memoria non viene saturata (bottleneck).
 
 Un altro problema sono l'alto numbero di itemset che vengono estratti, infatti anche con db molto piccoli si possono trovare un numero molto elevato di iteset frequenti, per questo si opta per i \textbf{itemset massimali frequenti}, IMF per definizioni sono gli itemset che hanno il massimo numbero di figli, e sono unici nel loro sottolivello, oppure esistono i \textbf{closed itemset} che sono gli itemset con nessuno dei suoi immediati superset hanno lo stesso valore.
+\[ ItemsetFrequentiMassimali \subset ItesetFrequentiChiusi \subset ItemsetFrequenti \]
 
 \subsection{Effetto delle soglie}
-La scelta dei valori di supporto deve essere idoneo, infatti con un valore troppo basso non si identificano delle relazioni e con valori troppo alti emergono relazioni molto deboli. Anche la confidenza comporta dei problemi, se il valore di cui si calcola la confidenza ha un valore molto ampio, si rischiano di ottenere valori errati, per evitare di incrociare queste informazioni si utilizza la regola del lift.
+La scelta dei valori di supporto deve essere idoneo, infatti con un valore troppo basso non si identificano delle relazioni che portrebbero risultare interessanti e con valori troppo alti emergono relazioni molto deboli. Anche la confidenza comporta dei problemi, se il valore di cui si calcola la confidenza ha un valore molto ampio, si rischiano di ottenere valori errati, per evitare di incrociare queste informazioni si utilizza la regola del lift.
 \begin{definition}{Lift}{lift}
     Dato $ r: A \implies B $, allora la Correlazione o lift \`e:
     \[ C = \frac{P(A,B)}{P(A)P(B)} = \frac{conf(r)}{sup(B)} \]
+    \begin{itemize}
+        \item $C = 1$: indipendenza statistica;
+        \item $C < 1$: correlazione negativa;
+        \item $C > 1$: correlazione positiva;
+    \end{itemize}
 \end{definition}
 
 

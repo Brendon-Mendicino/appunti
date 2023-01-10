@@ -1105,6 +1105,64 @@ All'utilizzo del touch deve essere calibrato prima dell'utilizzo.
 
 
 
+\newpage
+\section{Analog Input and Output}
+L'obbiettivo \`e quello di convertire degli segnali analogici in valori digitali, si ha bisogno di un ADC (Analog Digital Converter). La landtiger ha dei convertitori con frequenza di campionamento fino ai 13MHz. Gli ADC hanno anche risoluzione espressa in bit, questo in indica il range di intervalli omogenei in cui viene diviso il valore del segnale tra un minimo ed un massimo (quindi $2^{bit}$ valori totali possibili). L'ADC del landtiger ha:
+\begin{itemize}
+    \item \textbf{12 bit di precisione;}
+    \item \textbf{8 input per il convertitore;}
+    \item \textbf{13MHz di conversione massima;}
+    \item \textbf{una conversione richiede 65 cicli};
+    \item \textbf{range di volt tra 3V e 0V;}
+    \item \textbf{pu\`o funzionare con power-down mode;}
+    \item \textbf{la libreria di inizializzazione lo accende in automatico;}
+\end{itemize}
+Ogni ADDRx contiene l'ultimo valore campionato per ogni diverso convertitore.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{registri-convertitore.png}
+    \caption{Registri Convertitore}
+    \label{fig:registri-convertitore}
+\end{figure}
+L'ADC ha come al solito una funzione di configurazione.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{adc-init.png}
+    \caption{Adc Init}
+    \label{fig:adc-init}
+\end{figure}
+Il convertitore ci permette anche di passare da digitale ad analogico, che \`e diverso da quello A/D:
+\begin{itemize}
+    \item \textbf{10 bit di precisione};
+\end{itemize}
+Nel caso della landtiger l'uscita analogica \`e collegata allo speaker.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{uscita-speaker.png}
+    \caption{Uscita Speaker}
+    \label{fig:uscita-speaker}
+\end{figure}
+Dei possono essere ottenuti creando delle sinusoidi (magari anche sommate tra di loro).
+\begin{wrapfigure}{r}
+    \centering
+    \includegraphics[width=0.4\textwidth]{note-speaker.png}
+    \caption{Note Speaker}
+    \label{fig:note-speaker}
+\end{wrapfigure}
+
+
+
+
+
+\newpage
+\section{Esame}
+Ricordarsi che l'ultima istruzione viene scarata, e quindi contata nel cilco. Per fare il calcolo si fa: bella
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{esame-pipeline.png}
+    \caption{Esame Pipeline}
+    \label{fig:esame-pipeline}
+\end{figure}
 
 
 
