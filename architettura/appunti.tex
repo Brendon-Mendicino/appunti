@@ -1142,7 +1142,11 @@ Nel caso della landtiger l'uscita analogica \`e collegata allo speaker.
     \caption{Uscita Speaker}
     \label{fig:uscita-speaker}
 \end{figure}
-Possono essere ottenute delle note creando delle sinusoidi in uscita (magari anche sommate tra di loro). Si controlla l'uscita attraverso \texttt{LPC_DAC->DACR = value << 6}, \textbf{si ricorada che \texttt{value} pu\`o essere solo di 10 bit}.
+Possono essere ottenute delle note creando delle sinusoidi in uscita (magari anche sommate tra di loro). Si controlla l'uscita attraverso:
+\begin{lstlisting}[language=c]
+LPC_DAC->DACR = value << 6;
+\end{lstlisting}
+\textbf{si ricorada che \texttt{value} pu\`o essere solo di 10 bit}.
 \begin{figure}
     \centering
     \includegraphics[width=0.4\textwidth]{note-speaker.png}
