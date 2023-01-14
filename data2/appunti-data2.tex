@@ -843,7 +843,7 @@ La scelta dei valori di supporto deve essere idoneo, infatti con un valore tropp
 \end{definition}
 
 
-Un esempio di regola di associazione potrebbe anche essere l'aggregazione di dati, andano ad accoppirare una tassonomia ai valori, possiamo, aggregano gli attribuiti, vedere il loro supporto crescere, rappresetando in modo generalizzato un comportamento, per andare a soddifare un servizio.
+Un esempio di regola di associazione potrebbe anche essere l'aggregazione di dati, andano ad accoppirare una tassonomia ai valori possiamo, aggregando gli attribuiti, vedere il loro supporto crescere, rappresetando in modo generalizzato un comportamento, per andare a soddifare un servizio.
 
 
 \newpage
@@ -852,9 +852,7 @@ Le classificazioni cercano, attraverso dei modelli di assegnare dei tag ai dati,
 
 Per applicare la classificazione si ha bisogno di dei dati di training che hanno gia dei tag con il quale si va a generare un modello, per classificare dei nuovi dati si parte dandoli in pasto al modello e partendo dai volori degli attributi si generano delle nuove etichette.
 
-Per poter realizzare un modello di classificazione si ha bisogno di dati di training, usati per generare il modello, e dati di test, usati per validare il modello, ognuno di questi dati ha gi\`a associato ad essi una classe di tag. Una volta che si trova un modello adatto, si pu\`o insireri in un applicazione per predirre i tag.
-
-Gli algoritmi che generano i modelli hanno delle caratteristiche:
+Per poter realizzare un modello di classificazione si ha bisogno di dati di training, usati per generare il modello, e dati di test, usati per validare il modello, ognuno di questi dati ha gi\`a associato ad essi una classe di tag. Una volta che si trova un modello adatto, questo pu\`o essere inserito in un applicazione per predirre i tag. Gli algoritmi che generano i modelli hanno delle caratteristiche:
 \begin{itemize}
     \item accuratezza;
     \item interpretabilit\`a;
@@ -872,7 +870,7 @@ Attraverso un albero di decisione, dati i dati di input \`e possibile inferire l
     \caption{Albero Di Descisione}
     \label{fig:albero-di-descisione}
 \end{figure}
-In un albero di decisione le folgie corrispondo all'etichetta di classe che sar\`a assegnata all'item in esame. Questo modello dipendo molto dai dati, infatti se gli attributi cambiano anche il modello va modificato opportunamente, questo \`e dovuto al fatto che gli alberi di decsione non sono incrementali. Per generare gli alberi di decisione esistono vari algoritmi, uno di questi \`e l'\textbf{algoritmo di Hunt}, l'algoritmo parte dal leggere il database, il primo passo \`e quello di individuare l'attributo che riesce a dividerere il db in due gruppi pi\`u omogenei possibili rispetto al tag. Successivamente si cerca il prossimo attributo che effettua il prossimo miglior partizionamento, fino al raggiungimento delle condizioni di terminazione. Questo albero non \`e aggiornabile all'arrivo di nuovi dati.
+In un albero di decisione le folgie corrispondo all'etichetta di classe che sar\`a assegnata all'item in esame. Questo modello dipendo molto dai dati, infatti se gli attributi cambiano anche il modello va modificato opportunamente, questo \`e dovuto al fatto che gli alberi di decsione non sono incrementali. Per generare un albero di decisione esistono vari algoritmi, uno di questi \`e l'\textbf{algoritmo di Hunt}, l'algoritmo parte dal leggere il database, il primo passo \`e quello di individuare l'attributo che riesce a dividerere il db in due gruppi pi\`u omogenei possibili rispetto al tag. Successivamente si cerca il prossimo attributo che effettua il prossimo miglior partizionamento, fino al raggiungimento delle condizioni di terminazione. Questo albero non \`e aggiornabile all'arrivo di nuovi dati.
 
 Per effettuare lo split bisogna partire dai tipi di dati con cui si lavora:
 \begin{itemize}
@@ -884,13 +882,18 @@ Per stimare la purezza (grado di omogeneit\`a) dei nodi che vengono generati, es
 \[ GINI(t) = 1 - \sum_{j}^{} (p(j|t))^{2} \]
 $p(j|t) = $ frequenza della classe j al nodo t. Pi\`u il gini index si avvicina allo zero, pi\`u la classe \`e \textbf{pura}, pi\`u il valore si avvicina a $(1 - \frac{1}{\text{numro di classi}} )$ pi\`u il nodo \`e impuro, viene preso l'attributo che genera il gini index col valori pi\`u basso. Nelle implementazioni reali vengono fatti dei test utilizzando metriche diverse con successive validazioni.
 
+Il secondo \`e l'\textbf{Entropia} che \`e molto simile al gini index, la sua fromula \`e:
+\[ E(t) = -\sum_{n=1}^{} p(j|t) log_2(p(j|t)) \]
+Come il per il gini index i nodi che anno entropia 0 sono i nodi puri. \textbf{Queste tecniche possono essere applicate come criterio di split dei nodi.}
+
+
 Per la creazione di un albero va definito anche un criterio di stop:
 \begin{itemize}
     \item minamal gain;
     \item pre-pruning: se un nodo \`e quasi puro rimuovo non scendno pi\`u nell'albero;
     \item post-pruning: generato l'albero completo vado a tagliare i rami dell'albero con delle caratterisiche troppo specifiche;
 \end{itemize}
-
+Il motivo per cui si deve definire un criterio di stop \`e per evitare situazioni di \textbf{overfitting}, ovvero un erronea evoluzione del modello guidata da dati rumorosi.
 
 
 \subsection{Random Forest}
@@ -906,9 +909,9 @@ Si parte da un database di training. Le classificazione rule-based sono composte
 \end{center}
 Dato il db di training si genera il modello, che \`e composto da n regole R.
 
-Ogni regola R che matcha la entry che si sta elaborando, viene associata la classe all'istanza, se esistono delle collisioni, si pu\`o utilizzare la mutua esclusione, e soprattutto (idealmente) le regole devono essere esaustive (non devono esistere casi non gestiti).
+Ogni regola R che matcha la entry che si sta elaborando, ha come risultato l'assegnazione di una classe, se esistono delle collisioni, si pu\`o utilizzare la mutua esclusione e soprattutto (idealmente), le regole devono essere esaustive (non devono esistere casi non gestiti).
 
-Per creare le regole si pu\`o partire da un albero di decisione, in questo modo si risolve la mutua esclusione ma non l'esaustivit\`a. La strategia che solitamente si segue \`e il semplificamento di queste regole, le rogole possono essere semplicate al completamento dell'albero di decisione, oppure si potrebbe semplificare l'albero con del pruning e poi estrarre le regole, oppure estrarre  le regole direttamente dal db. Quando le regole non sono esaustive si una classe di default che solitamente \`e la maggioritaria.
+Per creare le regole si pu\`o partire da un albero di decisione, in questo modo si risolve la \textbf{mutua esclusione} ma non l'\textbf{esaustivit\`a}. La strategia che solitamente si segue \`e il semplificamento di queste regole, le rogole possono essere semplicate al completamento dell'albero di decisione, oppure si potrebbe semplificare l'albero con del pruning e poi estrarre le regole, oppure estrarre  le regole direttamente dal db. Quando le regole non sono esaustive viene assegnata una classe di default che solitamente \`e la maggioritaria.
 
 Le caratteristiche di questi modelli sono:
 \begin{itemize}
@@ -922,7 +925,7 @@ Le caratteristiche di questi modelli sono:
 
 
 \subsection{Classificazione Associativa}
-Si utilizzano le regole di associazione per fare delle previsioni, le regolo di associazione per\`o vanno ristrette, per la classificazione le uniche regole che interessano sono (condizione) $ \implies $ regola di classe (un sottoinsieme delle regole possibili). In questo caso l'estrazione \`e diversa dalle regole di associazione, infatti la classificazoine associativa \`e composta da regole ordinate con degli indice di qualit\`a, l'ordinamento \`e fatto sulle regole di associazione (soglia, confidenza, lift). Anche in questo caso non si vuole fare dell'overfitting sul training set, quindi in fase di creazione si dovr\`a decidere dove fare del pruning.
+Si utilizzano le regole di associazione per fare delle previsioni, le regole di associazione per\`o vanno ristrette, per la classificazione le uniche regole che interessano sono (condizione) $ \implies $ regola di classe (un sottoinsieme delle regole possibili). In questo caso l'estrazione \`e diversa dalle regole di associazione, infatti la classificazoine associativa \`e composta da regole ordinate con degli indice di qualit\`a, l'ordinamento \`e fatto sulle regole di associazione (soglia, confidenza, lift). Anche in questo caso non si vuole fare dell'overfitting sul training set, quindi in fase di creazione si dovr\`a decidere dove fare del pruning.
 
 Le caratteristiche sono:
 \begin{itemize}
@@ -952,13 +955,13 @@ Le caratteristiche sono:
 \begin{theorem}{Teorema di Bayes}{teorema-di-bayes}
     \[ P(C,X) = P(X) \cdot P(C|X) \]
 \end{theorem}
-La classificazione bayesiana si basu sul teorema di bayes, questo tipo di classificazione presuppune un indipendenza statistica dei dati tra di loro, che solitamente \`e l'ipotesi sbagliata. Quando si vuole classificare una nuova tupla X rispetto ad un classe C si calcola $P(X|C)P(C)$ per ogni classe, il valore pi\`u alto trovato corrisponder\`a alla classe di apparteneza delle tupla. Per calcolare $P(X|C)P(C)$ si calcola:
-\[ P(C) \prod_{i=1}^{N} P(x_i|C)  \]
-dove $x_i$ \`e un attributo della tupla X (\`e per questo motivo che si richiede l'indipendenza statistica, altrimenti quella moltiplicazione non sarebbe possibile).
+La classificazione bayesiana si basa sul teorema di bayes, questo tipo di classificazione presuppune un indipendenza statistica dei dati tra di loro, che solitamente \`e l'ipotesi sbagliata. Quando si vuole classificare una nuova tupla X rispetto ad un classe C si calcola $P(X|C)P(C)$ per ogni classe, il valore pi\`u alto trovato corrisponder\`a alla classe di apparteneza delle tupla. Per calcolare $P(X|C)P(C)$ si calcola:
+\[ P(X|C) \prod_{i=1}^{N} P(x_i|C)  \]
+dove $x_i$ \`e un attributo della tupla X (\`e per questo motivo che si richiede l'indipendenza statistica, altrimenti quella moltiplicazione non sarebbe possibile). \emph{Quando si vuole classificare una nuova tupla X, si calcolare il valore della probabilit\`a rispetto ad ogni classe e se sceglie quella con il valore pi\`u alto.}
 
 
 \subsection{Support Vector Machines}
-\`E una tecnica non interpretabile che va identificare un iperpiano che va a separare le classi di interesse. Questo iperpiano deve massimizzare il suo margine (distanza tra l'iperpiano i punti pi\`u vicini delle classi). \`E possibile definire anche delle curve non-lineari modificando il kernel dello spazio vettoriale.
+\`E una tecnica non interpretabile che va identificare un iperpiano che va a separare le classi di interesse. \textbf{Questo iperpiano deve massimizzare il suo margine} (distanza tra l'iperpiano i punti pi\`u vicini delle classi). \`E possibile definire anche delle curve non-lineari modificando il kernel dello spazio vettoriale.
 
 Le caratteristiche sono:
 \begin{itemize}
@@ -978,9 +981,11 @@ L'algoritmo utilizza delle unit\`a di computazioni detti \textbf{neuroni}, quest
     \item Convolutional NN, prima viene modellato il dato utilizzando dei filtri, che poi viene dato ad un FFNN per la computazione finale;
     \item Rcurrent NN, 
     \item auto-encoder: vengono fatte delle elaborazione di dato dove viene fatto del denoising;
+    \item Word Embeddings: utilizzate per trovare relazioni all'interno di testi di parole;
 \end{itemize}
 
-FFNN si ha un livello di input ed un livello di output ovvero l'etichetta di classe che deve essere predetta, questo modello \`e fully connected, ogni nodo genera un output che va in input ad ongi nodo del livella successivo, questo connessioni sono pesate. Ogni nodo \`e composto da: la somma di tutti gli output pesati, poi questo valore moltiplicato per un coefficiente e poi dato in pasto ad un funzione di attivazione che genera l'output. Le funzioni di attivazione decide come elaborare i valori, le pi\`u utilizzate sono la sigmoide e la tangente iperbolica. Altre funzioni sono il binary step o la rampa. La funzione utilizzata per l'output finale \`e la sofmax. 
+\subsubsection{Feed Forward NN}
+FFNN si ha un livello di input ed un livello di output ovvero l'etichetta di classe che deve essere predetta, questo modello \`e fully connected, ogni nodo genera un output che va in input ad ongi nodo del livello successivo, queste connessioni sono pesate. Ogni nodo \`e composto da: la somma di tutti gli output del livello precedente pesati, poi questo valore viene moltiplicato per un coefficiente e poi dato in pasto ad un funzione di attivazione che genera l'output. Le funzioni di attivazione decidono come elaborare i valori, le pi\`u utilizzate sono la sigmoide, la tangente iperbolica, la rampa, binary step e la rampa. La funzione utilizzata per l'output finale \`e la sofmax. 
 
 Costruire un algoritmo di rete neurale viene fatto con un approccio iterativo:
 \begin{enumerate}
@@ -1000,24 +1005,32 @@ Le caratteristiche sono:
     \item robusti in presenza di dati rumorosi ed outliers, questo \`e ottenuto con un grande pool di dati di test;
 \end{itemize}
 
-Un'architettura utilizzata sono le \textbf{Convolutional NN}, la parte di computazione convoluzionale vanno ad effettuare delle feature selection sui dati in input, questi dati vengono poi mandati in input in una rete FFNN. Per estrarre le feature un layer convoluzione fa operazione:
+\subsubsection{Convolutional NN}
+Un'architettura \textbf{Convolutional NN} \`e formata da due parti principali: layer di di convoluzionali, FFNN. La parte di computazione convoluzionale va ad effettuare delle feature selection sui dati in input, successivamente i dati elaborati vengono mandati in input in una rete FFNN. Per estrarre le feature il layer convoluzionale fa operazioni di:
 \begin{enumerate}
     \item convoluzione;
     \item funzione di attivazione;
     \item pooling;
 \end{enumerate}
-I dati sono rappresentati in tensori (matrice multidimensionale), ogni matrice di input \`e un tensore, l'output \`e anch'esso generato in un matrice tensoriale. La convoluzione viene effettuando applicando una finestra di filtro, che viene fatta scivolare su tutto il tensore, solitamnte viene aggiunto un padding ai bordi, ogni eleborzione viene effettuata considerando il vicinato di un punto che genera un singlo punto in output. Dopo la convoluzione viene applicata la funzione di attivazione, solitamnte nelle CNN viene utilizzata la ReLU (rampa). La fase di pooling \`e una fase di downsampling, viene fatto applicando dei filtri al tensore in output, il risultato finale \`e un assegnazione di tag ai vari oggetti presenti nel dato.
+I dati sono rappresentati in tensori (matrice multidimensionale), ogni matrice di input \`e un tensore, l'output \`e anch'esso generato in un matrice tensoriale. La convoluzione viene effettuata applicando una finestra di filtro, che viene fatta scivolare su tutto il tensore, solitamnte viene aggiunto un padding ai bordi, ogni eleborzione viene effettuata considerando il vicinato di un punto che genera un singlo punto in output. Dopo la convoluzione viene applicata la funzione di attivazione, solitamnte nelle CNN viene utilizzata la ReLU (rampa). La fase di pooling \`e una fase di downsampling, viene fatto applicando dei filtri al tensore in output, il risultato finale \`e un assegnazione di tag ai vari oggetti presenti nel dato.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{convolutional-layers.png}
+    \caption{Convolutional Layers}
+    \label{fig:convolutional-layers}
+\end{figure}
 
-Un'altra architettura \`e quello basato sulle \textbf{Recurrent NN} applicate sui tipi di dato con un concetto di tempo, queste architettura hanno un concetto di memoria, infatti all'n-esima elaborazione prendono in considerazione l'elaborazione n-1.
-
-\textbf{Support Vector Machines}
-
+\subsubsection{Recurrent NN}
+Un'altra architettura \`e quella basata sulle \textbf{Recurrent NN} applicate sui tipi di dato con un concetto di tempo, queste architettura hanno un concetto di memoria, infatti all'n-esima elaborazione prendono in considerazione l'elaborazione n-1. Vengono usate per:
+\begin{itemize}
+    \item traduzione;
+    \item predizione di \emph{time series};
+    \item riconoscimento vocale;
+\end{itemize}
 
 
 \subsection{Model evuation}
-Nella letteratura esitono delle diverse tecniche per decidere quali dati faranno parte della fase di training di un per la creazione di un modello e quali per la validazione del suddetto. Supponiamo di avera un db con 100 oggetti, si vuole utilizzare una parte di questi oggetti per il training associandogli le caratteristiche dell'input e dell'output, si utilizzano gli oggetti rimanenti per validare il modelo creato, verificando il corretto assegnamento delle etichette. 
-
-La prima operazione da effettuare \`e quella di misurare la distribuzione dei tag nei diversi oggetti, calcolare i costi di missclassification e misurare la cardinalit\`a del training set.
+Nella letteratura esitono delle diverse tecniche per decidere quali dati faranno parte della fase di training di un per la creazione di un modello e quali per la validazione del suddetto. Supponiamo di avera un db con 100 oggetti, si vuole utilizzare una parte di questi oggetti per il training e si utilizzano gli oggetti rimanenti per validare il modelo creato, verificando il corretto assegnamento delle etichette. La prima operazione da effettuare \`e quella di misurare la distribuzione dei tag nei diversi oggetti, calcolare i costi di \textbf{missclassification} e misurare la cardinalit\`a del training set.
 
 Una tecnica di partizione dei dati \`e l'\textbf{hold out}, dove si definiscono delle percentuali fisse tra training e test, generalmente l'80\% dei dati vengono usati per il training ed il 20\% per la validazione. Queste percentuali vanno mantenute per tutte le classi presenti, serve dunque un sampling di tipo stratificato attraverso tutte le classi, questo vuol dire che la percentuale con cui appaiono le diverse classi deve essere mantenuta nei partizionamenti. Questa tecnica \`e utilizzata con db di grosse dimensioni.
 
@@ -1054,7 +1067,7 @@ ROC sta per (Receiver Operating Characteristics), questa curva caratterizza il t
 \end{itemize}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{roc.png}
+    \includegraphics[width=0.5\textwidth]{roc.png}
     \caption{Roc}
     \label{fig:roc}
 \end{figure}

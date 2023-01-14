@@ -741,7 +741,7 @@ Ogni eccezione ha diverse priorit\`a, dopo l'hard fault \`e possibile programmar
 \end{itemize}
 Quando arriva un eccezione su un processore ARM, il processore deve saltare al suo handler, ma prima di fare ci\`o devono essere savati il registro dei flag, pc, lr, r12, r3-r0, questo processo viene fatto in automatico.
 
-La sintassi delle svc \`e: \texttt{\{label\} SVC immediate}, il valore dell'immediato \`e a 8 bit, infatti l'SVC \`e una istruzione del thumb a 16 bit. Dopo l'esecuzione di una SVC, oltre ad i registri salvati nello stack, il LR viene caricato con un valore (diverso da quello di ritorno) detto \textbf{EXC\_RETURN}. 
+La sintassi delle svc \`e: \texttt{{label} SVC immediate}, il valore dell'immediato \`e a 8 bit, infatti l'SVC \`e una istruzione del thumb a 16 bit. Dopo l'esecuzione di una SVC, oltre ad i registri salvati nello stack, il LR viene caricato con un valore (diverso da quello di ritorno) detto \textbf{EXC\_RETURN}. 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{exception-return.png}
@@ -1142,7 +1142,7 @@ Nel caso della landtiger l'uscita analogica \`e collegata allo speaker.
     \caption{Uscita Speaker}
     \label{fig:uscita-speaker}
 \end{figure}
-Dei possono essere ottenuti creando delle sinusoidi (magari anche sommate tra di loro).
+Possono essere ottenute delle note creando delle sinusoidi in uscita (magari anche sommate tra di loro). Si controlla l'uscita attraverso \texttt{LPC_DAC->DACR = value << 6}, \textbf{si ricorada che \texttt{value} pu\`o essere solo di 10 bit}.
 \begin{figure}
     \centering
     \includegraphics[width=0.4\textwidth]{note-speaker.png}
