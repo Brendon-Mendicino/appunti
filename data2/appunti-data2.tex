@@ -1365,7 +1365,9 @@ do
   si ricalcolano i centroidi a partire dai cluster
 while (i centroidi non cambiano)
 \end{lstlisting}
-Questo algoritmo converge abbastanza velocemente infatti ha O(num-punti * K * iterazioni * num-attributi), per questo motivo l'algoritmo viene fatto eseguire molteplici volte per eliminare il problema dell'assegnazione casuale dei centroidi che potrebbe a portare anche a cluster vuoti. Per valutare quanto \`e buono un partizionamaneto si usa l'SSE, Sum of Squerd Error.
+Questo algoritmo converge abbastanza velocemente infatti ha O(num-punti * K * iterazioni * num-attributi):
+\[ O(n \cdot K \cdot i \cdot na) \]
+per questo motivo l'algoritmo viene fatto eseguire molteplici volte per eliminare il problema dell'assegnazione casuale dei centroidi che potrebbe a portare anche a cluster vuoti. Per valutare quanto \`e buono un partizionamaneto si usa l'SSE, Sum of Squerd Error.
 \begin{definition}{SSE}{sse}
     \[ SSE = \sum_{i=1}^{K} \sum_{x \in C_i}^{} dist^{2}(m_i, x) \]
 \end{definition}
@@ -1379,13 +1381,48 @@ Per ridurre il rumore dei dati eliminando gli outliers si possono applicare oper
 
 
 \subsection{Bisecting K-means}
-Il bisecting
-
-...
+Il bisecting k-means funziona nel seguente modo: ad ogni iterazione si genearano due centroidi, per generarli si partizione il cluster con l'SSE minore in due sotto cluster con due centroidi, fino ad arrivare a K cluster. L'algoritmo parte con 2 centroidi. Questo procedimento \`e molto meno sucettibile alla presenza di outliers.
 
 
+\subsection{Clustering Gerarchico}
+Si possono usare partitive o agglomerative creando un dendogramma. I pro del dendogramma \`e che non esiste una metrica di K cluster ma ne genera dagli n elementi sel set fino a 0.
+
+Nel \textbf{clustering agglomerativo } si calcola prima la \textbf{matrice di prossimit\`a}, e ad ogni passo viene fatto un merge dei punti della matrici con il valore minimo (i punti o i cluster pi\`u vicino tra di loro). La scelta dei paramentri consistono nei vari tipi di calcolo di distanze.
+
+\textbf{Ogni volta che vengono messe delle barra per raggruppare i punti, bisogna prestare attenzione alla loro altezza, infatti pi\`u basse esse sono pi\`u sono pre raggruppamento \`e stato scelto prima, sempre seguendo la metrica scelta.}
+Alcune delle metriche sono:
+\begin{itemize}
+    \item \textbf{MIN}: molto sucettibile ad outliers;
+    \item \textbf{MAX}: poco sucettibile ad outliers, ma ha lo stesso problema del k-means, ovvero former\`a sempre dei cluster globulari;
+    \item \textbf{grouping average}: tende ad avere cluster globuri ma abbastanza resistente agli outliers;
+    \item \textbf{metodo di Ward};
+\end{itemize}
+Gli svantaggi sono $O(n^{2})$ di spazio e $O(n^{3})$ in tempo di esecuzione, parametri inaccettabili in contesti di bigdata, solitamente se si vogliono applicare questi algoritmi si usano dei sampling del dataset.
 
 
+\subsection{DBSCAN}
+\`E un algoritmo basato sulla densit\`a dei punti. DBSCAN si basa su:
+\begin{itemize}
+    \item $\varepsilon$: definisce un cerchio che va a calcolare la densit\`a;
+    \item \textbf{minPoints}: finch\`e ci sono minPoints all'interno dell'area definita da $\varepsilon$ il cluster esiste;
+    \item \textbf{core points}: quando si ha una densit\`a superiore ai minPoints;
+    \item \textbf{border point}: un border point non rispetta il vincolo sul minPoints ma nel suo raggio \`e contenuto un core point;
+    \item \textbf{noise point}: non rispettano il vincolo su minPoints e \textbf{non \`e } un border point;
+\end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{dbscan.png}
+    \caption{Dbscan}
+    \label{fig:dbscan}
+\end{figure}
+Resistente al noise ed in grado di rimuoverlo, e pu\`o gestire cluster di forme diverse, non funziona bene con cluster di densit\`a diverse.
+
+
+
+
+
+
+\newpage
 \section{Introduzione ai DBMS}
 Il DBMS permette di avere una gestione concorrente delle informazioni, oltre ad avere delle routine che operano sui dati, la sua struttura \`e molto complessa ed \`e strutturata in moduli, l'entry poiont \`e una query.
 \begin{figure}[H]
