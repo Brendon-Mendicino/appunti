@@ -1,2 +1,2 @@
 # appunti
-Appunti presu durante le lezioni.
+Appunti presi durante le lezioni.
