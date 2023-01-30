@@ -13,13 +13,12 @@ for file in ./* ; do
     # if the file contains not tex file changed go to the next one
     ! [ $(git ls-files -m | grep -E "^.*\.tex$") ] && cd .. && continue
 
-    echo $(pwd)
+    pwd
     echo "Converting $(ls | grep -E "^.*\.tex$") ..."
-    pdflatex "$(ls | grep -E "^.*\.tex$")" &
+    pdflatex "$(ls | grep -E "^.*\.tex$")"
     cd ..
 done
 
-wait
 
 echo "Adding to git..."
 git add *
