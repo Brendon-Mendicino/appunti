@@ -676,7 +676,7 @@ La similarit\`a e la dissimilarit\`a ci permattono di dire quando degli attribut
     $\Sigma$ matrice delle covarianze.
 \end{theorem}
 \end{itemize}
-Un altro modo per misare la similarit\`a tra due vettori (di valori binari) sono:
+Un altro modo per misurare la similarit\`a tra due vettori (di valori binari) sono:
 \begin{itemize}
     \item \textbf{Simple Matching}: SMC;
     \item \textbf{Coefficente di Jaccard};
@@ -690,17 +690,17 @@ Un altro modo per misare la similarit\`a tra due vettori (di valori binari) sono
 \subsection{Correlazione}
 Si cercano delle correlazioni negli attibuti di un tabella per poter effettuare una riduzione di essi, infatti se due attributi sono correlati uno di loro pu\`o essere eliminato. Per computare la corrlezione di due attributi (colonne = vettori) esiste il coefficente di correlazione:
 \begin{definition}{Coefficente di Pearson}{coefficente-di-pearson}
-    \[ coeff(x, y) = \frac{cov(x, y)}{stddev(x) stddev(y)} \]
+    \[ C(x, y) = \frac{cov(x, y)}{stddev(x) stddev(y)} \]
 \end{definition}
 Pi\`u il valore si avvicina a 1 pi\`u sono correlati (-1 sono inversamente correlati), mentre vicino allo 0 non sono correlati.
 
 
 \newpage
 \section{Regole di associazione}
-L'estrazione delle regole di associazione \`e un modo di trovare delle associazioni tra i volori prenti in un database transazionale. Per decidere queste associazioni solitamente si guardano le ricorrenze statistiche di valori comuni.
+L'estrazione delle regole di associazione \`e un modo di trovare delle associazioni tra i volori presenti in un database transazionale. Per decidere queste associazioni solitamente si guardano le ricorrenze statistiche di valori comuni.
 
 Una regola di associazione si definisce come:
-\begin{theorem}{Regola di associazione}{regola-di-associazione}
+\begin{definition}{Regola di associazione}{regola-di-associazione}
     \[ A, B \implies C \]
     Dove degli insiemi di oggetti (\textbf{itemset}) possono implicare altri insiemi.
     \begin{itemize}
@@ -708,7 +708,7 @@ Una regola di associazione si definisce come:
         \item $C =$ testa della regola;
     \end{itemize}
     La freccia indica la \textbf{co-occorrenza}, indica che il copro \`e legato alla testa nelle transazioni del db. Per esempio: coca, pannolini $ \implies $ latte.
-\end{theorem}
+\end{definition}
 
 Se si lavora con un db relazione possiamo estrarre una transazione associando ad ogni valore il suo attributo.
 
@@ -717,7 +717,7 @@ Definizioni:
     \`E un itemset che contiene k oggetti.
 \end{definition}
 \begin{definition}{support count}{support-count}
-    \`E la frequenza con cui una trasazione appare.
+    \`E la frequenza con cui un itemset appare.
     \[ \#{Roma, Colosseo} = 2 \]
     \[ sup(Roma, Colosseo) = 2 \]
 \end{definition}
@@ -730,21 +730,17 @@ Data una regola di associazione $A \implies B$:
     \[ \frac{sup(A,B)}{sup(A)} \]
     \`E la frequenza delle transazioni B che contengono anche A.
 \end{definition}
-Per creare dei modelli per estrarre  delle relazioni, vengono definiti due paramtri che indicano la frequenza con la quale devono apparire le relazioni:
+Per creare dei modelli per estrarre  delle relazioni, vengono definiti due parametri che indicano la frequenza con la quale devono apparire le relazioni:
 \begin{itemize}
     \item supporto $>$ \textbf{minsup} threshold;
     \item confidenza $>$ \textbf{minconf} threshold;
 \end{itemize}
-Questo viene fatto  per limitare il numero di relazioni che vengono estratte, perch\'e nella maggior parte dei casi i db sono molto grandi.
-
-L'estrazione si compone di due fasi:
+Questo viene fatto  per limitare il numero di relazioni che vengono estratte, perch\'e nella maggior parte dei casi i db sono molto grandi. L'estrazione si compone di due fasi:
 \begin{enumerate}
     \item si estraggono gli itemset frequenti, attraverso il vincolo sul supporto;
     \item si estraggono le regole di associazione, attraverso il vincolo sulla confidenza;
 \end{enumerate}
-Il passo pi\`u oneroso \`e l'estrazione degli itemset frequenti.
-
-Il \textbf{candidato} \`e l'oggetto che potrebbe essere estratto, il \textbf{frequente} \`e l'oggetto che supera il valore di minsup.
+Il passo pi\`u oneroso \`e l'estrazione degli itemset frequenti. Il \textbf{candidato} \`e l'oggetto che potrebbe essere estratto, il \textbf{frequente} \`e l'oggetto che supera il valore di minsup.
 
 \subsection{Algoritmi Di Estrazione Di Itemsets Frequenti}
 \subsubsection{Forza Bruta}
@@ -752,10 +748,10 @@ Si compara ogni possibile condidato con il supporto di ogni elemento nel db. I p
 
 
 \subsubsection{Apriori}
-L'algoritmo di \textbf{Apriori} si basa sul principio di quanto un itemset \`e frequnte, infatti il principio di apriori dice che:
-
+L'algoritmo di \textbf{Apriori} si basa sul principio di quanto un itemset \`e frequente, infatti il principio di apriori dice che:
+\begin{center}
 \emph{"Se un itemset \`e frequente, allora tutti i suoi sottoinsiemi devono essere frequenti"}
-
+\end{center}
 La porzione di lattice (spazio delle soluzioni possibili) che ha come radice un itemset frequente (ovvere il suo sottoinsieme) pu\`o essere esplorata, altrimenti no.
 \[ A \subset B \implies sup(A) \geqslant  sup(B) \]
 \begin{figure}[H]
@@ -764,11 +760,11 @@ La porzione di lattice (spazio delle soluzioni possibili) che ha come radice un 
     \caption{Principio Di Apriori}
     \label{fig:principio-di-apriori}
 \end{figure}
-L'\textbf{algoritmo di Apriori} si basa sulla suddivisione degli'itemset in  livelli, in ogni livello si prendono dei candidati, facendo il join tra candidati frequenti (che superano la minconf) di livello k si generano candidati di livello k+1, per itemset che non rispettano il criterio di frequenza veiene fatto il pruning dell'albero delle scelte.
+L'\textbf{algoritmo di Apriori} si basa sulla suddivisione degli'itemset in  livelli, in ogni livello si prendono dei candidati, facendo il join tra candidati frequenti (che superano la minconf) di livello k si generano candidati di livello k+1, per itemset che non rispettano il criterio di frequenza viene fatto il pruning dell'albero delle scelte.
 
 Sui candidati di lunghezza 2 va applicato il pruning (apriori). Alla fine si trover\`a l'insieme delle soluzioni che sar\`a l'unione di tutti gli itemset estratti. Pseudocodice:
 \begin{lstlisting}[language=java]
-candidateItemset = new List<List<Transaction>, List<Integer>>;
+candidateItemset = new List<List<Transaction, Integer>>;
 frequentItemset = new List<List<Transaction>>;
 
 frequentItemset[1] = {frequentItems};
@@ -793,17 +789,17 @@ Le limitazioni principali di questo algoritmo sono i costi di scansione del data
 
 \subsubsection{FP-Growth}
 Sono state proposte delle varianti dell'algoritmo per ottimizzare i problemi . Negli anni 2000 \`e stato proposto un nuovo algoritmo basato sulla memorizzazione. L'algoritmo \textbf{FP-growth}, instazia in memoria un albero dove si trova la proiezione del database originale che considera gli item che soddisfano la soglia di supporto, una volta creata la struttura di supporto in memoria non si accede pi\`u in memoria secondaria, ottimizzando la lettura degli item. La struttura in memoria prende il nome di \textbf{FP-tree}. L'algoritmo funziona nel seguente modo:
+\begin{definition}{FP-Tree Creation Algorithm}{fp-tree-creation-algorithm}
 \begin{enumerate}
     \tolerance=1000
-    \item le transazioni nel db vengono ordinati in base alla cardinalit\`a;
-    \item viene creata una header table con le transazioni in orine descrescente, con supporto maggiore della soglia (minsup);
-    \item viene scansionato per l'ultima volta il database per creare l'FP-tree;
-    \item per ogni transazione viene preso l'item ed inserito nell'albero, ogni nodo contiene l'item ed il numero di volte che \`e stato trovato per ogni transazione letta;
+    \item viene creata una \textbf{header table} con i singoli item delle transazioni in ordine decrescente in base al supporto, con supporto maggiore della soglia (minsup);
+    \item viene scansionato per l'ultima volta il database per creare l'FP-tree: gli items all'interno delle transazioni vengono ordinati in base alla header table, per ogni transazione si parte dal primo item e lo si inserisce nell'albero fino ad arrivare all'ultimo, ogni nodo contiene l'item ed il numero di volte che \`e stato trovato per ogni transazione letta;
     \item l'inserimento nell'albero viene fatto a partire dall'ordine degli item nella transazione (simile algi alberi formati a partire da ogni lettera di parole), ogni volta che si passa da un nodo gi\`a inserito il suo contatore aumenta, altrimenti si crea un nodo nuovo con count = 1;
     \item \`e importante collegare la header table ai nodi nell'albero, questo viene fatto attraverso una \textbf{node link chain}: l'header punta ad un nodo con lo stesso item, quando percorrendo l'abero si trova un altro item il nodo precedente avr\`a come nodo successivo il nodo corrente;
 \end{enumerate}
-
-Viene poposto anche un algoritmo di visita per estrarre gli itemset:
+\end{definition}
+Viene proposto anche un algoritmo di visita per estrarre gli itemset:
+\begin{definition}{Frequent Iteset Extraction}{frequent-iteset-extraction}
 \begin{enumerate}
     \item viene letta la header table dall'item col supporto pi\`u basso;
     \item viene creato un \textbf{conditional pattern base} (CPB) di un item, una proiezione dell'fp-tree condizionato ad un item;
@@ -812,23 +808,24 @@ Viene poposto anche un algoritmo di visita per estrarre gli itemset:
         \begin{figure}[H]
             \centering
             \includegraphics[width=0.8\textwidth]{cpd-di-d.png}
-            \caption{Cpd di D al terzo step}
-            \label{fig:cpd-di-d}
+            \caption{Cpb di D al terzo step}
+            \label{fig:cpb-di-d}
         \end{figure}
-    \item data la cpb va creata una Conditional header table, da questa header table, si crea un'altro fp-tree, questo si applica ricorsivamente, ogni chiamata \`e condizionata (ovvero la cpd sar\`a preceduta dall'itemset del chiamante: $ D -> DC -> \dots$);
+    \item data la cpb va creata una Conditional header table, da questa header table, si crea un'altro fp-tree, questo si applica ricorsivamente, ogni chiamata \`e condizionata (ovvero la cpb sar\`a preceduta dall'item del chiamante: $ D -> DC -> \dots$);
     \item quando non si riesce a creare una header table si torna al chiamante e si passa alla entry superiore nella header table del chiamante;
     \item prima di creare la nuova cpb, si prende l'itemset che arriva dal chiamante e se il valore nell'header tabel del item corrente \`e maggiore del minsup allora l'itemset concatenato all'item corrente viene insireti negli itemset frequenti;
         \begin{figure}[H]
             \centering
-            \includegraphics[width=0.8\textwidth]{esempio-aggiunta-itemset-nei-valori-frequenti.png}
+            \includegraphics[width=0.7\textwidth]{esempio-aggiunta-itemset-nei-valori-frequenti.png}
             \caption{Esempio Aggiunta Itemset Nei Valori Frequenti}
             \label{fig:esempio-aggiunta-itemset-nei-valori-frequenti}
         \end{figure}
 \end{enumerate}
+\end{definition}
 Questo algoritmo funziona molto bene se la memoria non viene saturata (bottleneck).
 
 Un altro problema sono l'alto numbero di itemset che vengono estratti, infatti anche con db molto piccoli si possono trovare un numero molto elevato di iteset frequenti, per questo si opta per i \textbf{itemset massimali frequenti}, IMF per definizioni sono gli itemset che hanno il massimo numbero di figli, e sono unici nel loro sottolivello, oppure esistono i \textbf{closed itemset} che sono gli itemset con nessuno dei suoi immediati superset hanno lo stesso valore.
-\[ ItemsetFrequentiMassimali \subset ItesetFrequentiChiusi \subset ItemsetFrequenti \]
+\[ \boxed{ItemsetFrequentiMassimali \subset ItesetFrequentiChiusi \subset ItemsetFrequenti} \]
 
 \subsection{Effetto delle soglie}
 La scelta dei valori di supporto deve essere idoneo, infatti con un valore troppo basso non si identificano delle relazioni che portrebbero risultare interessanti e con valori troppo alti emergono relazioni molto deboli. Anche la confidenza comporta dei problemi, se il valore di cui si calcola la confidenza ha un valore molto ampio, si rischiano di ottenere valori errati, per evitare di incrociare queste informazioni si utilizza la regola del lift.
@@ -955,8 +952,8 @@ Le caratteristiche sono:
 \begin{theorem}{Teorema di Bayes}{teorema-di-bayes}
     \[ P(C,X) = P(X) \cdot P(C|X) \]
 \end{theorem}
-La classificazione bayesiana si basa sul teorema di bayes, questo tipo di classificazione presuppune un indipendenza statistica dei dati tra di loro, che solitamente \`e l'ipotesi sbagliata. Quando si vuole classificare una nuova tupla X rispetto ad un classe C si calcola $P(X|C)P(C)$ per ogni classe, il valore pi\`u alto trovato corrisponder\`a alla classe di apparteneza delle tupla. Per calcolare $P(X|C)P(C)$ si calcola:
-\[ P(X|C) \prod_{i=1}^{N} P(x_i|C)  \]
+La classificazione bayesiana si basa sul teorema di bayes, questo tipo di classificazione presuppune un indipendenza statistica dei dati tra di loro, che solitamente \`e l'ipotesi sbagliata. Quando si vuole classificare una nuova tupla X rispetto ad un classe C si calcola $P(X|C)P(C)$ per ogni classe, il valore pi\`u alto trovato corrisponder\`a alla classe di apparteneza delle tupla. Per trovare il valore di  $P(X|C)$ si calcola:
+\[ P(X|C) = \prod_{i=1}^{N} P(x_i|C)  \]
 dove $x_i$ \`e un attributo della tupla X (\`e per questo motivo che si richiede l'indipendenza statistica, altrimenti quella moltiplicazione non sarebbe possibile). \emph{Quando si vuole classificare una nuova tupla X, si calcolare il valore della probabilit\`a rispetto ad ogni classe e se sceglie quella con il valore pi\`u alto.}
 
 
@@ -2109,9 +2106,6 @@ Le transazioni possono essere classificate.
     \item \textbf{distributed transaction}: si esegue qualsisi comando sql, ogni comando \`e riferito ad un singolo nodo, in questo caso la gestione delle transazione deve essere pi\`u robusto (2 phase commit);
     \item \textbf{distibuted request}: ogni comando pu\`o far riferimento a dati distribuiti su server diversi, mi garantisce la trasparenza di frammentazione;
 \end{itemize}
-
-
-
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{acid-propreties-in-distributed-dbms.png}
@@ -2120,12 +2114,43 @@ Le transazioni possono essere classificate.
 \end{figure}
 
 
+\subsection{2 Phase Commit} 
+Il \textbf{2 phase commit} \`e protocollo grazie al quale si mantengono le proriet\`a ACID all'interno di rete di DB distribuiti. Il 2pc definisce un \textbf{coordinatore}, detto \textbf{TransactionManger} (TM), e dei DBMS che perndono parte alla transazione detti \textbf{ResoueceManagers} (RM). Sia i TM che RM hanno dei log separati per gestire la transazione:
+\begin{itemize}
+    \item TM;
+    \item \textbf{prepare}: contine gli id dei RM che partecipano alla transazione
+    \item \textbf{Global Commit/Abort}:  decisione finale della transazione
+    \item \textbf{complete}: scritto alla fine del protocollo
+\end{itemize}
+\begin{itemize}
+    \item RM
+    \item \textbf{ready}: l'RM prede parte alla transazione: 
+     \begin{itemize}
+         \item non pu\`o cambiare la sua decisione;
+         \item il nodo deve essere in uno stato affidabile;
+         \item dopo l'inizio l'RM perde la sua autonomia;
+     \end{itemize}
+\end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{2-phase-commit.png}
+    \caption{2 Phase Commit}
+    \label{fig:2-phase-commit}
+\end{figure}
 
 
-...
+\subsection{X-Open-DTP}
+Il protocolle \textbf{X-Open-DTP}  serve per coordinare database eterogeneei (di diversi produttori) tra di loro. Per interagire tra di loro vengono usate delle interfacce. Questo protocollo di base dati eruristci ed in alcuni casi non riesce a garantire l'atomicit\`a della transazione ma, riesce sempre a notificare che sono avvenute delle inconsistenze.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{protocollo-x-open.png}
+    \caption{Protocollo X Open}
+    \label{fig:protocollo-x-open}
+\end{figure}
 
 
 
+\newpage
 \section{NoSQL}
 Le caratteristiche principali sono dei NoSql sono:
 \begin{itemize}
@@ -2278,7 +2303,6 @@ db.collection.find({location: {
 });
 \end{lstlisting}
 I risultati vengono restituti in ordine dal pi\`u vicino al pi\`u lontano.
-
 
 
 

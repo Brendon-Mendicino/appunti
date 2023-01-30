@@ -4,7 +4,7 @@
 
 \usepackage{bookmark}
 
-\graphicspath{{./img/}}
+\graphicspath{ {./img/} }
 
 
 \title{Appunti Architettura}
@@ -211,6 +211,7 @@ Le macchine moderne sono chiamate \textbf{restartable machines} ovvero fanno rip
 \end{example}
 Le eccezioni possono essere gestite in modo \textbf{preciso} o in modo \textbf{impreciso}:
 \begin{itemize}
+    \tolerance=1000
     \item preciso: quando arriva un interruzione, tutte le istruzioni che si trovano all'interno della pipeline devono essere completate e tutte quelle dopo devono essere rimandate, gestire questo tipo di istruzioni \`e molto oneroso;
     \item impreciso: un esempio eccezioni imprecise:
 \begin{lstlisting}[language=]
@@ -260,6 +261,22 @@ Un altro modo di aumentare il parallelismo \`e il \textbf{loop-level parallelism
 Il problema con questo approccio \`e che si aumenta la dimensione del codice.
 
 
+\subsection{Dipendenze}
+Esitono delle dipendende all'interno del codice, queste sono delle prorpriet\`a di come il codice \`e scritto, e non dalla pipeline come negli hazard.
+\begin{enumerate}
+    \item \textbf{Data Dependencies}: 
+    \item \textbf{Memory Dependencies}:
+    \item \textbf{Name Dependencies}:
+\end{enumerate}
+
+\subsection{Hazards}
+Ogni volta che ci sono delle dipendenze tra i dati potrebbero presentarsi degli hazard, che vengono classificati in:
+\begin{itemize}
+    \item \textbf{RAW (read after write)}
+    \item \textbf{WAW (write after write)}
+    \item \textbf{WAR (write after read)}
+\end{itemize}
+
 
 
 
@@ -271,16 +288,16 @@ Il problema con questo approccio \`e che si aumenta la dimensione del codice.
 \tolerance=1000
 Le cache volocizzano l'accesso al memoria secondaria che \`e il collo di bottiglia dell'intero sistema. Si \`e creata un gerarchia di memorie molto pi\`u veloci quanto pi\`u vicine si trovano al processore.
 \begin{itemize}
-    \item reigistri: 500 bytes, 500ps;
-    \item L1: 64 KB, 2ns;
-    \item L2: 256 KB, 10-20ns;
-    \item Memoria primaria: 512 MB, 50-100ns;
-    \item Memoria secondaria flash: 8 GB, 50$\mu$s;
+    \item \textbf{reigistri}: 500 bytes, 500ps;
+    \item \textbf{L1}: 64 KB, 2ns;
+    \item \textbf{L2}: 256 KB, 10-20ns;
+    \item \textbf{Memoria primaria}: 512 MB, 50-100ns;
+    \item \textbf{Memoria secondaria flash}: 8 GB, 50$\mu$s;
 \end{itemize}
 La cache funzionano grazie ai principi di localit\`a:
 \begin{itemize}
-    \item temporale: in un tempo $t_0 + \Delta t$ dal momento in cui ho letto un elemento, \`e probabile che il dato venga o l'istruzioe venga riusato;
-    \item spaziale: in un spazio $x + \Delta x$ vicino all'elemento letto, \`e probabile che gli elementi vicini vengano letti;
+    \item \textbf{temporale}: in un tempo $t_0 + \Delta t$ dal momento in cui ho letto un elemento, \`e probabile che il dato venga o l'istruzioe venga riusato;
+    \item \textbf{spaziale}: in un spazio $x + \Delta x$ vicino all'elemento letto, \`e probabile che gli elementi vicini vengano letti;
 \end{itemize}
 
 \begin{theorem}{Cache Performance}{cache-performance}
@@ -297,28 +314,28 @@ La cache funzionano grazie ai principi di localit\`a:
 \subsection{Organizzazione della cache}
 Solitamente la cache \`e formata da una \textbf{parte di controllo} contenente il \textbf{cache controller} che controlla se accedendo alla cache \`e stato fatto un hit o un miss e in caso recupera la porzione di memoria, ed una \textbf{parte di dati} che contiene le \textbf{cache line} fatte da:
 \begin{itemize}
-    \item validity bit: il bit ci dice se la riga \`e valida o meno;
-    \item tag: identifica il blocco di memoria presente nella riga;
-    \item data array: contiene i dati presi dalla memoria;
+    \item \textbf{validity bit}: il bit ci dice se la riga \`e valida o meno;
+    \item \textbf{tag}: identifica il blocco di memoria presente nella riga;
+    \item \textbf{data array}: contiene i dati presi dalla memoria;
 \end{itemize}
 A partire dall'indirizzo la cache si calcola un nuovo indirizzo di accesso alle righe, foramto da:
 \begin{itemize}
-    \item tag: identifica il blocco di memoria (bit dell'indirizzo - bit index - bit offset);
-    \item index: riga della cache;
-    \item offset: byte offset all'interno della riga;
+    \item \textbf{tag}: identifica il blocco di memoria (bit dell'indirizzo - bit index - bit offset);
+    \item \textbf{index}: riga della cache;
+    \item \textbf{offset}: byte offset all'interno della riga;
 \end{itemize}
 Per regolare l'accesso alla cache il controllore identifica la riga attraverso l'index e comparando i due tag decide se \`e un hit o un miss, se \`e un hit ed il validity bit \`e a 1, allora attraverso l'offset viene prelevato il dato.
 
 La cache si trovano tra il bus ed il processore, per evitare conflitti di utilizzo con perfiriferiche esterne o DMA.
 
-Le cache moderne pi\`u vicine al processore sono separtate in \textbf{Instruction-Cache} e \textbf{Data-cache}, per evitare la lettura contemporanea di istruzioni e dati (structural hazard).
+Le cache moderne pi\`u vicine al processore sono separtate in \textbf{Instruction-Cache} e \textbf{Data-cache} (detta architettura di Harward), per evitare la lettura contemporanea di istruzioni e dati (structural hazard).
 
 \subsection{Mappatura}
 I tipi di mappatura (\textbf{associativity models}) sono:
 \begin{itemize}
     \item \textbf{direct mapped}: la posizione nella riga \`e uguale a: \#block\_memory mod \#cache\_block;
     \item \textbf{set associative}: la cache viene partizionata in set di righe (i blocchi hanno tutti la stessa lunghezza, tipicamente 2 o 4), la posizione \`e determinata da: \#memory\_block mod \#sets, quando un altro blocco viene asseganto ad un set viene rimossa la riga meno utilizzata;
-    \item \textbf{fully associative}: ogni blocco di memoria pu\`o essere salvata in qualsiasi riga della cache, questo ha come malus la perdita del compo index e l'indirizzo del blocco viene salvato per intero;
+    \item \textbf{fully associative}: ogni blocco di memoria pu\`o essere salvata in qualsiasi riga della cache, questo ha come malus la perdita del campo index e l'indirizzo del blocco viene salvato per intero;
 \end{itemize}
 
 \paragraph{Algoritmi di rimpiazzamento}
@@ -338,21 +355,19 @@ Quando un operazione di scrittura \`e fatta sulla cache deve anche essere propag
         \begin{itemize}
             \item le operazioni di scrittura sono meno frequenti di quelle di lettura, quindi ci si pu\`o permettere un po di overhead;
             \item in questo modo si risolvono tutti i problemi relativi alla gestione di scrittura in concorrenza, senza implementare altro hardware per la gestione di tale problematica;
-        \end{itemize};
+        \end{itemize}
 \end{itemize}
+
+
+
 
 
 \newpage
 \section{Branch Prediction}
-Per effettuare delle predizioni esistono due tipi di approcci: prediction statici e prediction dinamici. Un esempio prediction statico \`e prendere tutti i salti come presi, oppure facciamo un filtro su quali tipi di branch prendere come presi (prendere i salti all'indietro come sempre presi).
+Per effettuare delle predizioni esistono due tipi di approcci: prediction statici e prediction dinamici. Un esempio prediction statico \`e prendere tutti i salti come presi, oppure facciamo un filtro su quali tipi di branch prendere come presi (prendere i salti all'indietro come sempre presi). Per avere delle predizioni pi\`u accurate \`e usare un brach prediction dinamico (speculazione).
 
-Per avere delle predizioni pi\`u accurate \`e usare un brach prediction dinamico (speculazione). I metodi di predizione sono:
-\begin{itemize}
-    \item branch history table;
-\end{itemize}
-
-\paragraph{Branch History Table}
-Il BHT ha una memoria in cui sono contenute le informazioni relative ai salti. Si accede a questa tabella quando nella fase di fetch si prende un salto, si guarda l'informazione relativa e al salto e si legge la predizione del salto.
+\subsection{Branch History Table}
+Il BHT ha una memoria in cui sono contenute le informazioni relative ai salti. Si accede a questa tabella quando nella fase di fetch si prende un salto, si guarda l'informazione relativa al salto e si legge la predizione del salto.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{bht-implementation.png}
@@ -368,7 +383,12 @@ Solitamente il valore che indica se il branch deve essere preso o meno solitamen
 \end{figure}
 Questi tipi di predittori sono stati evoluti, usando dei contatori (\textbf{n-bit saturating counter}), quando un salto viene preso il contatore aumenta altrimenti diminuisce, se il bit pi\`u significativo \`e settato ad 1 allora il branch viene preso, questo tipo di contatore di saturazione \`e molto facile da implementare.
 
-Altri tipi di predittori sono i \textbf{(m, n) predictors} guardano agli m-salti precedenti, date le $2^{m}$ possibili salti ognuno ha un predittore da n bit.
+\subsection{Correlation Predictors}
+Altri tipi di predittori sono i \textbf{(m, n) predictors}, che si basano sulle dipendenze tra i risultati degli ultimi branch. Gli m-salti precedenti. Usano il comportamento degli ultimi \emph{m-branch} per scegliere tra $2^m$ diversi branch predictors, ognuno dei quali \`e un \textbf{predittore (BHT) a \emph{n-bit}}. Lo schema \`e molto semplice:
+\begin{itemize}
+    \item la storia degli ultimi \emph{m-branch} \`e immagazzinanta in in un \textbf{m-bit shift register}, dove ogni bit indica se il branch \`e stato preso oppure no, lo shift register andr\`a a selezionare tra le $2^m$ colonne;
+    \item dall'indirizzo se scegli la riga e si controlla il valore a n-bit, la predizione sugli n-bit avviene come in una BHT, quindi si va a considerare il bit pi\`u significativo;
+\end{itemize}
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{predictor.png}
@@ -377,22 +397,69 @@ Altri tipi di predittori sono i \textbf{(m, n) predictors} guardano agli m-salti
 \end{figure}
 Questi tipi di predittori non danno inforamazioni su dove saltare.
 
-Un altro predittore \`e il \textbf{Branch Target Buffer} (usato dal MIPS), questo tipo di predettore ha a disposizine dei registri in cui sono contenuti gli indirizzi di salto, questo struttura contiene l'indirizzo del salto attuale, viene interrogata durante la fase di fetch e sar\`a poi disponibili al secondo colpo di clock, nel colpo di clock successivo l'indirizzo viene letto, se l'istruzione \`e un branch e l'istruzione corrente si trova nella tabella, allora il salto deve essere preso, per ogni linea si devo salvare 30bit per indirizzo (vengono tagliati gli ultimi 2 essendo degli indirizzi). Il problema con questo predittore \`e che \`e molto costoso, infatti si deve avare un numero di entry non piccolo che che sono onerose in termini di memoria.
+\subsection{Branch Target Buffer}
+Il \textbf{Branch Target Buffer} viene usato nel MIPS, sfrutta delle memorie cache per funzionare. Ogni riga della del branch-target buffer contiene:
+\begin{itemize}
+    \item l'\textbf{indirizzo} del branch considerato;
+    \item il valore \textbf{target} da essere caricato dentro il PC;
+\end{itemize}
+Con l'utilizzo del buffer il valore \`e caricato all'intero del PC alla fine della fase di IF, anche prima che l'istruzione di branch sia decodificata.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{comportamento-branch-target-buffer.png}
     \caption{Comportamento Branch Target Buffer}
     \label{fig:comportamento-branch-target-buffer}
 \end{figure}
-
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{architetture-branch-target-buffer.png}
+    \caption{Architettura Branch Target Buffer}
+    \label{fig:architetture-branch-target-buffer}
+\end{figure}
 Esistono anche due tipi di predittori chiamati \textbf{gselect} e \textbf{gshare}.
 
-\begin{example}{BHT}{bht}
-    
-\end{example}
+
 
 \newpage
 \section{Schedulazione Dinamica}
+La schedulazione dinamica si basa sul \textbf{riposizionamento in hardware} delle istruzioni per ridurre il numero di stalli causati dalla pipeline, pur mantenendo coerenza nei dati. Un modo per aumentare velocit\`a delle istuzioni e quella di permettere delle istruzioni \textit{out-of-order}, ovvero che delle istruzioni che vengono dopo possano terminare prima di quelle precedenti. Si ottiene questo grazie ad \textbf{unit\`a pipelined} e speciali buffer.
+\begin{example}{}{}
+    In questo l'istruzione \texttt{a} termina prima dell'istruzione \texttt{b}, b stalla a causo della dipendenza da f0, ma con istruzioni out-of-order a pu\`o essere eseguita mentre b sta stallando.
+\begin{lstlisting}
+c:  div.d f0, f1, f2
+b:  add.d f1, f0, f0
+a:  sub.d f3, f3, f3
+\end{lstlisting}
+\end{example}
+Gli svantaggi di avere delle unit\`a separate sono:
+\begin{itemize}
+    \item WAR;
+    \item WAW;
+    \item eccezioni imprecise: prendendo l'esempio precedente, se sub.d finisce prima di div.d, e un eccezione  viene scatenata durante questa istruzione non possibile gestire le eccezioni in modo preciso, teoricamente sarebbe possibile ma ci sarebbe bisogno di un sacco di hardware costoso per poter immagazzinare lo stato del processore al momento dell'arrivo dell'eccezione;
+\end{itemize}
+Per fare questo l'ID deve essere diviso in due sezioni:
+\begin{itemize}
+    \item issue: decodifica dell'istruzione;
+    \item read operands: vengono letti gli operandi e si controlla se non c'\`e nessun hazard, inoltre se un'unit\`a \`e piena l'istruzione viene stallata finech\`e non \`e possibile entrare;
+\end{itemize}
+
+\subsection{Algoritmo di Tomasulo}
+L'\textbf{Algoritmo di Tomasulo} \`e un algoritmo hardware che rende possibile la schedulazione out-of-order e rende le singole unit\`a pi\`u efficenti. I punti chiave dell'algoritmo sono:
+\begin{itemize}
+    \item si traccia la validit\`a degli operandi;
+    \item si introduce la possibilit\`a di rinominare i registri: ogni volta che viene fatto l'issue di un istruzioni i registri vengono rinominati con i registri di quella specifica reservation station, in questo modo si eliminano i WAW e RAW;
+\end{itemize}
+Sono molto importi le \textbf{reservation station}, il loro funzionamento \`e molto simile ad un buffer. Le fasi di un processore con l'algorimo sono:
+\begin{itemize}
+    \item IF: le istruzioni vengono immagazzinate in una coda FIFO;
+    \item issue: viene prelevata la prossima istruzione dalla coda, se la matching reservation station \`e libera (no structural hazards), l'istruzione viene issued alla reservation station:
+        \begin{itemize}
+            \item con il valore degli operandi se in quel momento sono nei registri;
+            \item altrimenti, con gli indentificatori delle reservation stations che produrranno l'operando;
+        \end{itemize}
+    \item execute: quando gli operandi sono disponibili (no RAW) e l'unit\`a \`e libera, viene eseguita altrimenti, viene monitorato il Common Data Bus;
+    \item write result: il risultato viene scritto sul Common Data Bus a tutte le stazioni in attesa e nei registri, la reservation station viene segnata come libera;
+\end{itemize}
 
 
 
@@ -1030,7 +1097,6 @@ PCON contiene il PM0 ed il PM1 che permette di configurare il sistema in power d
     \caption{Power Modes}
     \label{fig:power-modes}
 \end{figure}
-
 Il registro di configurazione del power PCONP, ci permette di accendere l'alimentazione dei periferici, \`e importante ricordarsi che \textbf{se una periferica \`e spenta non \`e possibile leggere o scrivere sui registri realtive ad essa}.
 
 
@@ -1146,7 +1212,7 @@ Possono essere ottenute delle note creando delle sinusoidi in uscita (magari anc
 \begin{lstlisting}[language=c]
 LPC_DAC->DACR = value << 6;
 \end{lstlisting}
-\textbf{si ricorada che \texttt{value} pu\`o essere solo di 10 bit}.
+\textbf{si ricorda che \texttt{value} pu\`o essere solo di 10 bit}.
 \begin{figure}
     \centering
     \includegraphics[width=0.4\textwidth]{note-speaker.png}
@@ -1160,17 +1226,13 @@ LPC_DAC->DACR = value << 6;
 
 \newpage
 \section{Esame}
-Ricordarsi che l'ultima istruzione viene scarata, e quindi contata nel cilco. Per fare il calcolo si fa: bella
+Ricordarsi che l'ultima istruzione viene scartata, e quindi contata nel ciclo. Per fare il calcolo si fa: ...
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{esame-pipeline.png}
     \caption{Esame Pipeline}
     \label{fig:esame-pipeline}
 \end{figure}
-
-
-
-
 
 
 
