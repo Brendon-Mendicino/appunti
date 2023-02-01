@@ -447,7 +447,7 @@ Per fare questo l'ID deve essere diviso in due sezioni:
 L'\textbf{Algoritmo di Tomasulo} \`e un algoritmo hardware che rende possibile la schedulazione out-of-order e rende le singole unit\`a pi\`u efficenti. I punti chiave dell'algoritmo sono:
 \begin{itemize}
     \item si traccia la validit\`a degli operandi;
-    \item si introduce la possibilit\`a di rinominare i registri: ogni volta che viene fatto l'issue di un istruzioni i registri vengono rinominati con i registri di quella specifica reservation station, in questo modo si eliminano i WAW e RAW;
+    \item si introduce la possibilit\`a di rinominare i registri: ogni volta che viene fatto l'issue di un istruzioni i registri vengono rinominati con i registri di quella specifica reservation station;
 \end{itemize}
 Sono molto importi le \textbf{reservation station}, il loro funzionamento \`e molto simile ad un buffer. Le fasi di un processore con l'algorimo sono:
 \begin{itemize}
@@ -455,14 +455,50 @@ Sono molto importi le \textbf{reservation station}, il loro funzionamento \`e mo
     \item issue: viene prelevata la prossima istruzione dalla coda, se la matching reservation station \`e libera (no structural hazards), l'istruzione viene issued alla reservation station:
         \begin{itemize}
             \item con il valore degli operandi se in quel momento sono nei registri;
-            \item altrimenti, con gli indentificatori delle reservation stations che produrranno l'operando;
+            \item altrimenti, con gli indentificatori delle reservation stations che produrranno l'operando (e.g. le RS dell'unit\`a di add aspettano un operando che sar\`a prodotto dall'unit\`a di divisione);
         \end{itemize}
     \item execute: quando gli operandi sono disponibili (no RAW) e l'unit\`a \`e libera, viene eseguita altrimenti, viene monitorato il Common Data Bus;
     \item write result: il risultato viene scritto sul Common Data Bus a tutte le stazioni in attesa e nei registri, la reservation station viene segnata come libera;
-
-    \item tset
 \end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{architettura-tomasulo.png}
+    \caption{Architettura Tomasulo}
+    \label{fig:architettura-tomasulo}
+\end{figure}
+Nelle reservation station sono presenti dei dati:
+\begin{itemize}
+    \item op: operazione che deve essere fatta;
+    \item $v_j, v_k$: valori degli operandi;
+    \item $Q_i, Q_j$: RS che produrranno l'operando;
+    \item A: valori immediati;
+    \item Busy: status della reservation station;
+\end{itemize}
+Inoltre \`e presente anche il \textbf{register status} che \`e una parte di memoria dove sono contenuti i valori di output delle operazioni associate ad ogni registro.
 
+
+
+
+
+
+
+\newpage
+\section{Speculazione}
+La speculazione \`e tecnica basata sull'hardware che permette ridurre gli effetti delle dipendenze di controllo in sistemi che sfruttano la schedulazione dinamica. Se un processore supporta il branch prediction con schedulazione dinamica viene fatto l'issue delle istruzioni come se il branch fosse preso, con la \textbf{speculazione queste istruzioni vengono anche eseguite}. Per implementare la speculazione si parte dall'architettura di Tomasulo (\ref{fig:architettura-tomasulo}) e la si estende:
+\begin{itemize}
+    \item l'update dei registri e della memoria \`e fatto solo durante la fase di commit che avviene in modalit\`a \textit{in-order};
+    \item \textbf{ReOrder Buffer (ROB)}: \`e una struttura dati che contiene i risultati delle istruzioni non committate, oltre a questo contiene dei registri virtuali che si vanno a integrare con i buffer dell'architettura di Tomasulo;
+\end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{speculation-architecture.png}
+    \caption{Speculation Architecture}
+    \label{fig:speculation-architecture}
+\end{figure}
+La fasi di esecuzione sono:
+\begin{itemize}
+    \item issue: un'istruzione \`e presa dalla cosa se una reservation station \`e libera e uno slot nel reorder buffer \`e libero;
+\end{itemize}
 
 
 \newpage
@@ -472,6 +508,7 @@ Esistono delle tecniche per portare le CPI sotto il numero 1, questo \`e possibi
     \item \textbf{superscalari}: hanno uno scheduling statico o dinamico;
     \item \textbf{very long instruction word (VLIW)};
 \end{itemize}
+Per gestire le eccezioni in modo preciso, vengono messe insieme alle istruzioni nel reorder buffer, solo quando verr\`a fatto il commit l'eccezione sar\`a eseguita.
 
 
 \subsection{Static Scheduling}
@@ -819,7 +856,7 @@ La sintassi delle svc \`e: \texttt{{label} SVC immediate}, il valore dell'immedi
 \end{figure}
 Per leggere il valore dell'immediato si prende il valore del PC salvato nello stack, essendo che il valore viene compilato insieme all'istruzione, si pu\`o recuperare il valore leggendo l'istruzione precedente (perch\`e lo SP \`e incrementato) e facendo un BIC (bit clear) ed uno shift.
 
-Si pu\`o utilizzare la MSR sono quando si \`e in handler mode, \texttt{MSR\{cond\} spec\_reg, Rn}.
+Si pu\`o utilizzare la MSR sono quando si \`e in handler mode, \texttt{MSR{cond} spec\_reg, Rn}.
 
 Le modalit\`a di utilizzo sono:
 \begin{itemize}

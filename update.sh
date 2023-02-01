@@ -21,7 +21,7 @@ done
 
 
 echo "Adding to git..."
-git add *
+git add ./*
 echo "Performing commit..."
 git commit -m "$(date)"
 git push --all
