@@ -474,8 +474,9 @@ Nelle reservation station sono presenti dei dati:
     \item A: valori immediati;
     \item Busy: status della reservation station;
 \end{itemize}
-Inoltre \`e presente anche il \textbf{register status} che \`e una parte di memoria dove sono contenuti i valori di output delle operazioni associate ad ogni registro.
+Inoltre \`e presente anche il \textbf{register status} che \`e una parte di memoria dove sono contenuti i valori di output delle operazioni associate a ogni registro.
 
+Quando le reservation station per una unit\`a sono esaurite c'\`e bisogno di uno stallo strutturale.
 
 
 
@@ -497,61 +498,14 @@ La speculazione \`e tecnica basata sull'hardware che permette ridurre gli effett
 \end{figure}
 La fasi di esecuzione sono:
 \begin{itemize}
-    \item issue: un'istruzione \`e presa dalla cosa se una reservation station \`e libera e uno slot nel reorder buffer \`e libero;
+    \item issue: un'istruzione \`e presa dalla coda se una reservation station \`e libera e uno slot nel reorder buffer \`e libero;
 \end{itemize}
+Per gestire le eccezioni in modo preciso, vengono messe insieme alle istruzioni nel reorder buffer, solo quando verr\`a fatto il commit l'eccezione sar\`a eseguita. 
 
+Gli stalli causati da WAW e WAR vengono eliminati del register renaming, mentre gli stalli causati da RAW continuano a causare problemi.
 
-\newpage
-\section{Pipelining}
-Esistono delle tecniche per portare le CPI sotto il numero 1, questo \`e possibile farlo attraverso il fetch di pi\`u istruzioni. Esistono due tipi di processori che possono farlo:
-\begin{itemize}
-    \item \textbf{superscalari}: hanno uno scheduling statico o dinamico;
-    \item \textbf{very long instruction word (VLIW)};
-\end{itemize}
-Per gestire le eccezioni in modo preciso, vengono messe insieme alle istruzioni nel reorder buffer, solo quando verr\`a fatto il commit l'eccezione sar\`a eseguita.
+Un altra struttura dati \`e il \textbf{Register Alias Table (RAT)} che specifica se un certo dato va preso delle resrvation station o dal reorder buffer.
 
-
-\subsection{Static Scheduling}
-Per implementare un processore superscalare viene creato un \textbf{issue packet}, dove viene fatto il fetch di due (o pi\`u) istruzioni contemporaneamente se in modo statico: una \`e load, store, branch o operazioni ALU e l'altra \`e una qualsiasi operazione FP, queste due istruzioni vengono chimate issue packet.
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{issue-packet-example.png}
-    \caption{Issue Packet Example}
-    \label{fig:issue-packet-example}
-\end{figure}
-In un caso ideale si eseguiranno 0.5 istruzioni per colpo di clock. L'issue packet conterr\`a sempre una sola istruzione di branch. In questo caso l'unit\`a FP sar\`a pipelined o indipendente, in qualche modo \`e possibile ottere degli hazard, come: fare un un istruzione di load e subito dopo un'istruzione di write, oppure dei possibili RAW (read after write).
-
-Nei sistemi moderni si utilizza una strategia statica in alcuni processori embedded con MIPS.
-
-
-\subsection{Dynamic Scheduling}
-Si pu\`o ottenere una schedulazione dinamica
-Si ha un Common Data Bus (sistema di forwarding) comune, quindi viene duplicato. Suppoiamo di avere le seguenti istruzioni:
-\begin{lstlisting}[language=]
-loop:
-    ls r2, 0(r1)
-    daddiu r2, r2, 1
-    sd r2, 0(r1)
-    daddiu r1, r1, 4
-    bne r2, r3, loop
-\end{lstlisting}
-Supponiamo che:
-\begin{itemize}
-    \item non ci sia speculazione:
-    \begin{figure}[H]
-        \centering
-        \includegraphics[width=0.8\textwidth]{dynamic-scheduling-senza-speculazione.png}
-        \caption{Dynamic Scheduling Senza Speculazione}
-        \label{fig:dynamic-scheduling-senza-speculazione}
-    \end{figure}
-    \item con speculazione:
-        \begin{figure}[H]
-            \centering
-            \includegraphics[width=0.8\textwidth]{dynamic-scheduling-con-speculazione.png}
-            \caption{Dynamic Scheduling Con Speculazione}
-            \label{fig:dynamic-scheduling-con-speculazione}
-        \end{figure}
-\end{itemize}
 
 
 
