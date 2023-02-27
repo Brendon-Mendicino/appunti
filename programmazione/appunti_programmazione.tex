@@ -1,0 +1,94 @@
+\documentclass[12pt]{article}
+
+\usepackage{notestyle}
+
+\graphicspath{{./img/}}
+
+
+\title{Notes Software Engineering}
+\author{Brendon Mendicino}
+
+
+
+\begin{document}
+
+\maketitle
+\newpage
+\tableofcontents
+\newpage
+
+
+\begin{document}
+
+
+
+\section{Memoria}
+La memoria si compone in:
+\begin{itemize}
+	\item memoria primaria;
+	\item registri;
+	\item cache
+	\item memoria secondaria;
+\end{itemize}
+Pu\`o accare che ... (protezione)
+Con \textbf{protezione} si intende: quando si fa il bootsrap del SO, i processi non posso avere una vista al difuori del loro scope, si possono fornire delle protezioni, CPU possiede dei registri, detti \textbf{base} e \textbf{limit} che consentono, attraverso dei meccanismi, di proteggere la memoria. Qunado si devo caricare delle istruzioni che devono essere caricate in memoria, esiste il problema della relocation, per questo si utilizzano indirizzi relativi, che vengono sommati al base register, il limit register limita il range in cui si pu\`o saltare.
+Binding ...
+Si fa quando:
+\begin{itemize}
+	\item \textbf{in compilazione}: fatto quando molto semplice;
+	\item \textbf{in fase di load}: viene fatta la rilocazione durante il caricamento in memoria;
+	\item \textbf{in esecuzione}: viene fatto il binding degli indirizzi in modo dinamico;
+\end{itemize}
+Per risolver questo problema ci si affida all'hardware, che \`e incaricato di fare la traduzione: l'indirizzo rimane lo stesso (logico) all'interno del processore, prima di arrivare all'address bus viene tradotto in indirizzo fisico, esiste dunque una dicotomia di indirizzo logico e fisico, in questo modo quando si scrive un programma, l'indirizzo parte sempre da 0.
+Lo spazio di indirizzamento logico: intervallo dei indirizzi logici utilizzabili,
+indirizzamnto fisico: tutto l'interavllo di
+
+MMU si preoccupa di effetuare queste traduzioni. Il modo pi\`u facile per realizzare una mmu, \`e quello di usare un \textbf{relocation register}, ovvero un registro che contiene il valore da aggiungere un indirizzo logico per fare un indirizzo fisico. L'MMU \`e fatto da un sommatore ed un comparatore.
+
+Si parla di \textbf{dynamic loading} quando, un programma viene caricato in memoria principale in modo fragmentato, in modo da utilizzare solo i componenti che si usano. Questo tipo di caricamento 
+
+Si parla di \textbf{dynamic linking} quando, i file che contengono le funzioni che devono essere linkate, in cui non vengono inserite all'interno dell'eseguibile, ma che gli indirizzi vengono risolti in modo dinamico durante l'esecuzione.
+
+
+Il \textbf{link statico} \`e quando si crea un eseguibile con tutte le funzioni dentro, di fatto il loader carica tutto quando in memoria.
+
+Il \textbf{dynamic loading} vuol dire che una routine non \`e caricata finch\'e non \`e necessaria, questo pu\`o essere fatto quando il programmatore ne \`e consapevole
+\begin{lstlisting}[language=c]
+void myPrinf(**arg) {
+	static int loaded = 0;
+	if (!loaded) {
+		load("printf");
+		loaded = 1;
+	}
+	print(args);
+}
+\end{lstlisting}
+Il \textbf{linker-assisted DL} si usa una chiamata fasulla che prima chiama la load, usando una \textbf{stub}.
+
+Le \textbf{shared libraries}: se pi\`u processi utilizzano la stessa funzione vengono messe a disposizione per tutti i processi che linkareanno una singola copia shared.
+
+
+Come si alloca memoria per un programma (immagine)? La pi\`u semplice \`e l'allocazoine continua, si vede la RAM come due partizioni, una per il SO una per i processi (indirizzi pi\`u alti), un processo parte da un indirizzo fisico e finisce in un indirizzo fisico, se si utilizza la MMU vista prima (basilare).
+
+Allocazione contigua con paritizione variabile: quando ci sono pi\`u buchi ci sono delle politiche differnti:
+\begin{itemize}
+	\item \textbf{first-fit}: il primo che si trova;
+	\item \textbf{best-fit}: il buco con la dimensione pi\`u piccola;
+	\item \textbf{worst-fit}: il buco can li dimesnione pi\`u grande;
+\end{itemize}
+La fragmentazione \`e sparsit\`a dei buchi all'interno della memoria. Si dice \textbf{esterna} perch\'e \`e al di fuori dei processi, si dice \textbf{interna} quando \`e interna al processo, ovvero che ha pi\`u memoria di quello che serve. La frammentazione ha bisongo di \textbf{compattazione}, il SO sposta i pezzi e poi si riparte.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}
