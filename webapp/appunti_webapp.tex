@@ -19,15 +19,15 @@
 
 
 
-\section{Javascript Introduction}
-Javascript is backward compapatible, to be able to use the previous features is use the directive:
-\begin{lstlisting}[language=javascript]
+\section{ Introduction}
+ is backward compapatible, to be able to use the previous features is use the directive:
+\begin{lstlisting}[language=]
 "use strict";
 \end{lstlisting}
 JS has primitive types and non-primitive types, JS is also and strongly typed language, the primitive types are: string, number, boolean, null, undefined. The non-primitive are the objects, which can be: array, function, user-defined.
 
 The all possible false values in JS: \texttt{0, -0, NaN, undefined, null,''}, in JS there are two main comparison operators:
-\begin{lstlisting}[language=javascript]
+\begin{lstlisting}[language=]
 a == b    // equal, convert types and compare
 a === b   // strict equal, inhibits automatic type conversion
 \end{lstlisting}
@@ -46,7 +46,7 @@ The difference between null and undefined, is that variable with null they old a
 A scope is defined by a \textbf{block}, which is created with \texttt{{ ... }}
 
 There two kinds of \texttt{foreach} in JS, using \texttt{in} allows iterating over objects, while \texttt{of} allows iterating over iterable objects:
-\begin{lstlisting}[language=javascript]
+\begin{lstlisting}[language=]
 for (let a in object) {
   ...
 }
@@ -56,7 +56,7 @@ for (let b of iterable) {
 }
 \end{lstlisting}
 Using arrays:
-\begin{lstlisting}[language=javascript]
+\begin{lstlisting}[language=]
 let a = [1, 2, 'ok', false];
 let b = Array.of(1, 2, true);
 a.push(5);      // append an element
@@ -65,24 +65,24 @@ b.unshift(2);   // insert at the beginning
 let copy = Array.from(a);  // shallow copy, it does not deep copy
 \end{lstlisting}
 The \textbf{destructuring assignment} can be done, it extracts the values from the mast left-hand side:
-\begin{lstlisting}[language=javascript]
+\begin{lstlisting}[language=]
 let [x, y] = [1, 2];
 [x, y] = [y, x]     // swap
 \end{lstlisting}
 The \textbf{spread operator} (\texttt{...}) expands on iterable object into it's values:
-\begin{lstlisting}[language=javascript]
+\begin{lstlisting}[language=]
 let [x, ...y] = [1, 2, 3, 4];      // y == [2, 3, 4]
 
 const a = [1, 2];
 const b = [0, ...a, 3]; // [0, 1, 2, 3]
 \end{lstlisting}
 Spreding can be from the left or from the right, usually the spread operator is used for copying array:
-\begin{lstlisting}[language=javascript]
+\begin{lstlisting}[language=]
 const a = [1, 2];
 const b = [...a];
 \end{lstlisting}
 A \textbf{string} is JS is an immutable type (like python) encoded in Unicode. The \textbf{template literals} can be done with the \textbf{tick} operator \texttt{``} (expression like Kotlin):
-\begin{lstlisting}[language=javascript]
+\begin{lstlisting}[language=]
 let name = 'Bre';
 let sur = 'Mend';
 // Template literal
