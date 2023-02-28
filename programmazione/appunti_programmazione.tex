@@ -23,58 +23,52 @@
 
 
 \section{Memoria}
-La memoria si compone in:
+La memoria si compone si suddivide in:
 \begin{itemize}
-	\item memoria primaria;
-	\item registri;
-	\item cache
-	\item memoria secondaria;
+  \item registri;
+  \item cache
+  \item memoria primaria;
+  \item memoria secondaria;
 \end{itemize}
-Pu\`o accare che ... (protezione)
-Con \textbf{protezione} si intende: quando si fa il bootsrap del SO, i processi non posso avere una vista al difuori del loro scope, si possono fornire delle protezioni, CPU possiede dei registri, detti \textbf{base} e \textbf{limit} che consentono, attraverso dei meccanismi, di proteggere la memoria. Qunado si devo caricare delle istruzioni che devono essere caricate in memoria, esiste il problema della relocation, per questo si utilizzano indirizzi relativi, che vengono sommati al base register, il limit register limita il range in cui si pu\`o saltare.
+Uno principali problemi di accesso alla memoria \`e quello di assicurarne la sua protezione, ovvero evitare che un programma in memoria riesca ad accedere alle zone di memoria di altri programmi. Una volta fatto il bootstrap del SO, sia esso che i programmi verranno caricati in memoria, per evetire che ogni processo abbia una vista al di fuori del suo scope, si possono usare dei controlli a livello della CPU, esistono dei registri chimati \textbf{base} e \textbf{limit}, che attraverso dei meccanismi, riescono ad effettuare la protezione della memoria. Esiste anche un altro problema che \`e quello \textbf{relocation}, consiste nel come mappare gli indirizzi delle varie istruzioni di salto e dei vari puntari una volta che il programma viene caricato in memoria, se si utilizzaro degli indirizzi statici (creati solo in fase di compilazione e prendondo come riferimento di inizio del programma l'indirizzo 0), una volta che questo viene caricato in memoria le istrizioni non punterebbero pi\`u alle label corrispondenti  ma sempre nello stesso punto, dove ad esempio si trova un altro programma. Per questo motivo quando si utilizzano valori di registri vengono sommati al base register, mentre le boundry del programma in memoria vengono salvate nel limit.
+% TODO:  <27-02-23, yourname> rivedere %
 Binding ...
-Si fa quando:
+Si fa:
 \begin{itemize}
-	\item \textbf{in compilazione}: fatto quando molto semplice;
-	\item \textbf{in fase di load}: viene fatta la rilocazione durante il caricamento in memoria;
-	\item \textbf{in esecuzione}: viene fatto il binding degli indirizzi in modo dinamico;
+  \item \textbf{in compilazione}: fatto quando molto semplice, ad esempio quando esistono solo due programmi;
+  \item \textbf{in fase di load}: viene fatta la rilocazione durante il caricamento in memoria;
+  \item \textbf{in esecuzione}: viene fatto il binding degli indirizzi in modo dinamico;
 \end{itemize}
-Per risolver questo problema ci si affida all'hardware, che \`e incaricato di fare la traduzione: l'indirizzo rimane lo stesso (logico) all'interno del processore, prima di arrivare all'address bus viene tradotto in indirizzo fisico, esiste dunque una dicotomia di indirizzo logico e fisico, in questo modo quando si scrive un programma, l'indirizzo parte sempre da 0.
-Lo spazio di indirizzamento logico: intervallo dei indirizzi logici utilizzabili,
-indirizzamnto fisico: tutto l'interavllo di
+Per risolver questo problema ci si affida all'hardware, che \`e incaricato di fare la traduzione: l'indirizzo rimane lo stesso (logico) all'interno del processore, prima di arrivare all'address bus viene tradotto in indirizzo fisico, esiste dunque una dicotomia di indirizzo logico e fisico, in questo modo quando si scrive un programma, l'indirizzo parte sempre da 0. Esistono due tipi di indirizzamento che sono di tipo logico, dove l'intervallo degli indirizzi utilizzabili \`e logico, ed un indirizzamento fisico, dove il range \`e limitato dalla memoria del sistema. Per effettuare questa traduzione da indirizzo fisico a indirizzo logico e viceversa si utilizza una \textbf{MMU} (Memory Management Unit). Il modo pi\`u facile per realizzare una MMU, \`e quello di usare un \textbf{relocation register}, ovvero un registro che contiene il valore da aggiungere un indirizzo logico per fare un indirizzo fisico, il modello pi\`u semplice di MMU \`e fatto da un sommatore ed un comparatore.
 
-MMU si preoccupa di effetuare queste traduzioni. Il modo pi\`u facile per realizzare una mmu, \`e quello di usare un \textbf{relocation register}, ovvero un registro che contiene il valore da aggiungere un indirizzo logico per fare un indirizzo fisico. L'MMU \`e fatto da un sommatore ed un comparatore.
-
-Si parla di \textbf{dynamic loading} quando, un programma viene caricato in memoria principale in modo fragmentato, in modo da utilizzare solo i componenti che si usano. Questo tipo di caricamento 
-
-Si parla di \textbf{dynamic linking} quando, i file che contengono le funzioni che devono essere linkate, in cui non vengono inserite all'interno dell'eseguibile, ma che gli indirizzi vengono risolti in modo dinamico durante l'esecuzione.
-
-
-Il \textbf{link statico} \`e quando si crea un eseguibile con tutte le funzioni dentro, di fatto il loader carica tutto quando in memoria.
-
-Il \textbf{dynamic loading} vuol dire che una routine non \`e caricata finch\'e non \`e necessaria, questo pu\`o essere fatto quando il programmatore ne \`e consapevole
+Per aumentare le prestazioni ed usare la memoria in modo pi\`u efficente si possono usare delle tecniche dinamiche.
+\begin{itemize}
+  \item Si parla di \textbf{dynamic loading} quando, un programma viene caricato in memoria principale in modo frammentato, utilizzando solo i componenti che effettivamento vengono chiamati;
+  \item Si parla di \textbf{dynamic linking} quando i file che contengono le funzioni che devono essere linkate (come le librerie standard) non vengono inserite all'interno dell'eseguibile, ma gli indirizzi vengono risolti in modo dinamico durante l'esecuzione;
+  \item Il \textbf{link statico} \`e quando si crea un eseguibile con tutte le funzioni dentro, di fatto il loader carica tutto quando in memoria.
+\end{itemize}
+Il \textbf{dynamic loading} vuol dire che una routine non \`e caricata finch\'e non \`e necessaria, questo pu\`o essere fatto quando il programmatore ne \`e consapevole, infatti il processo di load non \`e trasparente:
 \begin{lstlisting}[language=c]
-void myPrinf(**arg) {
-	static int loaded = 0;
-	if (!loaded) {
-		load("printf");
-		loaded = 1;
-	}
-	print(args);
+void myPrinf(**args) {
+  static int loaded = 0;
+  if (!loaded) {
+    load("printf");
+    loaded = 1;
+  }
+  printf(args);
 }
 \end{lstlisting}
+% TODO:  <27-02-23, yourname> rivedere %
 Il \textbf{linker-assisted DL} si usa una chiamata fasulla che prima chiama la load, usando una \textbf{stub}.
 
-Le \textbf{shared libraries}: se pi\`u processi utilizzano la stessa funzione vengono messe a disposizione per tutti i processi che linkareanno una singola copia shared.
+Le \textbf{shared libraries} sono in grado di condividere le risorse, infatti se pi\`u processi utilizzano la stessa funzione essa viene messa a disposizione e per ogni nuova chiamata non ci sar\`a bisogno di chiamre una load.
 
 
-Come si alloca memoria per un programma (immagine)? La pi\`u semplice \`e l'allocazoine continua, si vede la RAM come due partizioni, una per il SO una per i processi (indirizzi pi\`u alti), un processo parte da un indirizzo fisico e finisce in un indirizzo fisico, se si utilizza la MMU vista prima (basilare).
-
-Allocazione contigua con paritizione variabile: quando ci sono pi\`u buchi ci sono delle politiche differnti:
+Come si alloca memoria per un programma (immagine)? La pi\`u semplice \`e l'allocazoine contigua, dove si vede la RAM come due partizioni, una per il SO una per i processi (indirizzi pi\`u alti), per caricare un processo si parte da un indirizzo di inzio ed un indirizzo di fine, la MMU vista prima funziona solo con i casi di allocazione contigua (basilare). L'\textbf{allocazione contigua con paritizione variabile}: quando ci sono pi\`u buchi ci sono delle politiche differnti per inserire nuovi programmi:
 \begin{itemize}
-	\item \textbf{first-fit}: il primo che si trova;
-	\item \textbf{best-fit}: il buco con la dimensione pi\`u piccola;
-	\item \textbf{worst-fit}: il buco can li dimesnione pi\`u grande;
+  \item \textbf{first-fit}: il primo che si trova;
+  \item \textbf{best-fit}: il buco con la dimensione pi\`u piccola;
+  \item \textbf{worst-fit}: il buco can li dimesnione pi\`u grande;
 \end{itemize}
 La fragmentazione \`e sparsit\`a dei buchi all'interno della memoria. Si dice \textbf{esterna} perch\'e \`e al di fuori dei processi, si dice \textbf{interna} quando \`e interna al processo, ovvero che ha pi\`u memoria di quello che serve. La frammentazione ha bisongo di \textbf{compattazione}, il SO sposta i pezzi e poi si riparte.
 
@@ -92,3 +86,4 @@ La fragmentazione \`e sparsit\`a dei buchi all'interno della memoria. Si dice \t
 
 
 \end{document}
+
