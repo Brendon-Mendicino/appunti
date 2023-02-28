@@ -68,10 +68,44 @@ Come si alloca memoria per un programma (immagine)? La pi\`u semplice \`e l'allo
   \item \textbf{best-fit}: il buco con la dimensione pi\`u piccola;
   \item \textbf{worst-fit}: il buco can li dimesnione pi\`u grande;
 \end{itemize}
-La fragmentazione \`e sparsit\`a dei buchi all'interno della memoria. Si dice \textbf{esterna} perch\'e \`e al di fuori dei processi, si dice \textbf{interna} quando \`e interna al processo, ovvero che ha pi\`u memoria di quello che serve. La frammentazione ha bisongo di \textbf{compattazione}, il SO sposta i pezzi e poi si riparte.
+La frammentazione \`e sparsit\`a dei buchi all'interno della memoria. Si dice \textbf{esterna} perch\'e \`e al di fuori dei processi, si dice \textbf{interna} quando \`e interna al processo, ovvero che ha pi\`u memoria di quello che serve. La frammentazione ha bisongo di \textbf{compattazione}, il SO sposta i pezzi e poi si riparte, partitione della memoria in zona libera e zona occuputa, per fare una \textbf{deframmentazoine} (o compattazione) voul di re creare solo due partizioni (parte processi e zona libera), per effettuare la compattazione bisogna che i processi si possano spostare, inoltre un processo non pu\`o essere spostato se in quel momento il processo sta effettuando delle operazioni di IO, una soluzione per il problema dell'IO \`e il \textbf{latch job} in cui quella parte non pu\`o essere spostata, oppure si utilizza un \textbf{buffer IO del kernel}, si fa IO solo in buffer del sistema operativo.
 
+Con \textbf{backing store} si definisce uno spazio della memoria secondaria in cui non si salvano programmi ma vengono immagazzinati dei dati che altrimenti dovrebbero andare in RAM.
 
+La \textbf{Paginazione} risolve i problemi della allocazione continua, rimuovendo l'allocazione contigua al suo posto si utilizzano della pagine, che sono l'unit\`a minima di allocazione, questo risolve il problema della frammentazione.
+\begin{definition}{Pagine}{pagine}
+  Le partizioni della memoria logica.
+\end{definition}
+\begin{definition}{Frame}{frame}
+  Le partizioni della memoria fisica.
+\end{definition}
+\begin{definition}{Blocco}{blocco}
+  ...
+\end{definition}
+Tipicamente la loro dimensione \`e un multiplo di due, sia pagine che frame hanno la stessa dimensione, da qualche parte andranno salvate le informazioni di mapping tra pagine e frame, si utilizza un \textbf{frame table}, dove ogni riga corrisponde una mappatura. Anche utilizzando la paginazione si ha frammentazione interna, l'ultima pagina soffrir\`a di frammentazione.
 
+% TODO:  <28-02-23, yourname> rivedere, prendere immagini %
+Una indirizzo generato dall CPU si divide in:
+\begin{itemize}
+  \item \textbf{numero di pagine (p)}: 
+  \item \textbf{numro di offset (d)}:
+  \item \textbf{numero di frame (f)}:
+\end{itemize}
+Un indirizzo \`e composto da: (p-d, d)
+\begin{example}{}{}
+  Se si hanno frame piccoli diminuisce la frammentazione ma aumentano anche le righe della tabella.
+\end{example}
+Nelle righe della tabelle si aggiungono dei bit in pi\`u:
+\begin{itemize}
+  \item parte di protezione, specifica che la parte di codice non pu\`o essere scritta;
+  \item \textbf{modify bit}: pagina modifica;
+  \item \textbf{page present/absent}: 
+\end{itemize}
+Come si implementa una page table? La page table si trova in memoria RAM, per sapere dove si trova si utilizzano due rigistri: \textbf{page table base register} e \textbf{base table lenght register}, infatti la base table si trova in memoria contigua. Per velocizzare questa operazione si utilizza che TLB che \`e pi\`u piccola e si trova direttamente sulla CPU, si usa la \textbf{Translation Look-aside Buffer} (TLB), un tipo di memoria in cui si accede per contenuto. Si aggiunge anche un altra informazione \textbf{ASID} in cui viene salvata l'infromazione del processo a cui la pagina appartiene, se non \`e presente questa informazione si i processi si contentendono la TLB. Quando avviene un \textbf{TLB miss} se reinserisce nella TLB e poi si ritenta, utilizzando una politica scelta.
+
+Lo schema finale \`e la combinazione di TLB e page table.
+
+Il \textbf{Tempo di accesso effettivo} (EAT) in memoria \`e il tempo che mi costa accedere alla RAM, 
 
 
 
