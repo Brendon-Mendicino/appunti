@@ -1,14 +1,5 @@
 #! /bin/sh
 
-contains() {
-    for first in $1; do
-        for second in $2; do
-            [ "$first" = "$second" ] && return 0
-        done
-    done
-    return 1
-}
-
 SCRIPT_PATH="$( dirname -- "$( readlink -f -- "$0"; )"; )"
 
 cd "$SCRIPT_PATH" || exit
@@ -16,9 +7,6 @@ cd "$SCRIPT_PATH" || exit
 
 for file in ./* ; do
     [ ! -d "$file" ] && continue
-
-    tex_files="$(find "$file" -regex "^.*\.tex$")"
-    [ ! "$tex_files" ] && continue
 
     cd "$file" || continue
 
@@ -39,3 +27,4 @@ git add ./*
 echo "Performing commit..."
 git commit -m "$(date)"
 git push --all
+
