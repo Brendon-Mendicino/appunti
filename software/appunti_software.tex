@@ -37,9 +37,9 @@ Definitions:
 \end{definition}
 
 \subsection{Describe Software}
-To describe a software we define his properties, they are divided in \textbf{functionality}, which express an action to be performed, and \textbf{non-functional}, this property describe how a functional property should behave, defining his correctness, and define his reliability, the idea is that corectness it's impossible to obtain, so it tries to limit the number of defect, setting a line that allows the threshold for the number of defects, on the other hand the availability is the percentage, over a period of time, of the system without occurring in any defect. Other non-functoinal properties are security, safety and deniability. Efficiency is the response time and the amount of resources used.
+To describe a software we define his properties, they are divided in \textbf{functionality}, which express an action to be performed, and \textbf{non-functional}, this property describe how a functional property should behave, defining his correctness, and define his reliability, the idea is that correctness it's impossible to obtain, so it tries to limit the number of defect, setting a line that allows the threshold for the number of defects, on the other hand the availability is the percentage, over a period of time, of the system without occurring in any defect. Other non-functional properties are security, safety and deniability. Efficiency is the response time and the amount of resources used.
 
-Every software has process: development, operation, maintanence. During development there are 4 main phases:
+Every software has process: development, operation, maintenance. During development there are 4 main phases:
 \begin{itemize}
     \item \textbf{requirements};
     \item \textbf{design};
@@ -53,6 +53,56 @@ Basic rules:
     \item separation of concerns;
     \item abstraction
 \end{itemize}
+
+
+
+\section{Git}
+Git uses distributed CMS, uses snapshots of the current files, other than that git also has integrity with a checksum. Basic git concepts:
+\begin{itemize}
+    \item \textbf{repository}: contains all the files and versions of the project;
+    \item \textbf{working copy}: it is a snapshot of the repository, the working copy is on the client side;
+    \item \textbf{commit}: it is an atomic operator that modifies the repository, all commits are tracked into a log file, to every commit a message is associated;
+    \item \textbf{push}: is an operation that updates the modifications from a local server to the online server;
+    \item \textbf{update}: updates the working copy by merging the changes;
+    \item \textbf{staging area}: it is local dock that stores the changes that are not committed yet;
+    \item \textbf{typical workflow}: checkout project, stage/commit changes, push;
+\end{itemize}
+Git basic commands: 
+\begin{itemize}
+    \item \texttt{\$ git init}: initialize a local repo;
+    \item \texttt{\$ git remote add origin http://server.com/project.git}: add a new remote repository;
+    \item \texttt{\$ git status}: status;
+    \item \texttt{\$ git add}: add a file;
+    \item \texttt{\$ git diff}: changes;
+    \item \texttt{\$ git commit -m "..."}: commit changes;
+    \item \textbf{\$ git commit -am "..."}: commit all changes;
+    \item \texttt{\$ git rm}: removes a file with git tracking, adding the staging area;
+    \item \texttt{\$ git mv}: moves a file adding modifications to staging area;
+    \item \texttt{\$ git log}: logs;
+    \item \texttt{\$ git pull/push}
+\end{itemize}
+Every commit points to a tree which contains a list of modified files, it's possible to reach the \textbf{blob} of the changes made to that file via a pointer, every commit is linked to the previous one. The last commit of the current working branch is called \textbf{HEAD}, every HEAD points to a branch that we last commit to. If we want to switch branch we need to checkout the branch, and the HEAD will change which branch it is pointing to. If there are many branches we want to bring the changes of a branch to our current one, we need to use \texttt{git checkout other_branch}, when merging two branches some \textbf{conflict} can be created, when this happens the changes need to solved by hand, in other case git is able to fix them on his own.
+
+Other than merge there is also \textbf{rebase}, which is a bit different that merge, it tries to rewrite the history of the branch we are rabasing to and to commit all our changes to the last commit. The difference between merge and rebase, is the rebase it creates a linear commit history, while merge is keeps traks of every commit where done in different branches.
+\begin{itemize}
+    \item \texttt{\$ git reabase -i HEAD~4}: -i $ \implies$ interactive mode, ~4 $ \implies$ number of commits we want to target;
+\end{itemize}
+\begin{example}{}{}
+    
+\end{example}
+\textbf{Fork and pull} is the way to go for open source development, the operation of fork copies the full project in your account and thus becoming the new owner, the two projects are separate unless it is synched to the original one.
+
+\begin{definition}{Conventional commit message}{conventional-commit-message}
+    \begin{itemize}
+        \item \textbf{feat}:
+    \end{itemize}
+\end{definition}
+
+
+
+
+
+
 
 
 

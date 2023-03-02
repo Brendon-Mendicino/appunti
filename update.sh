@@ -1,21 +1,35 @@
 #! /bin/sh
 
+contains() {
+    for first in $1; do
+        for second in $2; do
+            [ "$first" = "$second" ] && return 0
+        done
+    done
+    return 1
+}
+
 SCRIPT_PATH="$( dirname -- "$( readlink -f -- "$0"; )"; )"
 
 cd "$SCRIPT_PATH" || exit
 
+
 for file in ./* ; do
     [ ! -d "$file" ] && continue
-    [ ! "$(find "$file" -regex "^.*\.tex$")" ] && continue
+
+    tex_files="$(find "$file" -regex "^.*\.tex$")"
+    [ ! "$tex_files" ] && continue
 
     cd "$file" || continue
 
-    # if the file contains not tex file changed go to the next one
-    [ ! "$(git ls-files -m | grep -E "^.*\.tex$")" ] && cd .. && continue
+    for git_file in $(git ls-files -m); do
+        (echo "$git_file" | grep -Eq "^.*\.tex$") && continue
+        
+        pwd
+        echo "Converting $git_file ..."
+        pdflatex "$git_file"
+    done
 
-    pwd
-    echo "Converting $(fing . -regex "^.*\.tex$") ..."
-    pdflatex "$(find . -regex "^.*\.tex$")"
     cd ..
 done
 

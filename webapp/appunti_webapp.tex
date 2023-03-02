@@ -90,6 +90,88 @@ let fullName = `${name} ${sur}`;
 \end{lstlisting}
 
 
+\subsection{Objects}
+JS is \textbf{prototype based language}, which means that there are no declarations of classes. In JS property names must be strings and can be modified, the value of the property can be any other type of type or object. To create and object in JS you use curly braces and the defined properties:
+\begin{lstlisting}[language=]
+const movie = {
+  title: 'Inception',
+  genre: 'sci-fi',
+  duration: 180
+}
+
+console.log(movie)
+console.log(movie['title'])
+console.log(movie.title)
+\end{lstlisting}
+It is also possible to add a property by simple assigning a new name to a type, it is also possible to delete a property with the keyword \texttt{delete}. There are two helper functions:
+\begin{itemize}
+  \item \texttt{Object.key(object)}: return only the key;
+  \item \texttt{Object.entries(object)}: return an array with the key and value;
+\end{itemize}
+To copy an object it is possible to use:
+\begin{lstlisting}[language=]
+const copied = Object.assign({}, original)
+const withSpread = {...original}    // it also possbible to use the spread operator
+
+// assign can also be used to merge objects
+const merged = Object.assign({}, copied, {something: 'test'})
+\end{lstlisting}
+
+
+\subsection{Functions}
+In JS functions are objects, so it is possible to assign a function to a property or use it in a parameter in another function. There three possible ways to define a function:
+\begin{lstlisting}[language=]
+// 1. Function
+function do(a, b = 1) {
+  ...
+}
+
+// parameters can also hava a deafult value
+function some(par1, par2, ...variable) { // ... is the 'rest' operator, like varargs, rest parameters can be iterated
+  ...
+}
+
+// 2. Function Expression
+const fn = function(params) { }
+
+// 3. Arrow Function
+const func = (params) => { }
+\end{lstlisting}
+In JS \textbf{Closure} can be created, with closure it is possible to use parameters of the scope where the function is defined, even if that scope does not exist any more.
+\begin{lstlisting}[language=]
+function greeter(name) {
+  const myname = name;
+
+  const hello = () => {
+    return "Hello " + myname;
+  }
+
+  return hello;
+}
+
+const helloTest = greeter('test');
+
+console.log(helloTest());   // 'Hello test'
+\end{lstlisting}
+To create an object there are also \textbf{constructor functions}:
+\begin{lstlisting}[language=]
+function Movie(title, director, duration) {
+  this.title = title;
+  this.director = director;
+  this.duration = duration;
+  this.isLong = () => this.duration > 120;
+}
+
+cosnt movie = new Movie('Inception', 'Nolan', 180);
+\end{lstlisting}
+
+
+
+
+
+
+
+
 
 
 
