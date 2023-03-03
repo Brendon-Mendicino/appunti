@@ -23,11 +23,33 @@
 Ho voglia di piangere
 
 
+\begin{example}{}{}
+  Show that $ a \equiv b \pmod{n}$ if and only if $n$ divides $a - b$.
+  \begin{proof}
+    \[ r  = a \pmod{n} \implies a = aq + r, \quad q \in \mathbb{Z} \] 
+    \[ a \pmod{n}  = b \pmod{n} = x \]
+    \[ b  = nq_1 + x, a = nq_2 + x \]
+    \[ \frac{b-a}{n}  = \frac{nq_1 + x - (nq_2 + x)}{n} = q_1 - q_2 \]
+    \[ \boxed{ q_1, q_2  \in \mathbb{Z} \implies \frac{b-a}{n} \in \mathbb{Z} } \]
+  \end{proof}
+\end{example}
+
+\subsection{Symmetric Cryptography}
+A symmetric cyryptosystem $\Pi$ consist of three algorithms:
+\begin{itemize}
+  \item Decryption
+  \item Encryption
+  \item Generation
+\end{itemize}
+\begin{definition}{IND-secure}{ind-secure}
+  A system $\Pi$ can be defined \textbf{IND-secure} if, given two plaintext as inputs $(P_0, P_1)$ to $\Pi$ and by randomly choosing one of them, there is no better chance of $0.5$ to determine whether the ciphertext was generated from $P_0$ or $P_1$.
+\end{definition}
 
 
 
 \section{Openssl}
 Openssl has two versions 1.x and 3.x and 1.x will be dropped soon, but many applications still use it. The low level software implementations of the algorithm was a big mess, so a layer was created on top of it called \emph{EVP Crypto API}, that just takes in the parameters and does a translation handling all the data.
+
 
 
 Typical use of openssl:
@@ -47,6 +69,19 @@ To get an object the library is called which will return the function pointer to
 \begin{lstlisting}[language=c]
 EVP_CHIPER *c = EVP_bf_cbc();
 \end{lstlisting}
+
+
+
+
+\section{IND-experiment}
+...
+
+
+\textbf{Frequency analysis} is a technique that allows to attach to a letter a frequency (different for each language), ...
+
+
+\section{cpa-ind goal}
+the cpa is one the possible attacks
 
 
 
