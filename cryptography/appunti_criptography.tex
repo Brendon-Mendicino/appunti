@@ -22,4 +22,50 @@
 \section{Introduction}
 Ho voglia di piangere
 
+
+
+
+
+\section{Openssl}
+Openssl has two versions 1.x and 3.x and 1.x will be dropped soon, but many applications still use it. The low level software implementations of the algorithm was a big mess, so a layer was created on top of it called \emph{EVP Crypto API}, that just takes in the parameters and does a translation handling all the data.
+
+
+Typical use of openssl:
+\begin{enumerate}
+  \item include libraries
+  \item load facilities: load the functions required
+  \item create the context: select the tools, like a certain symmetric algorithm
+  \item initialize the context: assign IV, nonce, key...
+  \item operate on the context: provide the data on which the machine will work
+  \item finalize on the context: perform the concluding operations on the last output, like putting the padding, or the length of the digest
+  \item free the context: all the objects are \emph{one time objects}, at the end of the operations the objects need to be freed;
+  \item free facilities
+\end{enumerate}
+Usually the mode of use of the libraries is the incremental mode, which allow get small blocks a data encrypted.
+
+To get an object the library is called which will return the function pointer to the implementation.
+\begin{lstlisting}[language=c]
+EVP_CHIPER *c = EVP_bf_cbc();
+\end{lstlisting}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 \end{document}

@@ -41,6 +41,7 @@ Per risolver questo problema ci si affida all'hardware, che \`e incaricato di fa
 
 Per aumentare le prestazioni ed usare la memoria in modo pi\`u efficente si possono usare delle tecniche dinamiche.
 \begin{itemize}
+  \tolerance=1000
   \item Si parla di \textbf{dynamic loading} quando, un programma viene caricato in memoria principale in modo frammentato, utilizzando solo i componenti che effettivamento vengono chiamati;
   \item Si parla di \textbf{dynamic linking} quando i file che contengono le funzioni che devono essere linkate (come le librerie standard) non vengono inserite all'interno dell'eseguibile, ma gli indirizzi vengono risolti in modo dinamico durante l'esecuzione;
   \item Il \textbf{link statico} \`e quando si crea un eseguibile con tutte le funzioni dentro, di fatto il loader carica tutto quando in memoria.
@@ -70,6 +71,7 @@ Come si alloca memoria per un programma (immagine)? La pi\`u semplice \`e l'allo
 \end{itemize}
 La frammentazione \`e sparsit\`a dei buchi all'interno della memoria. Si dice \textbf{esterna} perch\'e \`e al di fuori dei processi, si dice \textbf{interna} quando \`e interna al processo, ovvero che ha pi\`u memoria di quello che serve. La frammentazione ha bisongo di \textbf{compattazione}, il SO sposta i pezzi e poi si riparte, partitione della memoria in zona libera e zona occuputa, per fare una \textbf{deframmentazoine} (o compattazione) voul di re creare solo due partizioni (parte processi e zona libera), per effettuare la compattazione bisogna che i processi si possano spostare, inoltre un processo non pu\`o essere spostato se in quel momento il processo sta effettuando delle operazioni di IO, una soluzione per il problema dell'IO \`e il \textbf{latch job} in cui quella parte non pu\`o essere spostata, oppure si utilizza un \textbf{buffer IO del kernel}, si fa IO solo in buffer del sistema operativo.
 
+\tolerance=1000
 Con \textbf{backing store} si definisce uno spazio della memoria secondaria in cui non si salvano programmi ma vengono immagazzinati dei dati che altrimenti dovrebbero andare in RAM.
 
 La \textbf{Paginazione} risolve i problemi della allocazione continua, rimuovendo l'allocazione contigua al suo posto si utilizzano della pagine, che sono l'unit\`a minima di allocazione, questo risolve il problema della frammentazione.
@@ -102,10 +104,89 @@ Nelle righe della tabelle si aggiungono dei bit in pi\`u:
   \item \textbf{page present/absent}: 
 \end{itemize}
 Come si implementa una page table? La page table si trova in memoria RAM, per sapere dove si trova si utilizzano due rigistri: \textbf{page table base register} e \textbf{base table lenght register}, infatti la base table si trova in memoria contigua. Per velocizzare questa operazione si utilizza che TLB che \`e pi\`u piccola e si trova direttamente sulla CPU, si usa la \textbf{Translation Look-aside Buffer} (TLB), un tipo di memoria in cui si accede per contenuto. Si aggiunge anche un altra informazione \textbf{ASID} in cui viene salvata l'infromazione del processo a cui la pagina appartiene, se non \`e presente questa informazione si i processi si contentendono la TLB. Quando avviene un \textbf{TLB miss} se reinserisce nella TLB e poi si ritenta, utilizzando una politica scelta.
+\begin{center}
+  \emph{Lo schema finale \`e la combinazione di TLB e page table.}
+\end{center}
+Il \textbf{Tempo di accesso effettivo} (EAT) in memoria \`e il tempo che mi costa accedere alla RAM:
+\[ EAT = h \cdot M + (1 - h) \cdot 2M  \]
+\begin{itemize}
+  \item $h$ = TLB hit ratio;
+  \item $M$ = Memory access time;
+\end{itemize}
+La protezione \`e implementata associando un bit di protezione per un frame specifico, e quindi per la rispettiva pagina, grazie a questo bit si possono definire parti ci codice che indica che il frame \`e in solo scrittura. Anche un altro bit associato \`e \textbf{validity} che indica quando una pagina \`e valida, ovvero quando c'\`e ed \`e associata ad un frame, o quando una pagina non \`e valida che vuol dire che la pagina non esiste o che non \`e associata ad frame, se si cerca di accedere una pagina non valida viene lanciata una \textbf{trap}.
 
-Lo schema finale \`e la combinazione di TLB e page table.
+La tabella della pagina permette di \textbf{condividere le pagine} (anche se in realt\`a sono i frame), se pi\`u processi hanno delle pagine che sono comuni vengono condivise da entrambi i processi.
 
-Il \textbf{Tempo di accesso effettivo} (EAT) in memoria \`e il tempo che mi costa accedere alla RAM, 
+La page table \`e una struttura dati del kernel:
+\begin{example}{}{}
+  HP: spazio logico di indirizzamento di 32 bit, una pagina di 4KB ($2^{12}$), la page table avr\`a un milione di entry ($2^{32}/2^{12}$), ogni entry della page table sono 4bytes, quindi una pagetable \`e grande 4MB. Adesso \`e possibile avare:
+  \begin{itemize}
+    \item \textbf{page table contigua}:
+      \begin{itemize}
+        \item dimensione critica (troppo grande):
+          \begin{itemize}
+            \item page table gerarchica;
+            \item hash page table;
+            \item inverted page table;
+          \end{itemize}
+      \end{itemize}
+  \end{itemize}
+\end{example}
+La \textbf{la page table gerarchica}, la page table viene divisa in blocchi pi\`u piccoli non contigui, se usa una page table di livello superiore che porte alle page table di livello inferiore, questi blocchi devono rimanere contigui, anche se diventano molto piccoli. Il page number viene diviso in due parti, una per la tabella outer ed una per la tabella inner (pu\`o avere anche pi\`u di due livelli), quando si va su 64 bit e la outer dienta molto grande si pu\`o usare solo una parte dell'indirizzamento se l'eseguibili \`e molto piccolo.
+
+La \textbf{hashed page table} permette di creare una tabella di hash, con una funzione direttamente implementata in hardware che dato $p$ in input ritorna $f$. Vanno implementate delle liste di collisione, e quindi vieni immagazzinato che $p$ che \`e la chiave di accesso. Usando una tabella di hash si potrebbe pensare anche di usare una page table condivisa tra tutti i processi, ma a quel punto va inserito anche l'ID del processo.
+
+La \textbf{inverted page table} \`e una tabella condivisa tra tutti i processi, la sua grandezza viene dimensionata sulla grandezza della RAM e non sulla grandezza dei processi, in cui ogni frame fisico \`e associata una pagina, in questo caso le entry che corrisponde ad un frame ritorna la pagina a cui \`e associto, il problema che si vuole la traduzione da pagine ad entry e non il contrario, la prima strategia che si pu\`o utilizzare \`e la scansione lineare. Per rendere l'accesso pi\`u veloce viene messa una tabella di hash prima di arrivare alla tabella invertita.
+
+
+\subsection{Swapping}
+Si suppunga che ad un certo punto si volgia far partire un processo e che la memoria sia piena, cosa si pu\`o fare? Una soluzione \`e lo \textbf{swapping}, ovvere viene rimesso sul backing store (in modo temporaneo) che in linux \`e la partizione di swap, e viene caricato il nuovo processo, grazie allo swapping si possono avere processi che hanno pi\`u memoria occupata di quanto la RAM sia grande.
+\begin{example}{}{}
+  Qunato costa il \textbf{context switch}? Memoria piena e viene fatto partire un programma, dunque deve essere portato un processo nel backing store. 100MB da fare la swap con velocit\`a di trasferimento di 50MB/sec.
+  \begin{itemize}
+    \item swap out = 2000ms
+    \item pi\`u swap in dello stessa grandezza
+    \item il tempo totole \`e di 4s
+  \end{itemize}
+  Se il porcesso sta fendo IO non si pu\`o fare lo swap out, una soluzione \`e non spostare un processo che sta facendo IO e spanane un altro, oppure usare un buffer del kernel.
+\end{example}
+Sui telefoni non esiste lo swaping, vengono in auito le \textbf{lifecycle dei contesti}. Il vantaggio di fare swapping \`e l'utilizzo del \textbf{paging swapping}, dove il swap in/out divento page in/out, dove vengono trasferite solo le pagine e non l'intero processo.
+
+\subsection{Esercizi}
+\begin{example}{}{}
+  \begin{itemize}
+    \item memoria fisica da 512MB
+    \item allocazione minima 64B
+    \item 128MB al SO
+    \item tabella dei processi contiene: contiene indirizzo iniziale e size
+    \item allocazione worst fit
+    \item partizioni libere sono contenute in lista ordinata con dimensione descrescente
+    \item 
+  \end{itemize}
+  Si supponga ...
+\end{example}
+\begin{example}{}{}
+  Si descrivano brevemente 
+  \begin{itemize}
+    \item tlb: 0.9 hit ratio
+    \item page table a due livelli
+    \item indirizzo in tre parti, 10 11 11 bit
+    \item 
+  \end{itemize}
+  Si fa una outer con cui si utillizzano 10bit, ed una inner con 11bit. Per calcolare il numero di inner ci sono due strade, il numero di byte preciso che contengono 100MB oppure si prende la prima potenza di 2 che contiene 100MB. Il resto delle righe delle outer overanno l'invalid bit settato ad 1.
+\end{example}
+
+
+
+\section{Memoria Virtuale}
+Con \textbf{memoria virtuale} si indica che delle pagine esistono solo virtualemente ma non fisicamente, in questo modo si vuole supportare uno spazio di indirizzamento pi\`u grande dello spazio di indirizzamento fisico. Si parte dalla premessa che \emph{un programma non bisogna di essere tutto in memoria per essere esguito}, si pensa ad un programma parzialmente caricato in memoria, dunque le mamoria di un programma non \`e pi\`u vincolato dalla grandezza della RAM, in questo caso si parla di \textbf{memoria virtuale}. Avere questa memoria virtuale porta una serie di vantaggi che volocizzano tutte le operazioni di IO tra la RAM e la memoria secondaria. La conseguenza \`e che viene introdotta la \textbf{demand paging}, ovvero che un pagina viene caricata solo quando \`e richiesta. Il \textbf{demand paging} \`e molto simile allo swapping, infatti il caso limite \`e il \textbf{lazy swapper} dove inizialmente non si ha nessun frame caricato, e ogni richiesta viene preso un frame.
+
+
+
+
+
+
+
 
 
 

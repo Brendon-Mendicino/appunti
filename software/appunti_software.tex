@@ -75,17 +75,17 @@ Git basic commands:
     \item \texttt{\$ git add}: add a file;
     \item \texttt{\$ git diff}: changes;
     \item \texttt{\$ git commit -m "..."}: commit changes;
-    \item \textbf{\$ git commit -am "..."}: commit all changes;
+    \item \texttt{\$ git commit -am "..."}: commit all changes;
     \item \texttt{\$ git rm}: removes a file with git tracking, adding the staging area;
     \item \texttt{\$ git mv}: moves a file adding modifications to staging area;
     \item \texttt{\$ git log}: logs;
     \item \texttt{\$ git pull/push}
 \end{itemize}
-Every commit points to a tree which contains a list of modified files, it's possible to reach the \textbf{blob} of the changes made to that file via a pointer, every commit is linked to the previous one. The last commit of the current working branch is called \textbf{HEAD}, every HEAD points to a branch that we last commit to. If we want to switch branch we need to checkout the branch, and the HEAD will change which branch it is pointing to. If there are many branches we want to bring the changes of a branch to our current one, we need to use \texttt{git checkout other_branch}, when merging two branches some \textbf{conflict} can be created, when this happens the changes need to solved by hand, in other case git is able to fix them on his own.
+Every commit points to a tree which contains a list of modified files, it's possible to reach the \textbf{blob} of the changes made to that file via a pointer, every commit is linked to the previous one. The last commit of the current working branch is called \textbf{HEAD}, every HEAD points to a branch that we last commit to. If we want to switch branch we need to checkout the branch, and the HEAD will change which branch it is pointing to. If there are many branches we want to bring the changes of a branch to our current one, we need to use \texttt{git checkout other-branch}, when merging two branches some \textbf{conflict} can be created, when this happens the changes need to solved by hand, in other case git is able to fix them on his own.
 
 Other than merge there is also \textbf{rebase}, which is a bit different that merge, it tries to rewrite the history of the branch we are rabasing to and to commit all our changes to the last commit. The difference between merge and rebase, is the rebase it creates a linear commit history, while merge is keeps traks of every commit where done in different branches.
 \begin{itemize}
-    \item \texttt{\$ git reabase -i HEAD~4}: -i $ \implies$ interactive mode, ~4 $ \implies$ number of commits we want to target;
+    \item \texttt{\$ git reabase -i HEAD\~4}: -i $ \implies$ interactive mode, \~4 $ \implies$ number of commits we want to target;
 \end{itemize}
 \begin{example}{}{}
     
