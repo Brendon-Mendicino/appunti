@@ -186,6 +186,59 @@ Con \textbf{memoria virtuale} si indica che delle pagine esistono solo virtualem
 
 
 
+\section{Rust}
+Rust \`e un linguaggio di programmazione moderno, che non permette di avere undefined behaveiur e soprottuto \`e u \textbf{statically strongly typed}, inlotre \`e capaci di inferire i tipi di dati. Rust inoltre fornisce delle \emph{astrazioni a costo nullo}, rust \`e anche \emph{interoperabile} con C. La memoria in rust \`e gestita dal programmatore solo in parte, il motivo \`e che il complilatore forza il programmatore a scrivere del codice senza errori. Esempio di \textbf{dangling pointer} in C.
+\begin{lstlisting}[language=c]
+typedef struct Dummy { int a; int b; } Dummy;
+
+void foo(void) {
+  Dummy *ptr = (Dummy *)malloc(sizeof(Dummy));
+  Dumyy *alias = ptr;
+  ptr->a = 2048;
+  free(ptr);
+  alias->b = 25;
+  free(alias);
+}
+\end{lstlisting}
+Rust previene:
+\begin{itemize}
+  \item \textbf{dangling pointers}
+  \item \textbf{doppi rilasci}
+  \item \textbf{corse critiche}
+  \item \textbf{buffer overflow}
+  \item \textbf{iteratori invalidi}
+  \item \textbf{overflow aritmetici}
+\end{itemize}
+Inoltre rust propone delle convenzioni per aiutare il programmatore.
+
+Rust parte dall'assunzoine che un valore pu\`o essere \textbf{posseduta} da una singola variabile, se la variabile esce al di fuori del suo scope il valore viene deallocato. Quando si fanno delle assegnazioni l'\textbf{ownership} viene anche trasferito alla variabile assegnata, inoltre \`e anche possibile \textbf{dare in presetito} (\textbf{borrow}), queste idee sono alla base della sicurezza di Rust. I puntatore sono tutti controllati in fase di compilazione, oltre all'\textbf{ownership} ogni puntatore ha un \textbf{tempo di vita} (\textbf{lifetime}), tutti gli accessi al di fuori della lifetime sono negati dal compilatore, in alcuni non pu\`o essere fatto l'infering della lifetime e questo andr\`a specificato esplicitamente. La \textbf{sicurezza dei thread} \`e incorporata nel sistema dei tipi e anch'essi hanno una lifetime. Rust inoltre non ha stati nascosti, come in java con le eccezioni.
+
+I due strumenti per gestire rust sono:
+\begin{itemize}
+  \item \texttt{\$ rustup}: installer and updater di rust;
+  \item \texttt{\$ rustc}: compilatore;
+  \item \texttt{\$ cargo}: gestione dei progetti e delle dipendenze;
+\end{itemize}
+I comandi di base di \texttt{cargo} sono:
+\begin{itemize}
+  \item \texttt{\$ cargo new project_name}
+  \item \texttt{\$ cargo new --lib library_name}
+  \item \texttt{\$ cargo build}
+  \item \texttt{\$ cargo run}
+\end{itemize}
+Terminologia in rust:
+\begin{itemize}
+  \item \textbf{crate}: unit\`a di compilazione, crea un eseguibile o una libreria;
+  \item \textbf{create root}: radice del progetto e solitamente contiene il \texttt{main.rs}, oppure \texttt{lib.rs} in caso di librerie;
+  \item \textbf{module}: il progetto \`e organizzato in \emph{moduli}, se si crea un modulo come cartella il file .rs andr\`a nominato \texttt{mod.rs}, all'interno possono essere presenti moduli interni;
+  \item \textbf{package}: 
+\end{itemize}
+
+
+
+
+
+
 
 
 
@@ -200,3 +253,4 @@ Con \textbf{memoria virtuale} si indica che delle pagine esistono solo virtualem
 
 \end{document}
 
+%% vim: ts=2 sts=2 sw=2 et

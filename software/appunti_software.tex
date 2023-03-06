@@ -22,80 +22,161 @@
 \section{Introduction}
 Definitions:
 \begin{definition}{Multi Person Multi Version}{multi-person-multi-version}
-    People coordinating in long period of time.
+  People coordinating in long period of time.
 \end{definition}
 \begin{definition}{Software}{software}
-    Is a collection of code and not only digital assets like: rules, documentations, procedures and many more. 
+  Is a collection of code and not only digital assets like: rules, documentations, procedures and many more. 
 \end{definition}
 \begin{definition}{Software Types}{software-types}
-    \begin{itemize}
-        \item \textbf{Stand alone}: products used alone, like email, office, calendar;
-        \item \textbf{Embedded in software products}: car, smart house;
-        \item \textbf{Embedded in business process}: an information system;
-        \item \textbf{Embedded in production process}: embedded in factories and classic production pipelines;
-    \end{itemize}
+  \begin{itemize}
+    \item \textbf{Stand alone}: products used alone, like email, office, calendar;
+    \item \textbf{Embedded in software products}: car, smart house;
+    \item \textbf{Embedded in business process}: an information system;
+    \item \textbf{Embedded in production process}: embedded in factories and classic production pipelines;
+  \end{itemize}
 \end{definition}
 
 \subsection{Describe Software}
-To describe a software we define his properties, they are divided in \textbf{functionality}, which express an action to be performed, and \textbf{non-functional}, this property describe how a functional property should behave, defining his correctness, and define his reliability, the idea is that correctness it's impossible to obtain, so it tries to limit the number of defect, setting a line that allows the threshold for the number of defects, on the other hand the availability is the percentage, over a period of time, of the system without occurring in any defect. Other non-functional properties are security, safety and deniability. Efficiency is the response time and the amount of resources used.
+To describe a software we define his properties, they are divided in: \textbf{functional} property, which express an action to be performed, and \textbf{non-functional} property, that describes how a functional property should behave and describing his correctness. Because it's not possible to define if something is $100\%$ correct in the software field the \textbf{reliability} is also defined, the idea is that correctness it's impossible to obtain, thus trying to the number of \textbf{defects} a software can have, setting a threshold for the maximum number of them, on the other hand the \textbf{availability} is the percentage, over a period of time, of the system without occurring in any defect: $A = \frac{T - T_\text{down}}{T}$. Other non-functional properties are \textbf{security, safety and deniability}. \textbf{Efficiency} is the response time and the amount of resources used.
 
-Every software has process: development, operation, maintenance. During development there are 4 main phases:
+Every software has a life process divided in: development, operation, maintenance. During development, which will be the main focus of this course, there are 4 main phases:
 \begin{itemize}
-    \item \textbf{requirements};
-    \item \textbf{design};
-    \item \textbf{coding};
-    \item \textbf{testing};
+  \item \textbf{requirements};
+  \item \textbf{design};
+  \item \textbf{coding};
+  \item \textbf{testing};
+\end{itemize}
+Basic rules of software development:
+\begin{itemize}
+  \item \textbf{keep it simple};
+  \item \textbf{separation of concerns};
+  \item \textbf{abstraction}
 \end{itemize}
 
-Basic rules:
+
+\subsection{Activity}
+In software the base is source code, to make it more readable the code is divided in \textbf{units}, before starting to code there should be an idea of the \textbf{design} of the project, which is how and which are the units are interacting with each other. Only after the requirements and the design the coding starts. The start of the process is deciding what the software should do, those are all the \textbf{requirements}. Every part produces a result:
 \begin{itemize}
-    \item keep it simple;
-    \item separation of concerns;
-    \item abstraction
+  \item \textbf{Requirements} $\rightarrow$ \textbf{requirements document}
+  \item \textbf{Design} $\rightarrow$ \textbf{design document}
+  \item \textbf{Implementation} $\rightarrow$ \textbf{unit}
 \end{itemize}
+After the requirements there should be some checking with \textbf{Validation and Verification} (VV).
+
+\subsection{Phases}
+After the first version of the product is released there is a deployment phase where people will install the product, the product will need \textbf{operation} and \textbf{maintenance} operations and after a period of time the product will \textbf{retire} meaning that it will no longer be supported. During the support span the operations are all the set of the actions done on the product, like security tasting, bug discovery, etc. While maintenance is the action of changing the code to do bug fixes or publish new feature.
+
+
+\section{Requirement Engineering}
+The aim of requirement engineering is to define the \emph{properties of the product} before starting implementation. When defining the functionality there is one or more non-functional property associated. Requirement engineering is divided into:
+\begin{itemize}
+  \item \textbf{Elicitation}: talk to the end-user and understand what they want
+  \item \textbf{Analysis and formalization}: writing down the 
+  \item \textbf{Inspection}: checking what it has been written down on the documents
+\end{itemize}
+\begin{definition}{Stakeholder}{stakeholder}
+  In elicitation the person in charge of the requirements has to extract all information to create the requirements, the stakeholder is the \emph{person or company} that is involved in the building of the project. The stakeholder may be: user, administrator, buyer, analyst, developer.
+\end{definition}
+The starting point is an informal description of the problem, usually they contain defects like: omission, inconsistencies, ambiguity. The best document is the most concise one and doesn't contain omissions, this is called \textbf{complete and consistent}.
+\begin{example}{Stackeholder}{stackeholder}
+  \begin{itemize}
+    \item POS in a supermarket.
+    \item User:
+      \begin{itemize}
+        \item cashier at POS (profile 1)
+        \item administrator, inspector (profile 2)
+        \item customer at POS
+      \end{itemize}
+    \item Administrator:
+      \begin{itemize}
+        \item POS application administrator (profile 3)
+        \item IT administrator (profile 4)
+        \item ...
+      \end{itemize}
+    \item Buyer:
+      \begin{itemize}
+        \item CEO of supermarket
+      \end{itemize}
+  \end{itemize}
+\end{example}
+
+
+
+\subsection{Context Diagram}
+The context diagram tells what is the focus of the requirements. The context diagram contains the \textbf{actors} of the system which can interact with it, the system is called \textbf{use case} and there can be more than one. The context diagram defines the \textbf{interface} between the inside and outside.
+
+
+
+
+
+
+
 
 
 
 \section{Git}
-Git uses distributed CMS, uses snapshots of the current files, other than that git also has integrity with a checksum. Basic git concepts:
+Git uses distributed CMS (Content Management System) to provide version control of a project, using the concept of snapshots which allows developers to work concurrently on a single project, other than that git also has integrity with a checksum and instead of storing whole files it just stores the \textbf{delta} of the changed file (a delta represent the changes in a file based on base file). Basic git concepts:
 \begin{itemize}
-    \item \textbf{repository}: contains all the files and versions of the project;
-    \item \textbf{working copy}: it is a snapshot of the repository, the working copy is on the client side;
-    \item \textbf{commit}: it is an atomic operator that modifies the repository, all commits are tracked into a log file, to every commit a message is associated;
-    \item \textbf{push}: is an operation that updates the modifications from a local server to the online server;
-    \item \textbf{update}: updates the working copy by merging the changes;
-    \item \textbf{staging area}: it is local dock that stores the changes that are not committed yet;
-    \item \textbf{typical workflow}: checkout project, stage/commit changes, push;
+  \item \textbf{repository}: contains all the files and versions of the project;
+  \item \textbf{working copy}: it is a snapshot of the repository, the working copy is on the client side;
+  \item \textbf{commit}: it is an atomic operator that modifies the repository, all commits are tracked into a log file, to every commit a message is associated;
+  \item \textbf{push}: is an operation that updates the modifications from a local server to the online server;
+  \item \textbf{update}: updates the working copy by merging the changes;
+  \item \textbf{staging area}: it is local dock that stores the changes that are not committed yet;
+  \item \textbf{typical workflow}: checkout project, stage changes, commit;
 \end{itemize}
 Git basic commands: 
 \begin{itemize}
-    \item \texttt{\$ git init}: initialize a local repo;
-    \item \texttt{\$ git remote add origin http://server.com/project.git}: add a new remote repository;
-    \item \texttt{\$ git status}: status;
-    \item \texttt{\$ git add}: add a file;
-    \item \texttt{\$ git diff}: changes;
-    \item \texttt{\$ git commit -m "..."}: commit changes;
-    \item \texttt{\$ git commit -am "..."}: commit all changes;
-    \item \texttt{\$ git rm}: removes a file with git tracking, adding the staging area;
-    \item \texttt{\$ git mv}: moves a file adding modifications to staging area;
-    \item \texttt{\$ git log}: logs;
-    \item \texttt{\$ git pull/push}
+  \item \texttt{\$ git init}: initialize a local repo;
+  \item \texttt{\$ git remote add origin http://server.com/project.git}: add a new remote repository;
+  \item \texttt{\$ git status}: status;
+  \item \texttt{\$ git add}: add a file;
+  \item \texttt{\$ git diff}: changes;
+  \item \texttt{\$ git commit -m "..."}: commit changes;
+  \item \texttt{\$ git commit -am "..."}: commit all changes;
+  \item \texttt{\$ git rm}: removes a file with git tracking, adding the staging area;
+  \item \texttt{\$ git mv}: moves a file adding modifications to staging area;
+  \item \texttt{\$ git log}: logs;
+  \item \texttt{\$ git reflog}
+  \item \texttt{\$ git pull/push}
+  \item \texttt{\$ git checkout <branch-name>}: switch between branches;
 \end{itemize}
-Every commit points to a tree which contains a list of modified files, it's possible to reach the \textbf{blob} of the changes made to that file via a pointer, every commit is linked to the previous one. The last commit of the current working branch is called \textbf{HEAD}, every HEAD points to a branch that we last commit to. If we want to switch branch we need to checkout the branch, and the HEAD will change which branch it is pointing to. If there are many branches we want to bring the changes of a branch to our current one, we need to use \texttt{git checkout other-branch}, when merging two branches some \textbf{conflict} can be created, when this happens the changes need to solved by hand, in other case git is able to fix them on his own.
+Every commit points to a tree which contains a list of modified files, it's possible to reach the \textbf{blob} of the changes made to that file via a pointer, every commit is linked to the previous one. The last commit of the current working branch is called \textbf{HEAD}, every HEAD points to a branch that we last commit to. If we want to switch branch we need to check out the branch, and the HEAD will change which branch it is pointing to. If there are many branches we want to bring the changes of a branch to our current one, we need to use \texttt{git checkout other-branch}, when merging two branches some \textbf{conflict} can be created, when this happens the changes need to solved by hand, in other case git is able to fix them on his own.
 
-Other than merge there is also \textbf{rebase}, which is a bit different that merge, it tries to rewrite the history of the branch we are rabasing to and to commit all our changes to the last commit. The difference between merge and rebase, is the rebase it creates a linear commit history, while merge is keeps traks of every commit where done in different branches.
+Other than merge there is also \textbf{rebase}, which is a bit different that merge, it tries to rewrite the history of the branch we are rabasing to and to commit all our changes to the last commit. The difference between merge and rebase, is the rebase it creates a linear commit history, while merge is keeps trak of every commit where done in different branches.
 \begin{itemize}
-    \item \texttt{\$ git reabase -i HEAD\~4}: -i $ \implies$ interactive mode, \~4 $ \implies$ number of commits we want to target;
+  \item \texttt{\$ git reabase -i HEAD\sim4}:
+    \begin{itemize}
+      \item -i $ \implies$ interactive mode
+      \item $\sim$ 4 $ \implies$ number of commits we want to target;
+    \end{itemize}
+  \item \texttt{\$ git merge <other-branch>}: this command tries to merge \texttt{other-branch} inside the current working branch.
 \end{itemize}
-\begin{example}{}{}
-    
+\begin{example}{Revert cahnges}{revert-cahnges}
+  In case an uncommited file needs to be reset to the oringinal version it is possible to use two commands:
+  \begin{itemize}
+    \item \texttt{\$ git checkout <name-of-file>}
+    \item \texttt{\$ git reset --hard}
+  \end{itemize}
+\end{example}
+\begin{example}{Resolve a conflict}{resolve-a-conflict}
+  When merging two branches conflicts can arise, if git is not able to automatically solve it will prompt the user to do so. When a conflict needs to be solved manually a new version of the file is created and inside both versions of the branches are present (highlighted) with conflicting sections, the conflict is solved be hand and then by committing the file.
 \end{example}
 \textbf{Fork and pull} is the way to go for open source development, the operation of fork copies the full project in your account and thus becoming the new owner, the two projects are separate unless it is synched to the original one.
-
 \begin{definition}{Conventional commit message}{conventional-commit-message}
-    \begin{itemize}
-        \item \textbf{feat}:
-    \end{itemize}
+\begin{lstlisting}[language=]
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+\end{lstlisting}
+  Type of commit: 
+  \begin{itemize}
+    \item \textbf{fix}: a commit the type \texttt{fix} patches a bug in your codebase.
+    \item \textbf{feat}: a commit of type \texttt{feat} introduces a new feature to the codebase.
+    \item \textbf{BREAKING CHANGE}: a commit with \texttt{BREAKING CHANGE} or appends \texttt{!}, introduces a breaking API change
+  \end{itemize}
 \end{definition}
 
 
@@ -112,3 +193,5 @@ Other than merge there is also \textbf{rebase}, which is a bit different that me
 
 
 \end{document}
+
+%% vim: ts=2 sts=2 sw=2 et
