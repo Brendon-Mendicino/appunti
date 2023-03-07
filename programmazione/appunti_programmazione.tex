@@ -186,6 +186,100 @@ Con \textbf{memoria virtuale} si indica che delle pagine esistono solo virtualem
 
 
 
+\section{Rust}
+
+
+Come in kotlin i blocchi condizionali hanno dei valori di ritorno. In rust non esiste l'eriditarit\`a, per\`o esistono i \textbf{trait}, che sono simili alle interfacce, offrendo la possibilit\`a di poter implementare dei metodi, ad esempio alcuni di questi sono \texttt{Display} e \texttt{Debug}, ogni tipo pu\`o implementare pi\`u tratti.
+
+I tipi elementari di rust sono:
+\begin{itemize}
+  \item numerici: \texttt{i8, i16, i32, i64, i128, isize} (valore nativo del processore).
+  \item numerici senza segno: \texttt{u8, ...}
+  \item naturali: \texttt{f32, f64}
+  \item logici: \texttt{bool}
+  \item caratteri: \texttt{char} (32 bit, rappresentazione \textbf{Unicode})
+  \item unit: \texttt{()} rappresenta una tupla di 0 elementi, corrisponde a \texttt{void} in C/C++
+\end{itemize}
+Per rappresentare le stringhe invece si use la codifica \texttt{utf-8}, che codifica i caratteri unicode in blocchi di 8 bit, la codifica utilizza la maggior parte dei primi 8 bit come caratteri standard, se si vogliono usare simboli pi\`u strani si combina un byte con il successivo, se il carattere \`e ancora pi\`u raro si utilizzano pi\`u byte, fino ad arrivare a 4.
+
+Una tupla \`e una struttura che permette di contenere pi\`u tipi di valori, per accedere alla posizione corrispondente si utilizza la notazoine \texttt{.<numero>}.
+
+Rust ha un meccanismo al suo interno per rappresentare i puntatori, infatti quando viene creato un valore in una funzione si pu\`o decidere di passare la propri\`a di questo alla funzione chiamante, che poi ha la responsabilit\`a di liberla oppure di passare ancora il possesso, in rust esistono tre tipi di puntatori:
+\begin{itemize}
+  \item \textbf{reference};
+  \item \textbf{box};
+  \item \textbf{native pointer};
+\end{itemize}
+Per utilizzare i puntatori nativi (che sono gli stessi del C), possono essere solo utilizzati in un blocco \texttt{unsafe { ... }}.
+
+Le \textbf{reference} sono puntatori senza possesso e possono essere assegnati con \texttt{&}:
+\begin{lstlisting}[language=]
+let r1 = &v;
+let r1 = &mut v;
+\end{lstlisting}
+In questo caso \texttt{r1} borrows il valore \texttt{v}, per acceder al valore si utilizza la notazione per \textbf{derefenziare}: \texttt{*r1}. Quando si crea un puntatore che \texttt{&} si pu\`o un creare un puntatore in sola lettura, si vuole anche scrivere all'indirizzo del puntatore si deve usere la keyword mut: \texttt{&mut v}, l'accesso in scrittura \`e \emph{esclusivo}, ovvero pu\`o essere assegnato ad una sola variabile e quando viene asseganto in modo mutabile nussun altro pu\`o utilizzarlo, infatti \`e \emph{mutuamente esclusivo}.
+\begin{lstlisting}[language=]
+fn main() {
+  let mut i = 32;
+
+  let r = &i;     // r is of type "int ref";
+  println!("{}", *r);
+
+  i = i+1;        // ERROR: i was borrwed
+  println!("{}", *r);
+}
+\end{lstlisting}
+\begin{lstlisting}[language=]
+fn main() {
+  let mut i = 32;
+
+  let r = &mut i;
+  println!("{}", i);  // ERROR: i was mutably borrowed
+
+  *r = *r+1;
+  println!("{}", *r);
+}
+\end{lstlisting}
+In questo caso la variabile \texttt{i} non \`e accessibile in alcun modo per tutta l'esistenza di \texttt{r}.
+
+In altre situazioni c'\`e l'esigenza di allocare un dato, per prolungare la sua vita all'infuori della funzione in cui viene creato, l'equivalente della \texttt{malloc} in rust \`e \texttt{Box<T>} che alloca un parte di memoria presa dall'\emph{heap}, per creare un valore che che si vuole venga conservato, si passa a \texttt{Box} il valore che voglio si venga conservato:
+\begin{lstlisting}[language=]
+let b = Box::new(v);
+\end{lstlisting}
+Rust \`e in grado di fare l'infer del tipo di \texttt{v} e riesce ad allocare lo spazio necessario, quando \texttt{b} non sar\`a pi\`u visibile il \texttt{Box} verr\`a liberato dalla memoria.
+\begin{lstlisting}[language=]
+fn useBox() {
+  let i = 4;                      // i si trova nello stack
+  let mub b = Box::new((5, 2));   // *b si trova nell'heap, b si trova nello stack
+
+  (*b).1 = 7;
+
+  println!("{:?}", *b);   // (5, 7)
+  println!("{:?}", b);    // (5, 7)
+}
+\end{lstlisting}
+Quando \texttt{println!} si trova un puntatore lo dereferenzia automaticamente. Quando si arriva alla fine della funzione \texttt{a} e \texttt{b} vengono rimossi dallo stack, dato che il valore a cui puntava \texttt{b} non possiede un owner in vista quel valore viene rimosso dell'heap.
+\begin{lstlisting}[language=]
+fn makeBox(a: i32) -> Box<(i32,i32)> {
+  let r = Box::new((a, 1));
+  return r;
+}
+
+fn main() {
+  let b = makeBox(5);
+  let c = b.0 + b.1;
+}
+\end{lstlisting}
+In questo caso il valore l'ownership del valore puntato da \texttt{r} passa la sua ownership a \texttt{b} che si trova nel \texttt{main}, quando il \texttt{main} termina e la vita di \texttt{b} finise il valore puntato viene anch'esso liberato.
+
+
+
+
+
+
+
+
+
 
 
 
