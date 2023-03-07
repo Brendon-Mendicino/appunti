@@ -20,7 +20,7 @@
 
 
 \section{ Introduction}
- is backward compapatible, to be able to use the previous features is use the directive:
+JS is backward compatible, to be able to use the previous features is use the directive:
 \begin{lstlisting}[language=]
 "use strict";
 \end{lstlisting}
@@ -76,7 +76,7 @@ let [x, ...y] = [1, 2, 3, 4];      // y == [2, 3, 4]
 const a = [1, 2];
 const b = [0, ...a, 3]; // [0, 1, 2, 3]
 \end{lstlisting}
-Spreding can be from the left or from the right, usually the spread operator is used for copying array:
+Spreading can be from the left or from the right, usually the spread operator is used for copying array:
 \begin{lstlisting}[language=]
 const a = [1, 2];
 const b = [...a];
@@ -167,7 +167,49 @@ console.log(movie.isLong);  // true
 \end{lstlisting}
 
 
+\subsection{Dates}
+We use \texttt{dayjs()} objects in JS to build a data, it is an external library. The return of \texttt{dayjs()} fetches the time from the locale, other than that it can create a data from ISO, 8 digit dates, etc. To install this library: \texttt{\$ npm install dayjs}.
 
+
+\subsection{Asynchronous Programming}
+In JS when passing functions to other functions it is called \textbf{callback}, this functions can \emph{synchronous} or \emph{asynchronous}.
+\begin{lstlisting}[language=]
+function logQuote(quote) {
+  console.log(quote);
+}
+
+funtion createQuoute(quote, callback) {
+  const myQuote = `Like I always say, ${quote}`;
+  callback(quote);
+}
+
+createQuote('sium', logQuote);
+\end{lstlisting}
+In order to have functional features in language there some need properties:
+\begin{itemize}
+  \item \emph{functions as first class citizen};
+  \item \emph{higher-order functions};
+  \item \emph{function composition};
+  \item \emph{call chaining};
+\end{itemize}
+In JS arrays have functional methods, for example:
+\begin{lstlisting}[language=]
+a.forEach(item => ...);   // action on every element of the array
+a.every(x => x > 10);     // return true if all elements satisfy the condition, false otherwise
+a.some(x => x < 10);      // return true if at least one element satisfy the condition
+a.map(x => `${x}`);       // return a new array with every element mapped to a new one
+a.filter(x => x === 0);   // return a new array with all elements that satisfy the condition
+a.reduce((x, y) => x + y, 0);   // return a reduced value
+\end{lstlisting}
+Even though JS is executed on a single thread it is possible to create concurrent code, for example a function that allows to excute a callback after a certain amount of time is \texttt{setTimeout}:
+\begin{lstlisting}[language=]
+const f = (task) => {
+  // do something
+};
+
+setTimeout(f, 2000, task);
+\end{lstlisting}
+This is possible because JS runs in the \textbf{Event Loop}, which periodically checks if there are some part of the code that needs to be executed.
 
 
 
@@ -185,3 +227,4 @@ console.log(movie.isLong);  // true
 
 \end{document}
 
+%% vim: ts=2 sts=2 sw=2 et
