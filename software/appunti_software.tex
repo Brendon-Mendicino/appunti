@@ -106,6 +106,195 @@ The starting point is an informal description of the problem, usually they conta
 The context diagram tells what is the focus of the requirements. The context diagram contains the \textbf{actors} of the system which can interact with it, the system is called \textbf{use case} and there can be more than one. The context diagram defines the \textbf{interface} between the inside and outside.
 
 
+\begin{example}{EZGas}{ezgas}
+  \emph{"EZGas is an application to help drivers find gas at lowest prices. Gas station owners can register their gas station with prices and eventually discounts. Users look for gas stations closest to them and with best prices and quality of service."}
+  
+  \textbf{1. Stakeholder}
+  \textbf{Users}: 
+  \begin{itemize}
+    \item Person looking for a gas station;
+    \item Owner of the gas station;
+    \item Workers of the gas station;
+  \end{itemize}
+  \textbf{Administrator}:
+  \begin{itemize}
+    \item App database(s) administrator;
+    \item Local gas station administrator;
+    \item Money transaction administrator;
+  \end{itemize}
+  \textbf{Buyers}: 
+  \begin{itemize}
+    \item Local gas station owners;
+  \end{itemize}
+  \textbf{2. Context diagram and interface}
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{context-diagram-ezgas.png}
+    \caption{Context Diagram EZGas}
+    \label{fig:context-diagram-ezgas}
+  \end{figure}
+  \begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|}
+      \hline
+      \textbf{Actor} & \textbf{Physical Interface} & \textbf{Logical Interface} \\
+      \hline
+      User & Smartphone, Internet & GUI \\
+      \hline
+      Administrator & Screen, Keyboard & GUI, shell \\
+      \hline
+      Payment System & Internet & API \\
+      \hline
+      Geolocation System & Internet & API \\
+      \hline
+      Local/Global Database & Keyboard, Internet & shell, API \\
+      \hline
+    \end{tabular}
+    \caption{Interface Table}
+  \end{table}
+  \textbf{3. Functional Requirements}
+  \begin{table}[H]
+    \centering
+    \begin{tabular}{|l|l|}
+      \hline
+      f1 & user authentication \\
+      \hline
+      f1.1 & use authentication token \\
+      \hline
+      f1.2 & register unregistered users \\
+      \hline
+      f1.3 & create new account \\
+      \hline
+
+      f2 & search gas station \\
+      \hline
+      f2.1 & choose search options \\
+      \hline
+      f2.1.1 & closest gas station \\
+      \hline
+      f2.1.2 & best price gas station \\
+      \hline
+      f2.1.3 & closest/best price mix gas station \\
+      \hline
+      f2.2 & select fuel kind \\
+      \hline
+      f2.3 & select most green company \\
+      \hline
+
+      f3 & user becoming gas station owner \\
+      \hline
+      f3.1 & user can add his owned gas station \\
+      \hline
+      f3.1.1 & user can add discount \\
+      \hline
+      f3.1.2 & user can remove discount \\
+      \hline
+      f3.1.3 & user can modify gas prices \\
+      \hline
+      f3.1.4 & user can modify gas kinds \\
+      \hline
+      f3.2 & user pays periodical fee \\
+      \hline
+    \end{tabular}
+  \end{table}
+  \textbf{5. Table of rights}
+  \begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|c|c|c|c|}
+      \textbf{Actor} & User & Admin & Local DB & Global DB & Payment & Geolocation
+
+    \end{tabular}
+  \end{table}
+\end{example}
+
+
+\begin{example}{Robotic Vaccum Cleaner}{robotic-vaccum-cleaner}
+  \emph{"Since several years robotic vacuum cleaners (RVC) are available. An RVC is capable of cleaning the floors of a house in autonomous mode. 
+An RVC system is composed of the robot itself and a charging station. The charging station is connected to an electric socket in the house, and allows charging the battery on board of the robot.
+The robot itself is composed of mechanical and electric parts, a computer, and sensors. One infrared sensor in the frontal part recognizes obstacles, another infrared sensor always on the frontal part recognizes gaps (like a downhill staircase). A sensor on the battery reads the charge of the battery. The computer collects data from the sensors and controls the movement of four wheels. Another sensor on one of the wheels computes direction and distance travelled by the robot.
+Finally, on top of the robot there are three switches: on-off, start, learn. 
+The learn button starts a procedure that allows the robot to map the space in the house. With a certain algorithm the robot moves in all directions, until it finds obstacles or gaps, and builds an internal map of this space. By definition the robot cannot move beyond obstacles, like walls or closed doors, and beyond gaps taller than 1 cm. 
+The starting point of the learn procedure must be the charging station. When the map is built the robot returns to the charging station and stops. 
+The start button starts a cleaning procedure. The robot, starting from the charging station, covers and cleans all the space in the house, as mapped in the ‘learn’ procedure.
+In all cases when the charge of the battery is below a certain threshold, the robot returns to the charging station. When recharged, the robot completes the mission, then returns to the charging station and stops."}
+  
+  \textbf{Business Model:}
+  \begin{itemize}
+    \item Private Company;
+    \item Customers buy the RVC;
+    \item Customers can bring RVC to assistance;
+    \item Expert Customers can buy spare parts;
+  \end{itemize}
+  \textbf{1. Stakeholders:}
+  \begin{itemize}
+    \item Users:
+      \begin{itemize}
+        \item Customers;
+        \item Technicians;
+      \end{itemize}
+    \item Administrators:
+      \begin{itemize}
+        \item Firmware administrator;
+        \item Components administrator;
+      \end{itemize}
+    \item \textbf{Buyers:}
+      \begin{itemize}
+        \item Customer;
+        \item Components Companies;
+      \end{itemize}
+  \end{itemize}
+  \textbf{2. Context Diagram:}
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.3\textwidth]{rvc-context-diagram.png}
+    \caption{RVC Context Diagram}
+    \label{fig:rvc-context-diagram}
+  \end{figure}
+  \begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|}
+      \hline
+      \textbf{Actor} & \textbf{Physical Interface} & \textbf{Logical Interface} \\
+      \hline
+      Customer & Smartphone & GUI, USB \\
+      \hline
+      Administrator & Keyboard & shell \\
+      \hline
+    \end{tabular}
+  \end{table}
+  \textbf{3. Functional Properties:}
+  \begin{table}[H]
+    \centering
+    \begin{tabular}{|l|l|}
+      \hline
+      f1 & perform action \\
+      \hline
+      f1.1 & start/stop learning \\
+      \hline
+      f1.2 & start/stop cleaning \\
+      \hline
+      f1.3 & start/stop charging \\
+      \hline
+      f1.4 & return to charging station \\
+      \hline
+      f1.5 & return to previous action \\
+      \hline
+
+      f2 & firmware update \\
+      \hline
+      f3 & firmware modifications \\
+      \hline
+      f4 & factory reset \\
+      \hline
+
+      f5 & read data from sensors \\
+      \hline
+    \end{tabular}
+  \end{table}
+
+
+  
+\end{example}
 
 
 
@@ -114,6 +303,7 @@ The context diagram tells what is the focus of the requirements. The context dia
 
 
 
+\newpage
 \section{Git}
 Git uses distributed CMS (Content Management System) to provide version control of a project, using the concept of snapshots which allows developers to work concurrently on a single project, other than that git also has integrity with a checksum and instead of storing whole files it just stores the \textbf{delta} of the changed file (a delta represent the changes in a file based on base file). Basic git concepts:
 \begin{itemize}
@@ -143,9 +333,9 @@ Git basic commands:
 \end{itemize}
 Every commit points to a tree which contains a list of modified files, it's possible to reach the \textbf{blob} of the changes made to that file via a pointer, every commit is linked to the previous one. The last commit of the current working branch is called \textbf{HEAD}, every HEAD points to a branch that we last commit to. If we want to switch branch we need to check out the branch, and the HEAD will change which branch it is pointing to. If there are many branches we want to bring the changes of a branch to our current one, we need to use \texttt{git checkout other-branch}, when merging two branches some \textbf{conflict} can be created, when this happens the changes need to solved by hand, in other case git is able to fix them on his own.
 
-Other than merge there is also \textbf{rebase}, which is a bit different that merge, it tries to rewrite the history of the branch we are rabasing to and to commit all our changes to the last commit. The difference between merge and rebase, is the rebase it creates a linear commit history, while merge is keeps trak of every commit where done in different branches.
+Other than merge there is also \textbf{rebase}, which is a bit different that merge, it tries to rewrite the history of the branch we are rebasing to and to commit all our changes to the last commit. The difference between merge and rebase, is the rebase it creates a linear commit history, while merge is keeps track of every commit where done in different branches.
 \begin{itemize}
-  \item \texttt{\$ git reabase -i HEAD\sim4}:
+  \item \texttt{\$ git rebase -i HEAD$\sim$4}:
     \begin{itemize}
       \item -i $ \implies$ interactive mode
       \item $\sim$ 4 $ \implies$ number of commits we want to target;
