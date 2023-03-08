@@ -48,15 +48,84 @@ Ho voglia di piangere
 \end{example}
 
 \subsection{Symmetric Cryptography}
-A symmetric cyryptosystem $\Pi$ consist of three algorithms:
+A symmetric cryptosystem $\Pi$ consist of three algorithms:
 \begin{itemize}
   \item Decryption
   \item Encryption
   \item Generation
 \end{itemize}
 \begin{definition}{IND-secure}{ind-secure}
-  A system $\Pi$ can be defined \textbf{IND-secure} if, given two plaintext as inputs $(P_0, P_1)$ to $\Pi$ and by randomly choosing one of them, there is no better chance of $0.5$ to determine whether the ciphertext was generated from $P_0$ or $P_1$.
+  A system $\Pi$ can be defined \textbf{IND-secure} if, given two plain-text as inputs $(P_0, P_1)$ to $\Pi$ and by randomly choosing one of them, there is no better chance of $0.5$ to determine whether the ciphertext was generated from $P_0$ or $P_1$.
 \end{definition}
+
+
+
+
+\section{Randomness}
+In mathematics there is no definition for randomness, in a paper published by Lehmer (1951) tries to give an idea of what random numbers can be: \emph{"A pseudo-random is a vague notion embodying the idea of a sequence in which each term is unpredictable and whose digits pass a certain test"}. One the methods involving random number is the \textbf{Monte Carlo} used, for example, in the computation of differential equation or the computation of $\pi$.
+
+By Lehmar one way of computing a sequence is:
+\[ u_n = f(u_{n-1}, u_{n-2}, \dots, u_{n-k}); \]
+By using recursion it's possible to get the next number.
+\begin{definition}{Lehmar Generator}{lehmar-generator}
+  \begin{align*}
+    & s_0 = \text{seed} \\
+    & s_{i+1} \equiv a \cdot s_i + b \pmod{m}, i \in \mathbb{N}
+  \end{align*}
+\end{definition}
+\begin{example}{rand() in ANSI C}{rand-in-ansi-c}
+  \begin{align*}
+    & s_0 = 12345 \\
+    & s_{i+1} \equiv 1103515245 \cdot s_i + 12345 \pmod{2^{31}}, i \in \mathbb{N}
+  \end{align*}
+\end{example}
+\begin{definition}{Pseudo Random Generator Function}{pseudo-random-generator-function}
+  Where: $\mathbb{Z}_2 = {0, 1}$, which is a binary number, $\mathbb{Z}_2^{m} = [{0,1},\dots,{0,1}]$ is sequence of bits.
+
+  PRNG is defined as:
+  \[ G: \mathbb{Z}_2^{n} \rightarrow  \mathbb{Z}_2^{l(n)}, l(n) > n \text{(expansion factor)} \]
+  Such that no adversary can succeed with probability $> 1/2$ if: given a sequence of random numbers that the cryptographer has, by flipping a coin he sends to the adversary:
+  \begin{itemize}
+    \item 0: sends a sequence $\mathbb{Z}_2^{l(n)}$ of random bits;
+    \item 1: sends a sequence $\mathbb{Z}_2^{l(n)}$ of bits created with $G$, staring from $\mathbb{Z}_2^{n}$ random bits;
+  \end{itemize}
+  If the adversary can guess with probability $> 1/2$ if $G$ function is used then $G$ is \textbf{IND-secure}.
+\end{definition}
+
+
+
+
+\subsection{Stream Cipher}
+There are two operation modes with stream cipher:
+\begin{itemize}
+  \item \textbf{synchronized mode}:
+  \item \textbf{unsynchronized mode}:
+\end{itemize}
+
+\begin{definition}{Concatenation}{concatenation}
+  \begin{align*}
+    Enc_k(m_j) &= \text{bits of }IV_j || G(k, IV_j, 1^{|m_j|}) \\
+    & <IV_j, G(k, IV_j, 1^{|m_j|}) \bitsetXor m_j>
+  \end{align*}
+  $1^{|m_j|}$ = unary notation, it means passing the length of the sequence of bits (it interpreted in base 1, which means that there are as much 1s as the length of the bits required).
+\end{definition}
+
+
+\subsection{Linear Feedback Shift Register}
+In order to construct the bit stream, let's say there are $m$ registers which contain a single bit, at every clock the next bit of the key stream is extracted from the last register, also at every clock every register is shifted to the left. When shifting there is feedback loop that, when shifting, computes the next value of the initial register. One way of accomplishing this is using the \textbf{Fibonacci LFSR}.
+
+The output is computed by:
+\[ s_m = f(\vv{s}) = \sum_{j=0}^{m-1} s_j \cdot p_j \]
+The coefficients are called \textbf{taps}, they resemble the way a tap opens or closes.
+
+If we have LFSR 
+
+
+
+
+
+
+
 
 
 
@@ -86,15 +155,6 @@ EVP_CHIPER *c = EVP_bf_cbc();
 
 
 
-\section{IND-experiment}
-...
-
-
-\textbf{Frequency analysis} is a technique that allows to attach to a letter a frequency (different for each language), ...
-
-
-\section{cpa-ind goal}
-the cpa is one the possible attacks
 
 
 
