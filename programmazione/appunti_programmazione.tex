@@ -320,6 +320,48 @@ fn main() {
 \end{lstlisting}
 In questo caso il valore l'ownership del valore puntato da \texttt{r} passa la sua ownership a \texttt{b} che si trova nel \texttt{main}, quando il \texttt{main} termina e la vita di \texttt{b} finise il valore puntato viene anch'esso liberato.
 
+I \textbf{Puntatori nativi} sono \texttt{*const T} e \texttt{*mut T}, il \texttt{*} indica un puntatore nativo e possono essere utilizzati solo nei blocchi \texttt{unsafe { ... }}.
+
+Rust supporta nativamente anche gli \textbf{array}, in rust gli array sono composti da dati omogenei allocati contiguamente nello stack. Si possono inizializzare nel seguente modo:
+\begin{lstlisting}[language=rust]
+let a: [i32; 5] = [1, 2, 3, 4, 5];
+let b = [0; 5];     // array lungo 5, inizializzato a 0
+\end{lstlisting}
+In rust gli array hanno la conoscenza di quanto sono lunghi. Se si cerca di accedere ad indice fouri dal range di utilizzo rust fa \texttt{panic}, se \texttt{panic} viene lanciato in nel thread principale il programma termina, se viene lanciato in un altro thread viene terminato il thread. Per accedere all'array si utilizzano gli \textbf{Slice} (invece di utilizzare i puntatori), che vengono creati come riferimento ad una porzione di un array:
+\begin{lstlisting}[language=rust]
+let a = [1, 2, 3, 4];
+let s1: &[i32]  = &a; // s1 contiene 1, 2, 3, 4
+let s2 = &a[0..2]     // s2 contiene 1, 2
+let s3 = &a[2..]      // s3 contitne 3, 4
+\end{lstlisting}
+Per questa sua natura viene detto \textbf{fat pointer}, perch\`e oltre a contenere il puntatore contiene anche la lunghezza. Come nel caso degli array se si va al di fuori del range viene generato un \texttt{panic}.
+
+Il problema degli array \`e che quando vengono creati con una dimensione, questa rimane fino alla del loro lifetime, un array variabile pu\`o essere creato con \texttt{Vec<T>} che rappresenta una sequenza di oggetti di tipo \texttt{T}, al contrario degli array gli oggetti presenti in \texttt{Vec} sono allocati nell'heap.
+\begin{lstlisting}[language=rust]
+fn useVec() {
+  let mut v: Vec<i32> = Vec::new();
+
+  v.push(2);
+  v.push(4);
+
+  let s = &mut v;
+  s[1] = 8;
+}
+\end{lstlisting}
+Quando viene inizializzato \texttt{Vec} nello stack vengono inseriti 3 parametri: pointer, size, capacity. Appena viene fatto push viene allocata della memoria nell'heap, e i parametri size e capacity vengono aggiornati. Se vuole creare uno slice \texttt{s}, nello stack viene messo un fat pointer, ovvere il puntatore all'heap ed il size corrente. Quando \texttt{Vec<T>} viene inizialmente inizializzato, nel campo puntatore viene inserito l'allinemento che il tipo \texttt{T} dovr\`a avere in memoria.
+
+Lo stesso discorso fatto per i \texttt{Vec} vale per gli oggetti di tipo \texttt{String}. Quando si crea una stringa tra le virgolette viene creato un \texttt{\&str} e non una \texttt{String}, questo dato andr\`a inserito nella sezione del programma dei \emph{dati inizializzati}, al contrario delle \texttt{String} queste non modificabili, se si vuole utilizzare una stringa si utilizza \texttt{"...".as\_str()}, che ritorna uan stringa allocata nell'heap.
+\begin{lstlisting}[language=rust]
+fn main() {
+  let hello: &str = "hello";
+
+  let mut s = String::new();    // il valore (futuro) puntato da s viene allocato nell'heap
+
+  s.push_str(hello);            // l'heap viene inizializzato una capacita' ed un size uguale al size della stringa puntata da "hello"
+  s.push_str(" world!");
+}
+\end{lstlisting}
+
 
 
 
