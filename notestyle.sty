@@ -8,6 +8,7 @@
 \RequirePackage{amsmath}
 \RequirePackage{amssymb}
 \RequirePackage{amsfonts}
+\RequirePackage{amsthm}
 
 \RequirePackage{graphicx}
 \RequirePackage{wrapfig}
@@ -135,39 +136,11 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-% color definitions
-\definecolor{codegreen}{rgb}{0,0.6,0}
-\definecolor{codegray}{rgb}{0.5,0.5,0.5}
-\definecolor{codepurple}{rgb}{0.58,0,0.82}
-\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
-
-
-% code style
-\lstdefinestyle{mycodestyle}{
-    backgroundcolor=\color{backcolour},
-    commentstyle=\color{codegreen},
-    keywordstyle=\color{magenta},
-    numberstyle=\tiny\color{codegray},
-    stringstyle=\color{codepurple},
-    basicstyle=\ttfamily\footnotesize,
-    breakatwhitespace=false,
-    breaklines=true,
-    captionpos=b,
-    keepspaces=true,
-    numbers=left,
-    numbersep=5pt,
-    showspaces=false,
-    showstringspaces=false,
-    showtabs=false,
-    tabsize=2
-}
-
-\lstset{style=mycodestyle}
 
 \RequirePackage{color}
 \RequirePackage{listings}
 
-\lstdefinelanguage{Rust}{%
+\lstdefinelanguage{rust}{%
   sensitive%
 , morecomment=[l]{//}%
 , morecomment=[s]{/*}{*/}%
@@ -237,3 +210,30 @@
 , rulecolor=\color[gray]{0.90}%
 }
 
+% color definitions
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+
+% code style
+\lstdefinestyle{mycodestyle}{
+    style=colouredRust,%
+    backgroundcolor=\color{backcolour},%
+    keywordstyle=\color{magenta},%
+    numberstyle=\tiny\color{codegray},%
+    basicstyle=\ttfamily\footnotesize,%
+    breakatwhitespace=false,%
+    breaklines=true,%
+    captionpos=b,%
+    keepspaces=true,%
+    numbers=left,%
+    numbersep=5pt,%
+    showspaces=false,%
+    showstringspaces=false,%
+    showtabs=false,%
+    tabsize=2%
+}
+
+\lstset{style=mycodestyle}
