@@ -362,8 +362,44 @@ fn main() {
 }
 \end{lstlisting}
 
+In rust le keyword \texttt{let} e \texttt{let mut} sono delle istruzioni, mentre un blocco racchiuso tra \texttt{{ ... }} \`e un espressione e quindi ha un valore di ritorno, anche il costrutto \texttt{if} \`e un espressione, \textbf{il valore viene ritornato a patto che l'ultima istruzione del blocco non abbia un punto e virgola}. Si pu\`o asseganre un etichetta con \texttt{'<nome-etichetta>:} ad un espressione per poter specificare il ritorno:
+\begin{lstlisting}[language=rust]
+fn main() {
+  'outer: loop {
+    'inner: loop {
+      //...
+      continue 'outer;
+    }
+  }
+}
+\end{lstlisting}
+
+Per leggere gli argomenti passati da linea di comando si utilizza:
+\begin{lstlisting}[language=rust]
+fn main() {
+  let args: Vec<String> = args().skip(1).collect();
+
+}
+\end{lstlisting}
+Si pu\`o utilizzare la libreria \texttt{clap} per fare il parsing degli argomenti. per farlo si pu\`o andare nel file \texttt{.toml} ed inserire la dipendenza.
 
 
+Per fare IO da console si utilizza \texttt{stdin}:
+\begin{lstlisting}[language=rust]
+fn main() {
+  let mut s = String::new();
+
+  if io:stdin().read_line(&mut s).is_ok() {
+    println!(..., s.trim());
+  } else {
+    println!("Faile!");
+  }
+
+  // Oppure...
+  io::stdin().read_line(&mut s).unwrap();
+  println!(..., s.trim());
+}
+\end{lstlisting}
 
 
 
