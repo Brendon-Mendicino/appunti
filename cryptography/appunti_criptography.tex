@@ -73,12 +73,14 @@ By using recursion it's possible to get the next number.
     & s_{i+1} \equiv a \cdot s_i + b \pmod{m}, i \in \mathbb{N}
   \end{align*}
 \end{definition}
+\hfill
 \begin{example}{rand() in ANSI C}{rand-in-ansi-c}
   \begin{align*}
     & s_0 = 12345 \\
     & s_{i+1} \equiv 1103515245 \cdot s_i + 12345 \pmod{2^{31}}, i \in \mathbb{N}
   \end{align*}
 \end{example}
+\hfill
 \begin{definition}{Pseudo Random Generator Function}{pseudo-random-generator-function}
   Where: $\mathbb{Z}_2 = {0, 1}$, which is a binary number, $\mathbb{Z}_2^{m} = [{0,1},\dots,{0,1}]$ is sequence of bits.
 
@@ -118,7 +120,43 @@ The output is computed by:
 \[ s_m = f(\vv{s}) = \sum_{j=0}^{m-1} s_j \cdot p_j \]
 The coefficients are called \textbf{taps}, they resemble the way a tap opens or closes.
 
-If we have LFSR 
+It's possible to represent the state of the flip-flops at every clock cycle using a matrix:
+\[ \vv{L} = \left[ \begin{matrix}
+  p_{m-1} & 1 & 0 & \dots & 0 \\
+  p_{m-2} & 0 & 1 & \dots & 0 \\
+  \vdots & \vdots & \vdots & \ddots & \vdots \\
+  p_1 & 0 & 0 & \dots & 1 \\
+  p_0 & 0 & 0 & \dots & 0
+\end{matrix} \right]
+\]
+The registers have all possible state of $2^{m}$, after some time ($2^{m}-1$) that the $\vv{L}$ matrix is applied, there will come a state such that the sequence of the bits start to loop, the reason is that the set is finate.
+
+\hfill
+
+Let's image to use the LFSR to generate a cryptographic algorithm: we have a message n-bit long, and the ciphertext is the xor with the sequence produced by the LFSR, the key is shared and contains the initial state of the flip-flop the caracteristic polynomial. But this can be easily broken: the attacker uses KPA (assuming that he knows a segment of the cleartext), from this information he can recover the key. Let's assume $m=3$, and the key is $k=(\vv{p})$:
+\[
+  \begin{system} 
+    s_3 = s_2 p_2 + s_1 p_1 + s_0 p_0 \\
+    s_4 = s_3 p_2 + s_2 p_1 + s_1 p_0 \\
+    s_5 = s_4 p_2 + s_3 p_1 + s_2 p_0
+  \end{system} 
+\]
+Where $\vv{p}$ is the unknown variable, this linear equation can be easily solved, to get $s_i$ the attacker knows some part of the cleartext, and he can extract them by $c_i \oplus x_i$, where $x_i$ is known part of the cleartext and the attacker knows \emph{at least} $2m$ consecutive bits.
+
+LFSR should not be used in cryptography but in the past people used a combinations of this generators, called \textbf{Geffe Generator}, but also with this kind of generator a KPA is possible.
+
+
+\subsubsection{Galois LSFR}
+The difference with the Fibonacci one is that in this case there are polynomial multiplications. The state of the flip-flop represent a polynomial. The state is:
+\[ s(x) = g_0 + g_1x + \dots + g_{m-1}x^{m-1} \]
+The reason why polynomials are used is that Galois theory is used in many algorithms.
+
+
+
+\subsection{Permutation}
+A permutation is defined as function such that:
+\[ f: \mathbb{Z}_2^n \rightarrow \mathbb{Z}_2^n \]
+...
 
 
 
@@ -129,6 +167,10 @@ If we have LFSR
 
 
 
+
+
+
+\newpage
 \section{Openssl}
 Openssl has two versions 1.x and 3.x and 1.x will be dropped soon, but many applications still use it. The low level software implementations of the algorithm was a big mess, so a layer was created on top of it called \emph{EVP Crypto API}, that just takes in the parameters and does a translation handling all the data.
 

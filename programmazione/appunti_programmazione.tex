@@ -403,6 +403,102 @@ fn main() {
 \end{lstlisting}
 
 
+\subsection{Ownership}
+Il concetto dell'ownership in rust permette al \textbf{borrow checker} di controllare l'utilizzo corretto dei puntatori, in rust \emph{un valore pu\`o essere posseduto da una e una sola variabile}, il fallimento di questa condizione comporta ad un fallimento della compilazione. Possere un valore vuol dire \emph{occuparsi del suo rilascio}. Se una variabile mutabile viene riasseganta, ed il valore precedente implementava il tratto \texttt{Drop} esso viene prima liberato e poi avviene l'assegnazione. Quando si fa un assegnazione da una variabile all'altra: \texttt{a = b}, il valore posseduto da \texttt{b} viene spostato in \texttt{a}, questa operazione viene detta \textbf{movimento}, ed il valore non \`e pi\`u accessibile da \texttt{b}, dal punto di vista fisico il movimento \`e una \emph{copia}.
+\begin{lstlisting}[language=rust]
+fn main() {
+  let mut s1 = "hello".to_string();
+  println!("s1: {}", s1);
+
+  let s2 = s1;
+  println!("s2: {}", s2);
+
+  // s1 non e' piu' accessibile
+}
+\end{lstlisting}
+Il movimento \`e il comportamento standard in rust, se per\`o un tipo implementa il tratto \texttt{Copy} quando avviene un'essegnazione entrabe le variabili possono continuare ad accedere al valore, per\`o i tratti \texttt{Copy} e \texttt{Drop} sono mutuamente esclusivi. In generale i tipi copiabili sono i: numeri, booleani, le reference \texttt{\&}, ..., mentre i \texttt{\&mut} non sono copiabili. Il tratto \texttt{Copy} pu\`o essere implementato solo se il tipo implementa il tratto \texttt{Clone}, che permette di fare una clonazione dell'oggetto \textbf{in profodit\`a}, inoltre la clonazione \`e implementata dal compilatore, mentre copia e movimento sono gestite dal compilatore e veine implementata con \texttt{memcpy()}.
+\begin{lstlisting}[language=rust]
+fn main() {
+  let mut s1 = "hi".to_string();
+  let s2 = s1.clone();  // viene creato nello stack una nuova variabile e nell'heap un nuovo valore
+  s1.push('!');
+
+  println!("s1: {}", s1); // hi!
+  println!("s2: {}", s2); // hi
+}
+\end{lstlisting}
+In rust il comportamento di base \`e il movimento, mentre in C l'unico comportamento \`e quello della copia, mentre in C++ si pu\`o copiare e si pu\`o muovere ma questo va scritto esplicitamente.
+\begin{lstlisting}[language=rust]
+struct Test(i32);
+
+impl Drop for Test {
+  fn drop(&mut self) {
+    println!("Dropping Test({}) @ {:p}", self.0, self);
+  }
+}
+
+fn alfa(t: Test) {
+  println!("Invoking alfa() with Test({}) @ {:p}", t.0, &t);
+}
+
+fn main() {
+  let t = Test(12);
+
+  alfa(t);
+
+  println!("Ending...");
+}
+\end{lstlisting}
+Quello che succede in questo caso \`e che il metodo di \texttt{drop()} viene chiamato scritto prima di \texttt{Ending...}, il motivo \`e che \texttt{t} viene mossa all'interno della funzione \texttt{alfa()}. Quando non si vuole passare la propriet\`a del valore ad una funzione si pu\`o decidere di \textbf{prestarglielo}, se si vuole fare ci\`o l'argomento della funzione deve essere una reference.
+\begin{lstlisting}[language=rust]
+fn alfa(t: &Test) {
+  println!("Invoking alfa() with Test({}) @ {:p}", t.0, t);
+}
+
+fn main() {
+  let t = Test(12);
+
+  alfa(&t);
+
+  println!("Ending...");
+}
+\end{lstlisting}
+Se si vuole modificare il valore all'interno della funzione si cambiare la firma in: \texttt{fn alfa(t: \&mut Test)}.
+
+\hfill
+
+In rust i riferimenti permettono il prestito dei valori di una variabile in solo scrittura, mentri i riferimenti mutabili permettano lettura e scrittura, ma se viene prestato la variabile originale non pu\`o leggere.
+% TODO:  <10-03-23, yourname> mettere immagine %
+A differenza del tipo di dato che si maneggia, si possono avere 3 tipi di puntatori: \textbf{reference}, \textbf{fat pointer}, \textbf{double pointer}. Quando il compilare ha tutte le informazioni sul tipo di dato ho bisogno di una reference semplice, se tuttavia non \`e in grado di inferire tutti i dati ricorre ad un \emph{fat pointer} (come nelle slice), che contiene il puntatore all'oggetto e la dimensione dell'oggetto. Nel caso di un tipo che contiene delle implementazioni, viene usato un double pointer, dove il primo punta all'oggetto, ed il secondo punta alla \textbf{vtable}, questa \`e una tabella che contiene i puntatori alle funzioni che vengono implementati per un tratto, ed esiste una vtable per ogni tratto implementato.
+\begin{lstlisting}[language=rust]
+let f: File = File::create("text.txt");
+let r3: &dyn Write = &f;   // double pointer
+\end{lstlisting}
+Il borrow checker garantisce che tutti gli accessi ad un riferimento avvengano solo all'interno di una \textbf{lifetime}, in alcuni casi il complilatore non \`e in grado di fare l'infering della lifetime, per assegnare una lifetime ad un riferimento si utilizza la sintassi:
+\begin{lstlisting}[language=rust]
+&'a Type
+\end{lstlisting}
+L'unico nome riservato \`e \texttt{\&'static Type}, questo vuol dire che la lifetime di quella reference sopravvive per l'intera durata del programma.
+
+\subsection{Slice}
+Uno slice \`e una vista su una sequenza contigua di elementi, gli slice in queanto riferimento non possiedono il valore, oltre ad essere dei fat pointer.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
