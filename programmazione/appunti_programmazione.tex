@@ -189,7 +189,7 @@ Con \textbf{memoria virtuale} si indica che delle pagine esistono solo virtualem
 
 \newpage
 \section{Rust}
-Rust \`e un linguaggio di programmazione moderno, che non permette di avere undefined behaveiur e soprottuto \`e u \textbf{statically strongly typed}, inlotre \`e capaci di inferire i tipi di dati. Rust inoltre fornisce delle \emph{astrazioni a costo nullo}, rust \`e anche \emph{interoperabile} con C. La memoria in rust \`e gestita dal programmatore solo in parte, il motivo \`e che il complilatore forza il programmatore a scrivere del codice senza errori. Esempio di \textbf{dangling pointer} in C.
+Rust \`e un linguaggio di programmazione moderno, che non permette di avere undefined behaveiur e soprottuto \`e un linguaggio \textbf{statically strongly typed}, inlotre \`e capace di inferire i tipi di dati in modo molto potente. Rust fornisce delle \emph{astrazioni a costo nullo}, ed \`e anche \emph{interoperabile} con C. La memoria in rust \`e gestita dal programmatore solo in parte, il motivo \`e che il complilatore forza il programmatore a scrivere del codice senza errori, ed il compilatore si occupa di effettuare la gestione della memoria. Esempio di \textbf{dangling pointer} in C.
 \begin{lstlisting}[language=c]
 typedef struct Dummy { int a; int b; } Dummy;
 
@@ -198,11 +198,11 @@ void foo(void) {
   Dumyy *alias = ptr;
   ptr->a = 2048;
   free(ptr);
-  alias->b = 25;
+  alias->b = 25;  // WARNING!!
   free(alias);
 }
 \end{lstlisting}
-Rust previene:
+Grazie alle feature di rust si possono prevenire:
 \begin{itemize}
   \item \textbf{dangling pointers}
   \item \textbf{doppi rilasci}
@@ -211,9 +211,9 @@ Rust previene:
   \item \textbf{iteratori invalidi}
   \item \textbf{overflow aritmetici}
 \end{itemize}
-Inoltre rust propone delle convenzioni per aiutare il programmatore.
+Inoltre rust propone delle convenzioni per aiutare il programmatore ad avere del codice ideomatico.
 
-Rust parte dall'assunzoine che un valore pu\`o essere \textbf{posseduta} da una singola variabile, se la variabile esce al di fuori del suo scope il valore viene deallocato. Quando si fanno delle assegnazioni l'\textbf{ownership} viene anche trasferito alla variabile assegnata, inoltre \`e anche possibile \textbf{dare in presetito} (\textbf{borrow}), queste idee sono alla base della sicurezza di Rust. I puntatore sono tutti controllati in fase di compilazione, oltre all'\textbf{ownership} ogni puntatore ha un \textbf{tempo di vita} (\textbf{lifetime}), tutti gli accessi al di fuori della lifetime sono negati dal compilatore, in alcuni non pu\`o essere fatto l'infering della lifetime e questo andr\`a specificato esplicitamente. La \textbf{sicurezza dei thread} \`e incorporata nel sistema dei tipi e anch'essi hanno una lifetime. Rust inoltre non ha stati nascosti, come in java con le eccezioni.
+Rust parte dall'assunzoine che un valore pu\`o essere \textbf{posseduto} da una singola variabile, se la variabile esce al di fuori del suo scope il valore viene deallocato. Quando si fanno delle assegnazioni l'\textbf{ownership} del valore viene trasferito alla variabile alla quale \`e stata fatto l'assegnazione, inoltre \`e anche possibile \textbf{dare in presetito} (\textbf{borrow}) un valore; l'insieme di queste idee sono alla base della sicurezza che fornisce Rust. I puntatori sono tutti controllati in fase di compilazione, oltre all'\textbf{ownership} ogni puntatore ha un \textbf{tempo di vita} (\textbf{lifetime}), tutti gli accessi al di fuori della lifetime sono negati dal compilatore, in alcuni casi non pu\`o essere fatto l'infering della lifetime e questo andr\`a specificato esplicitamente usando la notazione \texttt{<'...>}. La \textbf{sicurezza dei thread} \`e incorporata nel sistema dei tipi e anch'essi hanno una lifetime. Rust inoltre non ha stati nascosti, come in java con le eccezioni.
 
 I due strumenti per gestire l'ambiente di sviluppo in rust sono:
 \begin{itemize}
@@ -235,8 +235,6 @@ Terminologia in rust:
   \item \textbf{module}: il progetto \`e organizzato in \emph{moduli}, se si crea un modulo come cartella il file .rs andr\`a nominato \texttt{mod.rs}, all'interno possono essere presenti moduli interni;
   \item \textbf{package}: 
 \end{itemize}
-
-
 Come in kotlin i blocchi condizionali hanno dei valori di ritorno. In rust non esiste l'eriditarit\`a, per\`o esistono i \textbf{trait}, che sono simili alle interfacce, offrendo la possibilit\`a di poter implementare dei metodi, ad esempio alcuni di questi sono \texttt{Display} e \texttt{Debug}, ogni tipo pu\`o implementare pi\`u tratti.
 
 I tipi elementari di rust sono:
@@ -248,17 +246,21 @@ I tipi elementari di rust sono:
   \item caratteri: \texttt{char} (32 bit, rappresentazione \textbf{Unicode})
   \item unit: \texttt{()} rappresenta una tupla di 0 elementi, corrisponde a \texttt{void} in C/C++
 \end{itemize}
-Per rappresentare le stringhe invece si use la codifica \texttt{utf-8}, che codifica i caratteri unicode in blocchi di 8 bit, la codifica utilizza la maggior parte dei primi 8 bit come caratteri standard, se si vogliono usare simboli pi\`u strani si combina un byte con il successivo, se il carattere \`e ancora pi\`u raro si utilizzano pi\`u byte, fino ad arrivare a 4.
+Per rappresentare le stringhe invece si use la codifica \texttt{utf-8}, che codifica i caratteri unicode in blocchi di 8 bit, la codifica utilizza la maggior parte dei primi 8 bit come caratteri standard, se si vogliono usare simboli pi\`u strani si combina un byte con il successivo, se il carattere \`e ancora pi\`u raro si utilizzano pi\`u byte, fino ad arrivare a 4. 
 
-Una tupla \`e una struttura che permette di contenere pi\`u tipi di valori, per accedere alla posizione corrispondente si utilizza la notazoine \texttt{.<numero>}.
+\hfill
 
-Rust ha un meccanismo al suo interno per rappresentare i puntatori, infatti quando viene creato un valore in una funzione si pu\`o decidere di passare la propri\`a di questo alla funzione chiamante, che poi ha la responsabilit\`a di liberla oppure di passare ancora il possesso, in rust esistono tre tipi di puntatori:
+Una \textbf{tupla} \`e una struttura che permette di contenere pi\`u tipi di valori, per accedere alla posizione corrispondente si utilizza la notazoine \texttt{<variabile>.<numero>}.
+
+\hfill
+
+Rust ha un meccanismo al suo interno per rappresentare i puntatori, infatti quando viene creato un valore in una funzione si pu\`o decidere di passare l'ownership alla funzione chiamante, che poi ha la responsabilit\`a di liberla oppure di passare ancora l'ownership, in rust esistono tre tipi di puntatori:
 \begin{itemize}
   \item \textbf{reference};
   \item \textbf{box};
   \item \textbf{native pointer};
 \end{itemize}
-Per utilizzare i puntatori nativi (che sono gli stessi del C), possono essere solo utilizzati in un blocco \texttt{unsafe { ... }}.
+L'utilizzo dei puntatori nativi (che sono gli stessi del C), \`e possibile solo in un blocco \verb|unsafe { ... }|.
 
 Le \textbf{reference} sono puntatori senza possesso e possono essere assegnati con \texttt{\&}:
 \begin{lstlisting}[language=rust]
@@ -361,7 +363,6 @@ fn main() {
   s.push_str(" world!");
 }
 \end{lstlisting}
-
 In rust le keyword \texttt{let} e \texttt{let mut} sono delle istruzioni, mentre un blocco racchiuso tra \texttt{{ ... }} \`e un espressione e quindi ha un valore di ritorno, anche il costrutto \texttt{if} \`e un espressione, \textbf{il valore viene ritornato a patto che l'ultima istruzione del blocco non abbia un punto e virgola}. Si pu\`o asseganre un etichetta con \texttt{'<nome-etichetta>:} ad un espressione per poter specificare il ritorno:
 \begin{lstlisting}[language=rust]
 fn main() {
@@ -389,10 +390,10 @@ Per fare IO da console si utilizza \texttt{stdin}:
 fn main() {
   let mut s = String::new();
 
-  if io:stdin().read_line(&mut s).is_ok() {
+  if io::stdin().read_line(&mut s).is_ok() {
     println!(..., s.trim());
   } else {
-    println!("Faile!");
+    println!("Failed!");
   }
 
   // Oppure...
