@@ -291,10 +291,69 @@ In all cases when the charge of the battery is below a certain threshold, the ro
       \hline
     \end{tabular}
   \end{table}
-
-
-  
 \end{example}
+
+
+
+\subsection{Glossary}
+The \textbf{glossary} or \textbf{conceptual diagram} with \textbf{UML class diagram}, is a way to describe the objects of our system processing. Thanks to UML (\emph{Unified Modeling Language}) it's possible the relationships between the various objects. UML has many characteristics, some of which are:
+\begin{itemize}
+  \item The Object is the \textbf{Model} of an item.
+  \item \textbf{Class} is the descriptor of a set of items that can be grouped toghether.
+  \item Classes can be \textbf{associated} togheter.
+\end{itemize}
+Before starting the project with UML it is import to define what are his context, e.g.:
+\begin{itemize}
+  \item model of concepts (glossary);
+  \item model of system (system design);
+  \item model of software classes;
+\end{itemize}
+\emph{It's always important to minimize the number of classes.}
+
+When links are formed between classes there can multiplicity of the nubmer of classes dependent:
+\begin{itemize}
+  \item \texttt{1}
+  \item \texttt{0..1}
+  \item \texttt{0..n}
+  \item \texttt{1..n}
+  \item \texttt{m..n}
+\end{itemize}
+The \textbf{role} is how what a class represent when it has an association. This comes useful when \textbf{recursive associations} are present.
+
+\textbf{Composition} is indicated with a \emph{diamond} and there are two kinds:
+\begin{itemize}
+  \item when the diamond \textbf{is hollow}, where \emph{the class A which point to B}, means that \emph{A} is part of \emph{B}.
+  \item when the diamond \textbf{is full}, the lifecycle are all associated, if a component dies all the other component die.
+\end{itemize}
+
+\textbf{Generalization} is a way to implement inheritance, the parent class is pointed by a \emph{hollow arrow}. The parent class is a more generalized class, all the attributes of the generalized class are inherited by his children.
+
+
+\begin{example}{University}{university}
+
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{university-uml-diagram.png}
+    \caption{University UML Diagram}
+    \label{fig:university-uml-diagram}
+  \end{figure}
+\end{example}
+
+
+
+\subsection{UML Deployment Diagram}
+The \textbf{deployment diagram} is a way to represent how the system is deployed on the physical hardware.
+
+
+
+
+
+
+
+
+
+
+
 
 
 

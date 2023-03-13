@@ -180,7 +180,71 @@ Sui telefoni non esiste lo swaping, vengono in auito le \textbf{lifecycle dei co
 
 \newpage
 \section{Memoria Virtuale}
-Con \textbf{memoria virtuale} si indica che delle pagine esistono solo virtualemente ma non fisicamente, in questo modo si vuole supportare uno spazio di indirizzamento pi\`u grande dello spazio di indirizzamento fisico. Si parte dalla premessa che \emph{un programma non bisogna di essere tutto in memoria per essere esguito}, si pensa ad un programma parzialmente caricato in memoria, dunque le mamoria di un programma non \`e pi\`u vincolato dalla grandezza della RAM, in questo caso si parla di \textbf{memoria virtuale}. Avere questa memoria virtuale porta una serie di vantaggi che volocizzano tutte le operazioni di IO tra la RAM e la memoria secondaria. La conseguenza \`e che viene introdotta la \textbf{demand paging}, ovvero che un pagina viene caricata solo quando \`e richiesta. Il \textbf{demand paging} \`e molto simile allo swapping, infatti il caso limite \`e il \textbf{lazy swapper} dove inizialmente non si ha nessun frame caricato, e ogni richiesta viene preso un frame.
+Con \textbf{memoria virtuale} si indica che delle pagine esistono solo virtualemente ma non fisicamente, in questo modo si vuole supportare uno spazio di indirizzamento pi\`u grande dello spazio di indirizzamento fisico. Si parte dalla premessa che \emph{un programma non bisogna di essere tutto in memoria per essere esguito}, si pensa ad un programma parzialmente caricato in memoria, dunque le mamoria di un programma non \`e pi\`u vincolato dalla grandezza della RAM, in questo caso si parla di \textbf{memoria virtuale}. Avere questa memoria virtuale porta una serie di vantaggi che volocizzano tutte le operazioni di IO tra la RAM e la memoria secondaria. La conseguenza \`e che viene introdotta la \textbf{demand paging}, ovvero che un pagina viene caricata solo quando \`e richiesta. Il \textbf{demand paging} \`e molto simile allo swapping, infatti il caso limite \`e il \textbf{lazy swapper} dove inizialmente non si ha nessun frame caricato, e ad ogni richiesta viene preso un frame.
+
+
+Quasi tutto il meccansico si basa sul \emph{validity bit}, infatti l'invalid bit pu\`o rappresetnare una pagina che non ha un frame associato, i casi sono due: il frame non esiste proprio, il frame c'\`e ma deve essere recuperato, infatti il programma viene comunque caricato in memoria (backing store), perch\'e lo spazio \`e tanto.
+
+\hfill
+
+Il \textbf{page fault}, \`e una \emph{trap} che viene scatenata quando si cerca di accedere ad una pagina con invalid bit, il processo viene bloccato e da via al sistema operativo, i casi sono due:
+\begin{itemize}
+  \item \textbf{invalid refernce} $ \implies$ abort;
+  \item \textbf{non in memoria}: viene recuperato il frame;
+\end{itemize}
+Il farme viene portato in memoria dal disco, la page table viene aggiornata, viene fatto ripartire il processo. Un caso estremo di esecuzione \`e quella di avere nessuna pagina disponibile e poi caricarle in modo incrementale.
+
+Quanto costa una page fault?
+\begin{enumerate}
+  \item Trap al sistema operativo, vengono salvati tutti i registri e lo stato del processo;
+  \item gestisci l'interrupt;
+  \item l'OS deve verificare che quel frame esiste;
+  \item recupera il frame facendo IO;
+  \item quando si fa il trasferimento, l'OS viene fatto uscire dal processore e un altro processo inizia a girarare;
+  \item viene tirata un eccezione al termine dell'IO;
+\end{enumerate}
+L'IO \`e la parte pi\`u onerosa, per calcolare l'EAT:
+\begin{itemize}
+  \item $p$ = probabilit\`a page fault
+  \item $pfo$ = page fault overhead;
+  \item $spo$ = swap page out;
+  \item $spi$ = swap page in;
+  \item $M$ = memory access
+  \item $EAT = (1-p)\cdot M + p (pfo + spo + spi)$
+\end{itemize}
+\begin{example}{}{}
+  \begin{itemize}
+    \item memory access time = $20ns$;
+    \item avg page-fault service time = $8ms$;
+  \end{itemize}
+
+  Il page fault \`e molto onerso, anche con $p$ molto piccoli i tempi sono comunque molto lenti. L'approccio migliore \`e ottimizzare il tempo del service ed ottimizzare $p$.
+\end{example}
+
+
+\textbf{Copy-on-write} si genera una copia di un frame solo quando uno dei processi decidono di scrivere su un frame, questo approccio viene utilizzato quando viene chiamata una \texttt{fork()}, infatti la pagine dei due processi non venogno copiate ma  sono condivise, solo quando una dei due decide di scrivere la page veien copiata ed ogni processo ha i suoi dati modificati.
+
+\hfill
+
+Che succede se non ci sono frame disponibili? Un processo che richiede una nuova pagina, \textbf{rimpiazza} (\textbf{page replacement}) una pagina non in uso che viene salvata sul disco, \`e possibile rimpiazzare una pagina dello stesso processo o anche di altri processi. Questa caratteristica va aggiunta nella funzione di gestione del page fault all'interno del sistema operativo, in questo caso deve essere aggiunto il \textbf{modify/dirty bit}, per gestire se delle pagine vengono modificate, se una pagina scelta ha il modify bit settato allore il frame ha un valore diverso rispetto rispetto al disco, allora primad i rimpiazzarla deve essere copiata, altrimenti \`e inutile salvare perch\'e tanto si trova gi\`a sul disco.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -300,7 +364,7 @@ Rust \`e in grado di fare l'infer del tipo di \texttt{v} e riesce ad allocare lo
 \begin{lstlisting}[language=rust]
 fn useBox() {
   let i = 4;                      // i si trova nello stack
-  let mub b = Box::new((5, 2));   // *b si trova nell'heap, b si trova nello stack
+  let mut b = Box::new((5, 2));   // *b si trova nell'heap, b si trova nello stack
 
   (*b).1 = 7;
 
@@ -479,6 +543,32 @@ Il borrow checker garantisce che tutti gli accessi ad un riferimento avvengano s
 &'a Type
 \end{lstlisting}
 L'unico nome riservato \`e \texttt{\&'static Type}, questo vuol dire che la lifetime di quella reference sopravvive per l'intera durata del programma.
+
+
+\subsection{Clap}
+\texttt{clap} \`e una libreria di rust che permette di fare il parsing degli argomenti da linea di comando, una implementazione possibile \`e la seguente:
+\begin{lstlisting}[language=rust]
+use clap::Parser;
+
+/// Simple program to greet a person
+#[derive(Parser, Debug)]
+#[command(version, long_about = None)]
+struct Args {
+  /// Name of the person to greet
+  #[arg(short, long)]
+  name: String,
+  /// Number of times to greet
+  #[arg(short, long, default_value_t = 1)]
+  count: u8,
+}
+
+fn main() {
+  let args = Args::parse();
+  for _ in 0..args.count {
+    println!("Hello {}!", args.name)
+  }
+}
+\end{lstlisting}
 
 \subsection{Slice}
 Uno slice \`e una vista su una sequenza contigua di elementi, gli slice in queanto riferimento non possiedono il valore, oltre ad essere dei fat pointer.
