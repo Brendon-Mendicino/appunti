@@ -228,7 +228,39 @@ L'IO \`e la parte pi\`u onerosa, per calcolare l'EAT:
 
 Che succede se non ci sono frame disponibili? Un processo che richiede una nuova pagina, \textbf{rimpiazza} (\textbf{page replacement}) una pagina non in uso che viene salvata sul disco, \`e possibile rimpiazzare una pagina dello stesso processo o anche di altri processi. Questa caratteristica va aggiunta nella funzione di gestione del page fault all'interno del sistema operativo, in questo caso deve essere aggiunto il \textbf{modify/dirty bit}, per gestire se delle pagine vengono modificate, se una pagina scelta ha il modify bit settato allore il frame ha un valore diverso rispetto rispetto al disco, allora primad i rimpiazzarla deve essere copiata, altrimenti \`e inutile salvare perch\'e tanto si trova gi\`a sul disco.
 
+\textbf{Page replacement}, se non esiste un frame libero, si deve scegliere un \textbf{victim frame} da rimpiazzare, quindi oltread i tempi per portare una pagina in memoria si deve anche portare una pagina su disco. \textbf{Algoritmi di Page Replacement}:
+\begin{itemize}
+  \item (il processo per il momento ha un numero fisso di frame), il primo algoritmo si basa su una \textbf{string reference} che indica il numero di pagina che vengono richieste in sequenza da un processo. Viene definita la \textbf{page fault frequency}:
+    \begin{definition}{Page Fault Frequency}{page-fault-frequency}
+      \[ f(A,m) = \sum_{\forall w}^{} p(w) \frac{F(A,m,w)}{len(w)}  \]
+      \begin{itemize}
+        \item $A$ = algoritmo;
+        \item $w$ = string reference;
+        \item $p$ = probability;
+        \item $m$ = number of availably page frames;
+        \item $F$ = number of page fault generated;
+      \end{itemize}
+    \end{definition}
+  \item \textbf{FIFO}: con 3 frames, 
+  \item \textbf{Least Recently Used (LRU)}: viene ripiazzata la pagina usata per ultima. In questo caso per ogni pagina esiste un tempo associato alla pagina, questo \`e molto oneroso dal punto di vista hardware, infatti non viene adottata.
+  \item \textbf{LRU algorithm}: ogni pagina ha un contatore, per ogni page fault si deve fare una ricerca del minimo. Esiste un altra implementazione a stack di numeri di pagina.
+  \item \textbf{LRU Approximation Algorithm}: ogni riga ha un \textbf{reference bit}, inizialmente \`e zero e quendo si fa una reference alla pagina viene messo a 1, esiste un momento nel passato in cui i reference bit sono stati azzerati, la victim viene presa nel gruppo dei frame con reference bit a 0. \textbf{Second-chance algorithm}: si usa una fifo con reference bit, quando si incontra una pagina con 1 viene settato a 0, se si incontra uno 0 allora viene preso il victim.
+  \item \textbf{Enhanced Second-Chance Algorithm}: si utilizza una combinazione di reference e modify per scegliere il frame:
+    \begin{itemize}
+      \item (0, 0): ...
+      \item ...
+    \end{itemize}
+  \item \textbf{Counting Algorithm}: 
+    \begin{itemize}
+      \item \textbf{Least Frequently Used (LFU):}
+      \item \textbf{Most Frequently Used (MFU):}
+    \end{itemize}
+\end{itemize}
 
+Esercizi:
+\begin{example}{}{}
+    
+\end{example}
 
 
 
