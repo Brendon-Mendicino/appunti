@@ -259,9 +259,44 @@ Che succede se non ci sono frame disponibili? Un processo che richiede una nuova
 
 Esercizi:
 \begin{example}{}{}
-    
+    ...
 \end{example}
 
+\begin{itemize}
+  \item \textbf{Page-Buffering Algorithm}: La vittima viene messa nel \emph{free pool}, ..., il SO potrebbe dare il controllo all'applicazione per la gestione della memoria.
+
+\end{itemize}
+
+
+Allocazione fissa:
+\begin{itemize}
+  \item si da a tutti la stessa misura (equal);
+  \item si da di pi\`u a chi ha pi\`u bisogno (proporzionale): ad ogni processo si danno i frame in maniera proporzionanta.
+\end{itemize}
+
+Global vs Local allocation: un processo pu\`o scegliere una frame vittima solo tra i suoi anche tra quelli degli altri? \textbf{Locale} visto nell'esempio di sopra. \textbf{Globale}, esista una lista di free frame, si fa in modo che questa lista non arrivi mai a 0, l'idea di massima \`e che superata una soglia si iniziano a scegliere delle vittime, fino ad arrivare di nuovo ad un altra solgia, che superata permette il reinserimento dei frame.
+
+... NUMA ...
+
+Le prestazioni migliori si ottengono quando un processo gira su un unico processore.
+
+Quando il sistema inizia a saturare la memoria in modo aggressivo, il SO ha due possibilit\`a: bloccare il sistema ed aspettare che un processo termini, oppure inziare a rimuovere frame, il \textbf{thrashing} \`e tenere il processore sempre attivo con dei processi.
+
+Come si possono realizzare pochi page fault in modo statistico? Per minimizzare il numero di page fault si sfrutta il principio di localit\`a, basandosi su questo concetto si 
+`e sviluppato il modello di \emph{working set} (l'insieme di pagine su cui si lavora), si definisce una finestra temporale che in cui si definisce $\Delta$ (finestra temporale e il range di pagine a cui si fanno accesso), si suppone che ci sono 10 mila accessi in memoria, $WSS_i$ (dimensione del set di pagine a cui si \`e fatto accesso, del processo $P_i$) = numero totale di pagine in cui si \`e fatto riferimento nei $\Delta$ precedenti. Ci aspettiamo:
+\begin{itemize}
+  \item se $\Delta$ troppo piccolo: non si riesce a contenere l'intero programma;
+  \item $\Delta$ troppo grande si tengono troppe pagine in memoria;
+\end{itemize}
+Il \textbf{working set model}, dato un intervallo $\Delta$ si contano gli id delle pagine, se una pagina non \`e presente nell'intervallo viene rimosso dal \emph{working set}, il difetto \`e che si deve generare un'istruzione per buttare via una pagina quando esce dal working set e soprattutto si deve tenere traccia di chi deve essere buttatto fuori. Questo non si pu\`o fare in modo esatto, si usa questo principio: si tiene nel \emph{recidence set} un po pi\`u del working set, si suppongo che un timer interrompa ogni $\Delta/2$, ogni ogni pagina si tengono 2 bit di riferimento (ref bit 1, ref bit 2), uno dei due viene settato automaticamente dall'HW, ad ogni intervallo per ogni pagina a cui si fa accesso viene settato il ref bit ad 1, il ref bit che viene selezionato viene scambiato ad ogni intervallo,  quando si cambia intervallo si pu\`o decidere di rimuovere le pagine che hanno $(0, 0)$, questo approccio si pu\`o estendere con pi\`u ref bit.
+
+Il problema del working set \`e che non guarda quante volte si fa accesso ad una pagina, si stabilisce una \textbf{frequenza di page-fault}, se il numero di page fault \`e alto allora si allarga la window, se il numero di page fault \`e basso  allora la window si restringe. Funzionamento dell'algoritmo:
+\begin{itemize}
+  \item si attiva l'algoritmo solo quando c'\`e un page-fault;
+  \item quando si attiva si misura il tempo intercorso rispetto all'ultimo page fault $\tau$, per vedere se si sta andando bene o male;
+  \item se $\tau$ \`e minore di una costante $c$ si prende un nuovo frame e lo si aggiunge al \emph{resident set};
+  \item se $\tau$ \`e maggiore di $c$  si rimuove dal \emph{resident set} tutte le pagine con reference bit a zero e si settano i reference bit a zero della pagine rimanenti;
+\end{itemize}
 
 
 

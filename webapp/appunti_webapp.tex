@@ -211,7 +211,76 @@ setTimeout(f, 2000, task);
 \end{lstlisting}
 This is possible because JS runs in the \textbf{Event Loop}, which periodically checks if there are some part of the code that needs to be executed.
 
+There is a function that allows asynchronous callback after a timeout:
+\begin{lstlisting}[language=]
+const onesec = setTimeOut(() \implies {
+  console.log('1 second has passed');
+}, 1000);
+\end{lstlisting}
+There is also the a function that as periodically runs:
+\begin{lstlisting}[language=]
+const period = setInterval(() => {}, 2000);
+clearInterval(period);
+\end{lstlisting}
 
+
+\subsection{Database Access (SQLite)}
+To use sqlite with \texttt{npm}:
+\begin{lstlisting}[language=]
+const sqlite = require('sqlite3');
+
+const db = newsqlite.Database('exams.sqlite', 
+  (err) => { if (err) throw err; });
+\end{lstlisting}
+Example of query:
+\begin{lstlisting}[language=]
+let result = [];
+let sql = "SELECT * FROM course LEFT JOIN score ON course.code=score.coursecode";
+db.all(sql, (err, row) => {
+  if (err) throw err;
+  for (let row of rows
+});
+\end{lstlisting}
+The problem with execution this queries is that they are asynchronous, and they can cause race conditions. The solution to this problem are the \texttt{Promise}, which helps simplifying asynchronous programming. A \texttt{Promise} handles a \texttt{resolve} and a \texttt{reject} which are functions that needs to be called when the callback fails or succedes.
+\begin{lstlisting}[language=]
+function waitPromise(duration) {
+  return new Promise((resolve, reject) => {
+    if (duration < 0) {
+      reject(new Error('...'));
+    } else {
+      setTimeout(resolve, duration);
+    }
+  }
+}
+
+waitPromise(1000).then((result) => {
+  colsole.log('Success :', result);
+}).catch((error) => {
+  colsole.log('Error :', error);
+});
+\end{lstlisting}
+A promise has 3 main methods: \texttt{then}, \texttt{catch}, \texttt{finally}, which are similar behaviour to the try catch block in Java. Promises can also work concurrently with \texttt{all()} or \texttt{race()}.
+
+\subsection{Await/Async}
+The keywords \texttt{async} and \texttt{await} allows us to convert pieces of code to a \texttt{Promise}:
+\begin{lstlisting}[language=]
+function resolveAfter2Seconds() {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve('resolved');
+    }, 2000);
+  });
+}
+
+async function asyncCall() {
+  console.log('calling');
+  const result = await resolveAfter2Seconds();
+  console.log(result);
+}
+
+asyncCall();
+\end{lstlisting}
+In fact a function marked as \texttt{async} returns a promise.
 
 
 
