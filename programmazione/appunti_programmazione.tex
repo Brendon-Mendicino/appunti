@@ -661,7 +661,7 @@ Uno slice \`e una vista su una sequenza contigua di elementi, gli slice in quean
 
 \newpage
 \section{Tipi Composti}
-In rust si possono rappresentare le \texttt{struct} che \`e un tipo \emph{prodotto}, ovvero che la sua grandezza \`e il prodotto cartesiano dei suoi parametri. Per convenzione si usa il \emph{CamelCase} per i nomi delle \texttt{struct}. Le \texttt{struct} possono essere di due tipi: \texttt{named struct {}} dove ogni campo ha un nome, \texttt{tuple struct ()} dove i campi non hanno nome e vegono invocati attraverso un numero come posizione. In rust quando viene dichiarata una \texttt{struct} i campi possono essere riordinati in memoria a differenza di C/C++, che vengono disposti in memoria secondo l'ordine di scrittura, per questo motivo rust permette di utilizzare l'attributo \texttt{#[repr(...)]}
+In rust si possono creare delle \texttt{struct} che \`e un tipo \emph{prodotto}, ovvero che la sua grandezza \`e il prodotto cartesiano dei domini dei parametri contenuti al suo interno. Per convenzione si usa il \emph{CamelCase} per i nomi delle \texttt{struct}. Le \texttt{struct} possono essere di due tipi: \verb|named struct {}| dove ogni campo ha un nome, \texttt{tuple struct ()} dove i campi non hanno nome e vegono invocati attraverso un numero come posizione. In rust quando viene dichiarata una \texttt{struct} i campi possono essere riordinati per permettere una maggiore efficienza nell'utilizzo della memoria, a differenza di C/C++ che dispongono i parametri in memoria secondo l'ordine di scrittura, per questo motivo rust permette di utilizzare l'attributo \verb|#[repr(...)]| che modifica la rappresentazione in memoria dei parametri.
 \begin{lstlisting}[language=rust]
 #[repr(C)]
 struct Test {
@@ -687,7 +687,7 @@ fn main() {
   // ERRORE: tutto cio' che sta in un modulo e' privato
 }
 \end{lstlisting}
-Se si vuole utilizzare il modulo esso deve essere importato, quindi se si vuole utilizzare la \texttt{struct S2} all'interno del \texttt{main} si pu\`o riscriver il codice nel seguente modo:
+Se si vuole utilizzare un modulo esso deve essere importato, se si vuole utilizzare la \texttt{struct S2} bisogna renderla pubblica, infatti qualsiasi cosa all'interno di un modulo una visibilit\`a privata di default (ovvero che \`e visibile solo all'interno del modulo).
 \begin{lstlisting}[language=rust]
 mod example {
   pub struct S2 {
@@ -703,7 +703,7 @@ fn main() {
   // Adesso compila
 }
 \end{lstlisting}
-Si pu\`o implementare anche delle funzioni per \texttt{S2}:
+Si possono implementare anche delle funzioni per \texttt{S2}:
 \begin{lstlisting}[language=rust]
 mod example {
   pub struct S2 {
@@ -728,13 +728,13 @@ Nei blocchi \texttt{impl} se si vuole fare riferimento all'istanza della \texttt
 
 \hfill
 
-In rust non \`e possible fare l'\emph{overloading} dei metodi, da convenzione si usa \texttt{fn with\_attributes(...)}.
+In rust non \`e possible fare l'\emph{overloading} dei metodi, da convenzione si usa \texttt{fn with\_attributes(...)} (e.g. \verb|String::with_capacity(10)|).
 
 Il paradigma \textbf{RAII} (Resource Acquisition Is Initialization) voul dire: le risorse vengono incapsulate in un oggetto che possiede solo un \emph{costruttore} ed un \emph{distruttore}, in rust un concetto in cui viene implementato RAII \`e la struct \texttt{Box}.
 
 
 \subsection{Enum}
-All'interno dei valori \texttt{enum} si possono associare dei valore oppure anche dei campi.
+All'interno di valori \texttt{enum} si possono associare dei valori oppure anche dei campi.
 \begin{lstlisting}[language=rust]
 enum HttpResponse {
   Ok = 200,
@@ -751,7 +751,7 @@ enum HttpResponse {
   }
 }
 \end{lstlisting}
-In rust i tipi \texttt{enum} sono dei tipi somma, ovvero che il suo dominio \`e la somma di tutti i suoi campi, gli \texttt{enum} sono i tipi pi\`u simili alle \texttt{union} di C, in rust per\`o i tipi \texttt{enum} contengono anche un \texttt{tag} per poterli distinguere. Grazie agli \texttt{enum} \`e possibile fare del parrtern matching con \texttt{match} e con \texttt{if let}:
+In rust i tipi \texttt{enum} sono dei tipi somma, ovvero che il loro dominio \`e la somma di tutti i suoi campi, gli \texttt{enum} sono i tipi pi\`u simili alle \texttt{union} di C, in rust per\`o i tipi \texttt{enum} contengono anche un \texttt{tag} per poterli distinguere. Grazie agli \texttt{enum} \`e possibile fare del parrtern matching con \texttt{match} e con \texttt{if let}:
 \begin{lstlisting}[language=rust]
 enum Shape {
   Square { s: f64 },
