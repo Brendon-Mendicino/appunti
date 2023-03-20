@@ -196,52 +196,13 @@ EVP_CHIPER *c = EVP_bf_cbc();
 
 
 \subsection{Symmetric Encryption}
-The \textbf{context} where the data and algorithms are stored are the \texttt{EVP_CIPHER_CONTEXT} data structure. 
+The \textbf{context} where the data and algorithms are stored are the \texttt{EVP\_CIPHER\_CONTEXT} data structure. 
 Example of a string saved in memory:
 
 
-\subsection{Random Numbers}
-To generate unpredictable sequences of numbers a \emph{Pseudo-Random Number Generator} is used. In OpenSSL this is implemented with a \emph{Deterministic Random Bit Generator}. All PRNG are initialized with a \textbf{seed}. In Linux there is a file: \emph{/dev/random} that is an interpolation of different non-deterministic values like: screen data, core temperatures, keystrokes, etc. Altough they are not used for cryptographic algorithms.
-
-
-OpenSSL implements a \emph{public PRNG} (main one) and a \emph{private PRNG} (ideally used to generate random numbers that will stay private). The functions used to generate the random numbers are:
-\begin{lstlisting}[language=c]
-RAND_bytes(buff, len);
-RAND_priv_bytes(buff, len);
-\end{lstlisting}
-When a seed needs to be initilized OpenSSL provides a simple machanism to do so:
-\begin{lstlisting}[language=c]
-int rc = RAND_load_file("/dev/random", 32);
-if (rc != 32) {
-  // RAND_load_file failed 
-}
-\end{lstlisting}
-Another library to generate PRN is \texttt{libsodium}, which is much smaller than OpenSSL.
-
-\hfill
-
-It's possible that the functions to load the seed may fail.
 
 
 
-\subsection{Big Numbers}
-To represent big numbers is very useful to use the OpenSSL \texttt{BIGNUM} implementation, this is due to the fact that it's very difficoult to operate on large numbers on a modern CPU, in fact the registers are usually 8 byte large, and it's not very simple to implent fast operatino on those numbers.
-\begin{lstlisting}[language=c]
-BIGNUM *num;
-
-num = BG_new();
-
-BF_free(num);
-\end{lstlisting}
-To copy a \texttt{BIGNUM}:
-\begin{lstlisting}[language=c]
-BIGNUM *a, *b, *c;
-
-// ...
-
-BN_copy(a, b);
-c = BN_dup(b);
-\end{lstlisting}
 
 
 
