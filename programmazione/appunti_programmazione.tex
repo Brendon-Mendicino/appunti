@@ -659,6 +659,131 @@ Uno slice \`e una vista su una sequenza contigua di elementi, gli slice in quean
 
 
 
+\newpage
+\section{Tipi Composti}
+In rust si possono rappresentare le \texttt{struct} che \`e un tipo \emph{prodotto}, ovvero che la sua grandezza \`e il prodotto cartesiano dei suoi parametri. Per convenzione si usa il \emph{CamelCase} per i nomi delle \texttt{struct}. Le \texttt{struct} possono essere di due tipi: \texttt{named struct {}} dove ogni campo ha un nome, \texttt{tuple struct ()} dove i campi non hanno nome e vegono invocati attraverso un numero come posizione. In rust quando viene dichiarata una \texttt{struct} i campi possono essere riordinati in memoria a differenza di C/C++, che vengono disposti in memoria secondo l'ordine di scrittura, per questo motivo rust permette di utilizzare l'attributo \texttt{#[repr(...)]}
+\begin{lstlisting}[language=rust]
+#[repr(C)]
+struct Test {
+  a: i8,
+  b: i32,
+  c: i8,
+};
+\end{lstlisting}
+In questo caso la struttura verr\`a disposta in memoria come in C.
+
+\subsection{Visibilit\`a}
+In rust si possono definire dei moduli con la keyword \texttt{mod}, questo si pu\`o fare sia all'interno del file \texttt{main} che in altri file.
+\begin{lstlisting}[language=rust]
+mod example {
+  struct S2 {
+    a: i32,
+    b: bool,
+  }
+}
+
+fn main() {
+  let s2 = S2 { a: 0, b: true };
+  // ERRORE: tutto cio' che sta in un modulo e' privato
+}
+\end{lstlisting}
+Se si vuole utilizzare il modulo esso deve essere importato, quindi se si vuole utilizzare la \texttt{struct S2} all'interno del \texttt{main} si pu\`o riscriver il codice nel seguente modo:
+\begin{lstlisting}[language=rust]
+mod example {
+  pub struct S2 {
+    pub a: i32,
+    pub b: bool,
+  }
+}
+
+use example::S2;
+
+fn main() {
+  let s2 = S2 { a: 0, b: true };
+  // Adesso compila
+}
+\end{lstlisting}
+Si pu\`o implementare anche delle funzioni per \texttt{S2}:
+\begin{lstlisting}[language=rust]
+mod example {
+  pub struct S2 {
+    a: i32,
+    b: bool,
+  }
+
+  impl S2 {
+    pub fn new(a: i32, b: bool) -> Self {
+      Self { a, b }
+    }
+  }
+}
+
+use example::S2;
+
+fn main() {
+  let s2 = S2::new(0, true);
+}
+\end{lstlisting}
+Nei blocchi \texttt{impl} se si vuole fare riferimento all'istanza della \texttt{struct} si utilizza la keyword \texttt{self}. Le funzioni che hanno come primo parametro \texttt{self} diventano dei \textbf{metodi} e vengono dette \textbf{funzioni associate}.
+
+\hfill
+
+In rust non \`e possible fare l'\emph{overloading} dei metodi, da convenzione si usa \texttt{fn with\_attributes(...)}.
+
+Il paradigma \textbf{RAII} (Resource Acquisition Is Initialization) voul dire: le risorse vengono incapsulate in un oggetto che possiede solo un \emph{costruttore} ed un \emph{distruttore}, in rust un concetto in cui viene implementato RAII \`e la struct \texttt{Box}.
+
+
+\subsection{Enum}
+All'interno dei valori \texttt{enum} si possono associare dei valore oppure anche dei campi.
+\begin{lstlisting}[language=rust]
+enum HttpResponse {
+  Ok = 200,
+  NotFound = 404,
+  InternalError = 500,
+}
+
+enum HttpResponse {
+  Ok,
+  NotFound(String),
+  InternalError {
+    desc: String,
+    data: usize,
+  }
+}
+\end{lstlisting}
+In rust i tipi \texttt{enum} sono dei tipi somma, ovvero che il suo dominio \`e la somma di tutti i suoi campi, gli \texttt{enum} sono i tipi pi\`u simili alle \texttt{union} di C, in rust per\`o i tipi \texttt{enum} contengono anche un \texttt{tag} per poterli distinguere. Grazie agli \texttt{enum} \`e possibile fare del parrtern matching con \texttt{match} e con \texttt{if let}:
+\begin{lstlisting}[language=rust]
+enum Shape {
+  Square { s: f64 },
+  Circle { r: f64 },
+  Rectangle { w: f64, h: f64 },
+}
+
+fn compute_area(shape: Shape) -> f64 {
+  match shape {
+    // Destructory assignment
+    Square { s } => s*s,
+    Circle { r } => r*r*3.14,
+    Rectangle { w, h } => w*h,
+  }
+}
+
+fn process(shape: Shape) {
+  // Destructory assignment
+  if let Shape::Square { s } = shape {
+    println!("Square side: {}", s);
+  }
+}
+\end{lstlisting}
+La \textbf{destrutturazione} pu\`o essere utilizzata anche nelle operazioni semplici.
+\begin{lstlisting}[language=rust]
+let Point { x, y } = point;
+println!("{}{}", x, y);
+\end{lstlisting}
+Quando si fa destructuring \`e possibile prendere i valori interni agli oggetti come riferimento, anteponendo la keyword \texttt{ref}, il motivo \`e che usando questi construtti, se la \texttt{struct} non implementa \texttt{Copy}, il valore viene consumato dal blocco.
+
+\subsection{Monad}
+In rust non esiste \texttt{null}, l'assenza di valori o gli errori vengono gestiti con: \texttt{Option<T>} che contiene \texttt{Some(t)} o \texttt{None} e \texttt{Result<T,E>} che contiene \texttt{Ok(T)} o \texttt{Err(E)}. Sia \texttt{Option} che \texttt{Result} sono implementati come \texttt{enum}.
 
 
 

@@ -238,14 +238,7 @@ The context diagram tells what is the focus of the requirements. The context dia
 \hfill
 
 \begin{example}{Robotic Vaccum Cleaner}{robotic-vaccum-cleaner}
-  \emph{"Since several years robotic vacuum cleaners (RVC) are available. An RVC is capable of cleaning the floors of a house in autonomous mode. 
-An RVC system is composed of the robot itself and a charging station. The charging station is connected to an electric socket in the house, and allows charging the battery on board of the robot.
-The robot itself is composed of mechanical and electric parts, a computer, and sensors. One infrared sensor in the frontal part recognizes obstacles, another infrared sensor always on the frontal part recognizes gaps (like a downhill staircase). A sensor on the battery reads the charge of the battery. The computer collects data from the sensors and controls the movement of four wheels. Another sensor on one of the wheels computes direction and distance travelled by the robot.
-Finally, on top of the robot there are three switches: on-off, start, learn. 
-The learn button starts a procedure that allows the robot to map the space in the house. With a certain algorithm the robot moves in all directions, until it finds obstacles or gaps, and builds an internal map of this space. By definition the robot cannot move beyond obstacles, like walls or closed doors, and beyond gaps taller than 1 cm. 
-The starting point of the learn procedure must be the charging station. When the map is built the robot returns to the charging station and stops. 
-The start button starts a cleaning procedure. The robot, starting from the charging station, covers and cleans all the space in the house, as mapped in the ‘learn’ procedure.
-In all cases when the charge of the battery is below a certain threshold, the robot returns to the charging station. When recharged, the robot completes the mission, then returns to the charging station and stops."}
+  \emph{"Since several years robotic vacuum cleaners (RVC) are available. An RVC is capable of cleaning the floors of a house in autonomous mode. An RVC system is composed of the robot itself and a charging station. The charging station is connected to an electric socket in the house, and allows charging the battery on board of the robot. The robot itself is composed of mechanical and electric parts, a computer, and sensors. One infrared sensor in the frontal part recognizes obstacles, another infrared sensor always on the frontal part recognizes gaps (like a downhill staircase). A sensor on the battery reads the charge of the battery. The computer collects data from the sensors and controls the movement of four wheels. Another sensor on one of the wheels computes direction and distance travelled by the robot. Finally, on top of the robot there are three switches: on-off, start, learn. The learn button starts a procedure that allows the robot to map the space in the house. With a certain algorithm the robot moves in all directions, until it finds obstacles or gaps, and builds an internal map of this space. By definition the robot cannot move beyond obstacles, like walls or closed doors, and beyond gaps taller than 1 cm.  The starting point of the learn procedure must be the charging station. When the map is built the robot returns to the charging station and stops.  The start button starts a cleaning procedure. The robot, starting from the charging station, covers and cleans all the space in the house, as mapped in the ‘learn’ procedure. In all cases when the charge of the battery is below a certain threshold, the robot returns to the charging station. When recharged, the robot completes the mission, then returns to the charging station and stops."}
 
   \hfill
   
@@ -351,11 +344,11 @@ In all cases when the charge of the battery is below a certain threshold, the ro
 Thanks to UML (\emph{Unified Modeling Language}) it's possible to represent the relationships between the various objects of the system. UML has many characteristics, some of which are (it the case of \emph{UML Class Diagrams}):
 \begin{itemize}
   \item The Object is the \textbf{Model} of an item, every Object \emph{has unique ID}.
-  \item \textbf{Class} is the descriptor of a set of items that can be grouped toghether.
-  \item Classes can be \textbf{associated} togheter.
+  \item \textbf{Class} is the descriptor of a set of items that can be grouped together.
+  \item Classes can be \textbf{associated}.
   \item Every Class has \textbf{Attributes}.
 \end{itemize}
-In UML different class can be \emph{linked} togheter, this is calld \textbf{Association} and represent a logical relationship between them, the association can unidirectional or bidirectional, also calsses may have more than one link to repesent different logical concepts. When links are formed between classes there can multiplicity of the nubmer of classes dependent:
+In UML different class can be \emph{linked} together, this is called \textbf{Association} and represent a logical relationship between them, the association can unidirectional or bidirectional, also classes may have more than one link to represent different logical concepts. When links are formed between classes there can multiplicity of the number of classes dependent:
 \begin{itemize}
   \item \texttt{1}
   \item \texttt{0..1}
@@ -367,7 +360,7 @@ The \textbf{role} is how what a class represent when it has an association. This
 
 \hfill
 
-\textbf{Composition} is indicated with a \emph{diamond}, it repesent when a Class is a \emph{component} of another one, this takes a different approach with respect to inheritance, and there are two kinds:
+\textbf{Composition} is indicated with a \emph{diamond}, it represent when a Class is a \emph{component} of another one, this takes a different approach with respect to inheritance, and there are two kinds:
 \begin{itemize}
   \item When the diamond \textbf{is hollow} and \emph{the class A which points to B} means that, \emph{A} is part of \emph{B}.
   \item When the diamond \textbf{is full} the lifecycle are all associated, if a component dies all the other component die too.
@@ -388,39 +381,63 @@ Before starting the project with UML it is import to define what are his context
 
 
 \subsection{Glossary}
-The \textbf{glossary} or \textbf{conceptual diagram} is a way to describe the objects of our system processing. Thanks to \emph{UML Class Diagram} it's possible to represent the relationships between the various objects of the system. The glossary it's different fromthe \textbf{System Design}, in fact during this phase the design of the various sofware component must not be considered, for example the glossary representation of a university is the following:
+The \textbf{glossary} or \textbf{conceptual diagram} is a way to describe the objects of our system processing. Thanks to \emph{UML Class Diagram} it's possible to represent the relationships between the various objects of the system. The glossary it's different from the \textbf{System Design}, in fact during this phase the design of the various software component must not be considered, for example the glossary representation of a university is the following:
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.8\textwidth]{university-uml-diagram.png}
   \caption{University UML Diagram}
   \label{fig:university-uml-diagram}
 \end{figure}
-If the name of the class is not self-explanatory a note is recomened to explain what that is or does.
+If the name of the class is not self-explanatory a note is recommended to explain what that is or does.
 
 
 \subsection{System Design}
-On the other hand a \textbf{System Design} shows how the software parts of the system are related to one onother, the system disign can have different granularity, ranging from the repsentation of an entire software app reduced to a Class, to represent the real software Classes inside the application.
+On the other hand a \textbf{System Design} shows how the software parts of the system are related to one another, the system design can have different granularity, ranging from the representation of an entire software app reduced to a Class, to represent the real software Classes inside the application.
 
 \subsection{UML Deployment Diagram}
-The \textbf{deployment diagram} is a way to represent how the system is deployed on the physical hardware, and it uses \emph{UML Deployment Diagram}, in generale every phisical device is represeted with a \textbf{node}, and the piece of software, library, or file that is \emph{deployed} on that physical device is called \textbf{artifact}.
+The \textbf{deployment diagram} is a way to represent how the system is deployed on the physical hardware, and it uses \emph{UML Deployment Diagram}, in general every physical device is represented with a \textbf{node}, and the piece of software, library, or file that is \emph{deployed} on that physical device is called \textbf{artifact}.
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.6\textwidth]{deplyment-diagram-example.png}
-  \caption{Deplyment Diagram Example}
+  \caption{Deployment Diagram Example}
   \label{fig:deplyment-diagram-example}
 \end{figure}
 
 
 
+\subsection{Use Cases and Scenarios}
+A \textbf{scenario} is a story. To build a scenario we start from the \textbf{context diagram}, and the focus of the scenario is about explaining how the actors interact with the interfaces. Every scenario described is described with steps about what is going to happen.
+
+On the other hand the \textbf{usecase} is the visual description of how the actor are related to the functional requirements of the system and the steps that they have to take.
 
 
 
 
 
+\section{Non-Functional Requirements}
+Non-functional requirements are some kind of properties associated to a functional property. There are some defined standard non-functional properties which are: usability, efficiency,
+
+\textbf{Usability}: usability could be measured in:
+\begin{itemize}
+  \item effort to learn: to do this is experiment we can take a number of users (non-technical) and observe their responses;
+\end{itemize}
+
+\textbf{Efficiency}: represent the response time and the resource used (usually computed for the whole application, it's difficult to calculate the efficiency for a single functionality).
+
+\textbf{Correctness}: capability of writing the right functionality, this is always unfeasible.
 
 
+\textbf{Reliability}: it is the probability to encounter a defect over a period of time, the defects are bugs visible to the end-user.
 
+\textbf{Maintainability}: is the maximum effort to operate a change on the software.
 
+\textbf{Portability}:
+
+\textbf{Security}: protection from malicious attacks.
+
+\textbf{Safety}: the system is safe if it cannot harm any person or get into a hazardous situation, if it does so it needs to have some kind of control.
+
+\textbf{Dependability}:
 
 
 
