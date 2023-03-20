@@ -109,6 +109,8 @@ The context diagram tells what is the focus of the requirements. The context dia
 \begin{example}{EZGas}{ezgas}
   \emph{"EZGas is an application to help drivers find gas at lowest prices. Gas station owners can register their gas station with prices and eventually discounts. Users look for gas stations closest to them and with best prices and quality of service."}
   
+  \hfill
+
   \textbf{1. Stakeholder}
   \textbf{Users}: 
   \begin{itemize}
@@ -165,7 +167,6 @@ The context diagram tells what is the focus of the requirements. The context dia
       \hline
       f1.3 & create new account \\
       \hline
-
       f2 & search gas station \\
       \hline
       f2.1 & choose search options \\
@@ -180,33 +181,61 @@ The context diagram tells what is the focus of the requirements. The context dia
       \hline
       f2.3 & select most green company \\
       \hline
-
       f3 & user becoming gas station owner \\
       \hline
-      f3.1 & user can add his owned gas station \\
+      f3.1 & add owned gas station \\
       \hline
-      f3.1.1 & user can add discount \\
+      f3.1.1 & add discount \\
       \hline
-      f3.1.2 & user can remove discount \\
+      f3.1.2 & remove discount \\
       \hline
-      f3.1.3 & user can modify gas prices \\
+      f3.1.3 & modify gas prices \\
       \hline
-      f3.1.4 & user can modify gas kinds \\
+      f3.1.4 & modify gas kinds \\
       \hline
-      f3.2 & user pays periodical fee \\
+      f3.2 & pay periodical fee \\
       \hline
     \end{tabular}
   \end{table}
   \textbf{5. Table of rights}
   \begin{table}[H]
     \centering
-    \begin{tabular}{|l|l|l|l|l|l|l|}
-      \textbf{Actor} & User & Admin & Local DB & Global DB & Payment & Geolocation
-
+    \begin{tabular}{|l|l|l|}
+      \hline
+      \textbf{Actor} & \textbf{User} & \textbf{Owner} \\
+      \hline
+      f1 & \checkmark & \checkmark \\
+      \hline
+      f2 & \checkmark & \checkmark \\
+      \hline
+      f3 &  & \checkmark \\
+      \hline
     \end{tabular}
   \end{table}
+  \textbf{6. Glossary}
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{ezgas-glossary.png}
+    \caption{Ezgas Glossary}
+    \label{fig:ezgas-glossary}
+  \end{figure}
+  \textbf{7. System Design}
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{ezgas-system-design.png}
+    \caption{Ezgas System Design}
+    \label{fig:ezgas-system-design}
+  \end{figure}
+  \textbf{8. Deployment Diagram}
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{ezgas-deployment-diagram.png}
+    \caption{Ezgas Deployment Diagram}
+    \label{fig:ezgas-deployment-diagram}
+  \end{figure}
 \end{example}
 
+\hfill
 
 \begin{example}{Robotic Vaccum Cleaner}{robotic-vaccum-cleaner}
   \emph{"Since several years robotic vacuum cleaners (RVC) are available. An RVC is capable of cleaning the floors of a house in autonomous mode. 
@@ -217,6 +246,8 @@ The learn button starts a procedure that allows the robot to map the space in th
 The starting point of the learn procedure must be the charging station. When the map is built the robot returns to the charging station and stops. 
 The start button starts a cleaning procedure. The robot, starting from the charging station, covers and cleans all the space in the house, as mapped in the ‘learn’ procedure.
 In all cases when the charge of the battery is below a certain threshold, the robot returns to the charging station. When recharged, the robot completes the mission, then returns to the charging station and stops."}
+
+  \hfill
   
   \textbf{Business Model:}
   \begin{itemize}
@@ -256,9 +287,9 @@ In all cases when the charge of the battery is below a certain threshold, the ro
       \hline
       \textbf{Actor} & \textbf{Physical Interface} & \textbf{Logical Interface} \\
       \hline
-      Customer & Smartphone & GUI, USB \\
+      Customer & Buttons & - \\
       \hline
-      Administrator & Keyboard & shell \\
+      Administrator & Keyboard & USB \\
       \hline
     \end{tabular}
   \end{table}
@@ -279,38 +310,52 @@ In all cases when the charge of the battery is below a certain threshold, the ro
       \hline
       f1.5 & return to previous action \\
       \hline
-
       f2 & firmware update \\
       \hline
-      f3 & firmware modifications \\
+      f3 & factory reset \\
       \hline
-      f4 & factory reset \\
-      \hline
-
-      f5 & read data from sensors \\
+      f4 & read data from sensors \\
       \hline
     \end{tabular}
   \end{table}
+  \textbf{4. Non-Functional Properties}
+
+  \textbf{5. Table of Rights}
+
+  \textbf{6. Glossary}
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{rvc-glossary.png}
+    \caption{Rvc Glossary}
+    \label{fig:rvc-glossary}
+  \end{figure}
+  \textbf{7. System Diagram}
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{rvc-system-design.png}
+    \caption{Rvc System Design}
+    \label{fig:rvc-system-design}
+  \end{figure}
+  \textbf{8. Deployment Diagram}
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{rvc-deployment-diagram.png}
+    \caption{Rvc Deployment Diagram}
+    \label{fig:rvc-deployment-diagram}
+  \end{figure}
 \end{example}
 
 
 
-\subsection{Glossary}
-The \textbf{glossary} or \textbf{conceptual diagram} with \textbf{UML class diagram}, is a way to describe the objects of our system processing. Thanks to UML (\emph{Unified Modeling Language}) it's possible the relationships between the various objects. UML has many characteristics, some of which are:
+\section{UML}
+Thanks to UML (\emph{Unified Modeling Language}) it's possible to represent the relationships between the various objects of the system. UML has many characteristics, some of which are (it the case of \emph{UML Class Diagrams}):
 \begin{itemize}
-  \item The Object is the \textbf{Model} of an item.
+  \item The Object is the \textbf{Model} of an item, every Object \emph{has unique ID}.
   \item \textbf{Class} is the descriptor of a set of items that can be grouped toghether.
   \item Classes can be \textbf{associated} togheter.
+  \item Every Class has \textbf{Attributes}.
 \end{itemize}
-Before starting the project with UML it is import to define what are his context, e.g.:
-\begin{itemize}
-  \item model of concepts (glossary);
-  \item model of system (system design);
-  \item model of software classes;
-\end{itemize}
-\emph{It's always important to minimize the number of classes.}
-
-When links are formed between classes there can multiplicity of the nubmer of classes dependent:
+In UML different class can be \emph{linked} togheter, this is calld \textbf{Association} and represent a logical relationship between them, the association can unidirectional or bidirectional, also calsses may have more than one link to repesent different logical concepts. When links are formed between classes there can multiplicity of the nubmer of classes dependent:
 \begin{itemize}
   \item \texttt{1}
   \item \texttt{0..1}
@@ -320,29 +365,50 @@ When links are formed between classes there can multiplicity of the nubmer of cl
 \end{itemize}
 The \textbf{role} is how what a class represent when it has an association. This comes useful when \textbf{recursive associations} are present.
 
-\textbf{Composition} is indicated with a \emph{diamond} and there are two kinds:
-\begin{itemize}
-  \item when the diamond \textbf{is hollow}, where \emph{the class A which point to B}, means that \emph{A} is part of \emph{B}.
-  \item when the diamond \textbf{is full}, the lifecycle are all associated, if a component dies all the other component die.
-\end{itemize}
+\hfill
 
+\textbf{Composition} is indicated with a \emph{diamond}, it repesent when a Class is a \emph{component} of another one, this takes a different approach with respect to inheritance, and there are two kinds:
+\begin{itemize}
+  \item When the diamond \textbf{is hollow} and \emph{the class A which points to B} means that, \emph{A} is part of \emph{B}.
+  \item When the diamond \textbf{is full} the lifecycle are all associated, if a component dies all the other component die too.
+\end{itemize}
 \textbf{Generalization} is a way to implement inheritance, the parent class is pointed by a \emph{hollow arrow}. The parent class is a more generalized class, all the attributes of the generalized class are inherited by his children.
 
 
-\begin{example}{University}{university}
+Before starting the project with UML it is import to define what are his context, e.g.:
+\begin{itemize}
+  \item model of concepts (glossary);
+  \item model of system (system design);
+  \item model of software classes;
+  \item model of deployment (deployment diagram);
+\end{itemize}
+\emph{It's always important to minimize the number of classes.}
 
-  \begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{university-uml-diagram.png}
-    \caption{University UML Diagram}
-    \label{fig:university-uml-diagram}
-  \end{figure}
-\end{example}
 
 
+
+\subsection{Glossary}
+The \textbf{glossary} or \textbf{conceptual diagram} is a way to describe the objects of our system processing. Thanks to \emph{UML Class Diagram} it's possible to represent the relationships between the various objects of the system. The glossary it's different fromthe \textbf{System Design}, in fact during this phase the design of the various sofware component must not be considered, for example the glossary representation of a university is the following:
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{university-uml-diagram.png}
+  \caption{University UML Diagram}
+  \label{fig:university-uml-diagram}
+\end{figure}
+If the name of the class is not self-explanatory a note is recomened to explain what that is or does.
+
+
+\subsection{System Design}
+On the other hand a \textbf{System Design} shows how the software parts of the system are related to one onother, the system disign can have different granularity, ranging from the repsentation of an entire software app reduced to a Class, to represent the real software Classes inside the application.
 
 \subsection{UML Deployment Diagram}
-The \textbf{deployment diagram} is a way to represent how the system is deployed on the physical hardware.
+The \textbf{deployment diagram} is a way to represent how the system is deployed on the physical hardware, and it uses \emph{UML Deployment Diagram}, in generale every phisical device is represeted with a \textbf{node}, and the piece of software, library, or file that is \emph{deployed} on that physical device is called \textbf{artifact}.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.6\textwidth]{deplyment-diagram-example.png}
+  \caption{Deplyment Diagram Example}
+  \label{fig:deplyment-diagram-example}
+\end{figure}
 
 
 

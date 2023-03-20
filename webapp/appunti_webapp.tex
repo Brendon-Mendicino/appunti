@@ -21,18 +21,18 @@
 
 \section{ Introduction}
 JS is backward compatible, to be able to use the previous features is use the directive:
-\begin{lstlisting}[language=]
+\begin{lstlisting}[language=js]
 "use strict";
 \end{lstlisting}
 JS has primitive types and non-primitive types, JS is also and strongly typed language, the primitive types are: string, number, boolean, null, undefined. The non-primitive are the objects, which can be: array, function, user-defined.
 
 The all possible false values in JS: \texttt{0, -0, NaN, undefined, null,''}, in JS there are two main comparison operators:
-\begin{lstlisting}[language=]
+\begin{lstlisting}[language=js]
 a == b    // equal, convert types and compare
 a === b   // strict equal, inhibits automatic type conversion
 \end{lstlisting}
 In JS you can create variable with:
-\begin{lstlisting}[language=]
+\begin{lstlisting}[language=js]
 // modern
 let a = 10;    // can be changed
 const b = 'a'; // constant
@@ -46,7 +46,7 @@ The difference between null and undefined, is that variable with null they old a
 A scope is defined by a \textbf{block}, which is created with \texttt{{ ... }}
 
 There two kinds of \texttt{foreach} in JS, using \texttt{in} allows iterating over objects, while \texttt{of} allows iterating over iterable objects:
-\begin{lstlisting}[language=]
+\begin{lstlisting}[language=js]
 for (let a in object) {
   ...
 }
@@ -56,7 +56,7 @@ for (let b of iterable) {
 }
 \end{lstlisting}
 Using arrays:
-\begin{lstlisting}[language=]
+\begin{lstlisting}[language=js]
 let a = [1, 2, 'ok', false];
 let b = Array.of(1, 2, true);
 a.push(5);      // append an element
@@ -65,24 +65,24 @@ b.unshift(2);   // insert at the beginning
 let copy = Array.from(a);  // shallow copy, it does not deep copy
 \end{lstlisting}
 The \textbf{destructuring assignment} can be done, it extracts the values from the mast left-hand side:
-\begin{lstlisting}[language=]
+\begin{lstlisting}[language=js]
 let [x, y] = [1, 2];
 [x, y] = [y, x]     // swap
 \end{lstlisting}
 The \textbf{spread operator} (\texttt{...}) expands on iterable object into it's values:
-\begin{lstlisting}[language=]
+\begin{lstlisting}[language=js]
 let [x, ...y] = [1, 2, 3, 4];      // y == [2, 3, 4]
 
 const a = [1, 2];
 const b = [0, ...a, 3]; // [0, 1, 2, 3]
 \end{lstlisting}
 Spreading can be from the left or from the right, usually the spread operator is used for copying array:
-\begin{lstlisting}[language=]
+\begin{lstlisting}[language=js]
 const a = [1, 2];
 const b = [...a];
 \end{lstlisting}
 A \textbf{string} is JS is an immutable type (like python) encoded in Unicode. The \textbf{template literals} can be done with the \textbf{tick} operator \texttt{``} (expression like Kotlin):
-\begin{lstlisting}[language=]
+\begin{lstlisting}[language=js]
 let name = 'Bre';
 let sur = 'Mend';
 // Template literal
@@ -92,7 +92,7 @@ let fullName = `${name} ${sur}`;
 
 \subsection{Objects}
 JS is \textbf{prototype based language}, which means that there are no declarations of classes. In JS property names must be strings and can be modified, the value of the property can be any other type of type or object. To create and object in JS you use curly braces and the defined properties:
-\begin{lstlisting}[language=]
+\begin{lstlisting}[language=js]
 const movie = {
   title: 'Inception',
   genre: 'sci-fi',
@@ -109,7 +109,7 @@ It is also possible to add a property by simple assigning a new name to a type, 
   \item \texttt{Object.entries(object)}: return an array with the key and value;
 \end{itemize}
 To copy an object it is possible to use:
-\begin{lstlisting}[language=]
+\begin{lstlisting}[language=js]
 const copied = Object.assign({}, original)
 const withSpread = {...original}    // it also possbible to use the spread operator
 
@@ -120,7 +120,7 @@ const merged = Object.assign({}, copied, {something: 'test'})
 
 \subsection{Functions}
 In JS functions are objects, so it is possible to assign a function to a property or use it in a parameter in another function. There three possible ways to define a function:
-\begin{lstlisting}[language=]
+\begin{lstlisting}[language=js]
 // 1. Function
 function do(a, b = 1) {
   ...
@@ -138,7 +138,7 @@ const fn = function(params) { }
 const func = (params) => { }
 \end{lstlisting}
 In JS \textbf{Closure} can be created, with closure it is possible to use parameters of the scope where the function is defined, even if that scope does not exist any more.
-\begin{lstlisting}[language=]
+\begin{lstlisting}[language=js]
 function greeter(name) {
   const myname = name;
 
@@ -154,7 +154,7 @@ const helloTest = greeter('test');
 console.log(helloTest());   // 'Hello test'
 \end{lstlisting}
 To create an object there are also \textbf{constructor functions}:
-\begin{lstlisting}[language=]
+\begin{lstlisting}[language=js]
 function Movie(title, director, duration) {
   this.title = title;
   this.director = director;
@@ -168,12 +168,18 @@ console.log(movie.isLong);  // true
 
 
 \subsection{Dates}
-We use \texttt{dayjs()} objects in JS to build a data, it is an external library. The return of \texttt{dayjs()} fetches the time from the locale, other than that it can create a data from ISO, 8 digit dates, etc. To install this library: \texttt{\$ npm install dayjs}.
+We use \texttt{dayjs()} objects in JS to build a data, it is an external library. The return of \texttt{dayjs()} fetches the time from the locale time, other than that it can create a data from ISO8601 strings, 8 digit dates, etc. To install this library: \texttt{\$ npm install dayjs}. The string value of the standard format is in ISO9601 in UTC time, it's important to remember that the days and the month inside the object start \emph{counting from 0}. Other than that the library has some methods to compare different \texttt{dayjs} objects, also by choosing the level of \emph{granularity} (year, month, day, ...).
+\begin{lstlisting}[language=js]
+const date = dayjs('2023-03-15');
+const now = dayjs();
+
+now.isAfter(date, 'day');  // comparing 'now' and 'date' by day
+\end{lstlisting}
 
 
 \subsection{Asynchronous Programming}
-In JS when passing functions to other functions it is called \textbf{callback}, this functions can \emph{synchronous} or \emph{asynchronous}.
-\begin{lstlisting}[language=]
+In JS when passing functions to other functions it's called a \textbf{callback}, this functions can be \emph{synchronous} or \emph{asynchronous}.
+\begin{lstlisting}[language=js]
 function logQuote(quote) {
   console.log(quote);
 }
@@ -193,7 +199,7 @@ In order to have functional features in language there some need properties:
   \item \emph{call chaining};
 \end{itemize}
 In JS arrays have functional methods, for example:
-\begin{lstlisting}[language=]
+\begin{lstlisting}[language=js]
 a.forEach(item => ...);   // action on every element of the array
 a.every(x => x > 10);     // return true if all elements satisfy the condition, false otherwise
 a.some(x => x < 10);      // return true if at least one element satisfy the condition
@@ -201,8 +207,8 @@ a.map(x => `${x}`);       // return a new array with every element mapped to a n
 a.filter(x => x === 0);   // return a new array with all elements that satisfy the condition
 a.reduce((x, y) => x + y, 0);   // return a reduced value
 \end{lstlisting}
-Even though JS is executed on a single thread it is possible to create concurrent code, for example a function that allows to excute a callback after a certain amount of time is \texttt{setTimeout}:
-\begin{lstlisting}[language=]
+Even though JS is executed on a single thread it is possible to create concurrent code, for example a function that allows to excute a callback after a certain amount of time is the \texttt{setTimeout()} function:
+\begin{lstlisting}[language=js]
 const f = (task) => {
   // do something
 };
@@ -212,28 +218,28 @@ setTimeout(f, 2000, task);
 This is possible because JS runs in the \textbf{Event Loop}, which periodically checks if there are some part of the code that needs to be executed.
 
 There is a function that allows asynchronous callback after a timeout:
-\begin{lstlisting}[language=]
+\begin{lstlisting}[language=js]
 const onesec = setTimeOut(() \implies {
   console.log('1 second has passed');
 }, 1000);
 \end{lstlisting}
-There is also the a function that as periodically runs:
-\begin{lstlisting}[language=]
+There is also the \texttt{setInterval()} function that periodically runs:
+\begin{lstlisting}[language=js]
 const period = setInterval(() => {}, 2000);
 clearInterval(period);
 \end{lstlisting}
 
 
-\subsection{Database Access (SQLite)}
-To use sqlite with \texttt{npm}:
-\begin{lstlisting}[language=]
+\subsubsection{Database Access (SQLite)}
+The module for \texttt{sqlite3} allows calling sql queries via his APIs, first there needs to be an open with the database, to open a connection use:
+\begin{lstlisting}[language=js]
 const sqlite = require('sqlite3');
 
-const db = newsqlite.Database('exams.sqlite', 
+const db = new sqlite.Database('exams.sqlite', 
   (err) => { if (err) throw err; });
 \end{lstlisting}
 Example of query:
-\begin{lstlisting}[language=]
+\begin{lstlisting}[language=js]
 let result = [];
 let sql = "SELECT * FROM course LEFT JOIN score ON course.code=score.coursecode";
 db.all(sql, (err, row) => {
@@ -241,8 +247,8 @@ db.all(sql, (err, row) => {
   for (let row of rows
 });
 \end{lstlisting}
-The problem with execution this queries is that they are asynchronous, and they can cause race conditions. The solution to this problem are the \texttt{Promise}, which helps simplifying asynchronous programming. A \texttt{Promise} handles a \texttt{resolve} and a \texttt{reject} which are functions that needs to be called when the callback fails or succedes.
-\begin{lstlisting}[language=]
+The problem with execution this queries is that they are \emph{all asynchronous}, and they can cause race conditions. The solution to this problem are \texttt{Promise}, which helps simplyfing asynchronous programming. A \texttt{Promise} handles a \texttt{resolve} and a \texttt{reject} which needs to be called when the callback fails or succedes. The values passed to \texttt{resolve} can be accessed by in the \texttt{then} method, which gets called when the \texttt{Promise} is completed.
+\begin{lstlisting}[language=js]
 function waitPromise(duration) {
   return new Promise((resolve, reject) => {
     if (duration < 0) {
@@ -259,11 +265,11 @@ waitPromise(1000).then((result) => {
   colsole.log('Error :', error);
 });
 \end{lstlisting}
-A promise has 3 main methods: \texttt{then}, \texttt{catch}, \texttt{finally}, which are similar behaviour to the try catch block in Java. Promises can also work concurrently with \texttt{all()} or \texttt{race()}.
+A promise has 3 main methods: \texttt{then}, \texttt{catch}, \texttt{finally}, which are similar behaviour to the try catch block in Java. Promises can also work concurrently with \texttt{Promise.all()} or \texttt{Promise.race()}.
 
-\subsection{Await/Async}
-The keywords \texttt{async} and \texttt{await} allows us to convert pieces of code to a \texttt{Promise}:
-\begin{lstlisting}[language=]
+\subsubsection{Await/Async}
+The keywords \texttt{async} and \texttt{await} allows to convert pieces of code to a \texttt{Promise}:
+\begin{lstlisting}[language=js]
 function resolveAfter2Seconds() {
   return new Promise(resolve => {
     setTimeout(() => {
@@ -278,9 +284,20 @@ async function asyncCall() {
   console.log(result);
 }
 
-asyncCall();
+asyncCall();  // this returns is a promise
 \end{lstlisting}
 In fact a function marked as \texttt{async} returns a promise.
+
+\hfill
+
+This method can be combined with the database queries:
+\begin{lstlisting}[language=js]
+
+async function main() {
+}
+
+main();
+\end{lstlisting}
 
 
 

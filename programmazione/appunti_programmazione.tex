@@ -308,6 +308,23 @@ Il problema del working set \`e che non guarda quante volte si fa accesso ad una
 
 
 
+\newpage
+\section{OS161}
+La cartella \texttt{conf} contiene le versioni dei kernel. Per abilitare nuovi moduli si va in \texttt{conf.kern} e:
+\begin{lstlisting}[language=]
+defoption hello
+optfile hello main/hello.c
+\end{lstlisting}
+\texttt{defoptions} crea un file \texttt{opt-hello.h}, che crea un file \texttt{.h} di configurazione che contiene una define per specificare se un opzione \`e abilitata o meno. Questo serve nei file del kernel per abilitare l'aggancio di altri moduli che vengono aggiunti.
+
+Per creare compilare i nuovi moduli si pu\`o creare un nuovo file in \texttt{conf} per compilare, si pu\`o copiare uno esistene, in questo caso \`e \texttt{DUMBVM} ed aggiungere \texttt{options hello} per far compilare i nuovi file inseriti.
+\begin{lstlisting}[language=c]
+#if OPT_HELLO     // variabili aggiunte nei file opt-hello.h
+  hello((char *)"PdS");
+#endif
+\end{lstlisting}
+
+
 
 
 
