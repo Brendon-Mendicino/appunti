@@ -292,12 +292,51 @@ In fact a function marked as \texttt{async} returns a promise.
 
 This method can be combined with the database queries:
 \begin{lstlisting}[language=js]
-
 async function main() {
 }
 
 main();
 \end{lstlisting}
+
+
+
+
+\newpage
+\section{HTML/CSS}
+
+CSS has different mesuraments units:
+\begin{itemize}
+  \item \texttt{em}: unit size relative to the font size present in the current element;
+  \item \texttt{rem}: unit relative to the font size of the root element;
+  \item \texttt{vw}: relative to $1\%$ of the width of the viewport;
+  \item \texttt{vh}: relative to $1\%$ of the height of the viewport;
+\end{itemize}
+CSS has aldo \textbf{pseudo selector} which represent changes based on the state of an element.
+\begin{lstlisting}[language=html]
+a:visited { color: green; }
+\end{lstlisting}
+In CSS there 4 position schemes: \textbf{static}, \textbf{relative}, \textbf{absolute}, \textbf{fixe}.
+
+In CSS the flex schema allows for direct control over the element of the page, it allows modifying: direction, sizes, alignment, position, spacing, ...
+
+\subsection{Resposive}
+It's possible to achieve a responsive layout by using \texttt{media query}:
+\begin{lstlisting}[language=html]
+@media(min-width:900) { }
+\end{lstlisting}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

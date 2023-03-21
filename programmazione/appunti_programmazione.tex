@@ -730,7 +730,47 @@ Nei blocchi \texttt{impl} se si vuole fare riferimento all'istanza della \texttt
 
 In rust non \`e possible fare l'\emph{overloading} dei metodi, da convenzione si usa \texttt{fn with\_attributes(...)} (e.g. \verb|String::with_capacity(10)|).
 
-Il paradigma \textbf{RAII} (Resource Acquisition Is Initialization) voul dire: le risorse vengono incapsulate in un oggetto che possiede solo un \emph{costruttore} ed un \emph{distruttore}, in rust un concetto in cui viene implementato RAII \`e la struct \texttt{Box}.
+Il paradigma \textbf{RAII} (Resource Acquisition Is Initialization) voul dire: le risorse vengono incapsulate in un oggetto che possiede solo un \emph{costruttore} ed un \emph{distruttore}, in rust un concetto in cui viene implementato RAII \`e la struct \texttt{Box}. Ad esempio su C++ se pu\`o creare una classe che viene allocato nello stack che incapsula un oggetto e lo libera quando viene rimossa dallo stack.
+\begin{lstlisting}[language=c++]
+class Car {};
+
+void a_function() {
+  Car *ptr = new Car;
+  function_that_can_throw();
+  if (!check()) return;
+  delete ptr;
+}
+\end{lstlisting}
+In questo caso non esiste garanzia che \texttt{ptr} venga liberato dalla memoria, grazie al paradigma RAII si pu\`o creare una classe wrapper che liberer\`a l'oggetto in modo automatico.
+\begin{lstlisting}[language=c++]
+class CarManager {
+  Car *car;
+public:
+  CarManager() {
+    this->car = new Car;
+  }
+  ~CarManager() {
+    delete this->car;
+  }
+}
+
+class Car {};
+
+void a_function() {
+  CarManager car;
+  function_that_can_throw();
+  if (!check()) return;
+}
+\end{lstlisting}
+C++ ha proprio un modo per gestire queste casistiche gi\`a implementato nella libreria standard, si chiama \texttt{unique\_pointer}
+\begin{lstlisting}[language=c++]
+void a_function() {
+  std::unique_ptr<Car> car = std::make_unique<Car>();
+  function_that_can_throw();
+  if (!check()) return;
+}
+\end{lstlisting}
+In Rust tutto questa gestione delle memoria \`e fatta in automatico grazie al Borrowing System e soprattutto \textbf{senza overhead}.
 
 
 \subsection{Enum}
@@ -785,6 +825,125 @@ Quando si fa destructuring \`e possibile prendere i valori interni agli oggetti 
 \subsection{Monad}
 In rust non esiste \texttt{null}, l'assenza di valori o gli errori vengono gestiti con: \texttt{Option<T>} che contiene \texttt{Some(t)} o \texttt{None} e \texttt{Result<T,E>} che contiene \texttt{Ok(T)} o \texttt{Err(E)}. Sia \texttt{Option} che \texttt{Result} sono implementati come \texttt{enum}.
 
+
+\subsection{Polimorfismo}
+Il polimorfismo \`e la capacit\`a di associare comportamenti comuni a un insieme di tipi differenti. In C++ esiste l'\emph{ereditariet\`a multipla}, che permette di fare il polimorfismo.
+\begin{lstlisting}[language=c++]
+#include <iostream>
+
+class Alfa {
+  int i;
+public:
+  virtual int m() { return 1; }
+  virtual unsigned size() { return sizeof(*this); }
+};
+
+class Beta: pulbic Alfa {
+  double d;
+public:
+  int m() { return 2; }
+  unsigned size() { return sizeof(*this); }
+};
+
+int main() {
+  Alfa* ptr1 = new Alfa;
+  Beta* ptr2 = new Beta;
+
+  std::cout << ptr1->m() << std::endl;  // 1
+  std::cout << ptr2->m() << std::endl;  // 2
+
+  std::cout << sizeof(*ptr1) << std::endl;  // 4
+  std::cout << sizeof(*ptr2) << std::endl;  // 16
+
+  delete ptr1;
+  delete ptr2;
+}
+
+// Senza virtual
+int main2() {
+  Alfa* ptr1 = new Alfa;
+  Alfa* ptr2 = new Beta;
+
+  std::cout << ptr1->m() << std::endl;  // 1
+  std::cout << ptr2->m() << std::endl;  // 1
+
+  std::cout << sizeof(*ptr1) << std::endl;  // 4
+  std::cout << sizeof(*ptr2) << std::endl;  // 4
+
+  delete ptr1;
+  delete ptr2;
+}
+
+// Con virtual
+int main2() {
+  Alfa* ptr1 = new Alfa;
+  Alfa* ptr2 = new Beta;
+
+  std::cout << ptr1->m() << std::endl;  // 1
+  std::cout << ptr2->m() << std::endl;  // 2
+
+  std::cout << sizeof(*ptr1) << std::endl;  // 16
+  std::cout << sizeof(*ptr2) << std::endl;  // 16
+  std::cout << ptr1->size() << std::endl;  // 16: "8vtable + 4int + 4padd"
+  std::cout << ptr2->size() << std::endl;  // 24: "8vtable + 4int + 4padd + 8double"
+
+  delete ptr1;
+  delete ptr2;
+}
+\end{lstlisting}
+Quando in una classe C++ appare \texttt{virtual}, gli oggetti della classe acquisiscono un campo in pi\`u detto \texttt{vtable}, che risolve il metodo chiamato dall'oggetto, che possono puntare alle funzioni di \texttt{Alfa} o di \texttt{Beta}.
+
+\hfill
+
+In rust \textbf{non esiste l'ereditariet\`a}, per\`o in rust i \textbf{Tratti} sono per rust come le \textbf{Interfaccie} per Java. \emph{Un tratto esprime la capacit\`a di eseguire una certa funzione}, as esempio: \texttt{std::io::Write}, \texttt{std::iter::Iterator}, ... In rust dunque non esiste l'overhead come in C++ causato dal polimorfismo, il motivo \`e che il compilatore risolve tutti i riferimenti in modo statico, l'unico momento in cui quel costo si presenta \`e quando si creano dei riferimenti dinamici (\texttt{\&dyn SomeTrait}). Per implementare un tratto in rust si scrive:
+\begin{lstlisting}[language=rust]
+trait T1 {
+  fn num() -> i32;
+  fn return_self() -> Self;
+}
+
+struct OtherType {};
+impl T1 for OtherType {
+  fn num() -> i32 { 2 }
+  fn return_self() -> Self { OtherType }
+}
+\end{lstlisting}
+Quando si crea un tratto si pu\`o definire un \textbf{Tipo Associato}.
+\begin{lstlisting}[language=rust]
+trait T2 {
+  type AssociatedType;
+  fn f(arg: Self::AssociatedType);
+}
+
+struct OtherType {};
+impl T2 for OtherType {
+  type AssociatedType = &str;
+  fn f(arg: Self::AssociatedType) {}
+}
+\end{lstlisting}
+Rust permette un forma di dipendenza tra tratti e vengono detti \textbf{sub-trait} e \textbf{super-trait}:
+\begin{lstlisting}[language=rust]
+trait Super {
+  fn f(&self) { println!("Super"); }
+  fn g(&self) {}
+}
+
+trait Sub: Super {
+  fn f(&self) { println!("Sub"); }
+  fn h(&self) {} 
+}
+
+struct SomeType;
+impl Super for SomeType;
+impl Sub for SomeType;
+
+fn main() {
+  let s = SomeType;
+  s.f();  // ERRORE: chiamata ambigua
+  <SomeType as Super>::f(&s);
+  <SomeType as Sub>::f(&s);
+}
+\end{lstlisting}
 
 
 
