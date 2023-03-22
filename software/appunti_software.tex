@@ -212,27 +212,6 @@ The context diagram tells what is the focus of the requirements. The context dia
       \hline
     \end{tabular}
   \end{table}
-  \textbf{6. Glossary}
-  \begin{figure}[H]
-    \centering
-    \includegraphics[width=0.4\textwidth]{ezgas-glossary.png}
-    \caption{Ezgas Glossary}
-    \label{fig:ezgas-glossary}
-  \end{figure}
-  \textbf{7. System Design}
-  \begin{figure}[H]
-    \centering
-    \includegraphics[width=1\textwidth]{ezgas-system-design.png}
-    \caption{Ezgas System Design}
-    \label{fig:ezgas-system-design}
-  \end{figure}
-  \textbf{8. Deployment Diagram}
-  \begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{ezgas-deployment-diagram.png}
-    \caption{Ezgas Deployment Diagram}
-    \label{fig:ezgas-deployment-diagram}
-  \end{figure}
 \end{example}
 
 \hfill
@@ -311,31 +290,7 @@ The context diagram tells what is the focus of the requirements. The context dia
       \hline
     \end{tabular}
   \end{table}
-  \textbf{4. Non-Functional Properties}
-
   \textbf{5. Table of Rights}
-
-  \textbf{6. Glossary}
-  \begin{figure}[H]
-    \centering
-    \includegraphics[width=0.6\textwidth]{rvc-glossary.png}
-    \caption{Rvc Glossary}
-    \label{fig:rvc-glossary}
-  \end{figure}
-  \textbf{7. System Diagram}
-  \begin{figure}[H]
-    \centering
-    \includegraphics[width=0.4\textwidth]{rvc-system-design.png}
-    \caption{Rvc System Design}
-    \label{fig:rvc-system-design}
-  \end{figure}
-  \textbf{8. Deployment Diagram}
-  \begin{figure}[H]
-    \centering
-    \includegraphics[width=0.4\textwidth]{rvc-deployment-diagram.png}
-    \caption{Rvc Deployment Diagram}
-    \label{fig:rvc-deployment-diagram}
-  \end{figure}
 \end{example}
 
 
@@ -403,6 +358,55 @@ The \textbf{deployment diagram} is a way to represent how the system is deployed
   \label{fig:deplyment-diagram-example}
 \end{figure}
 
+\begin{example}{Lab2 EZGas}{lab2}
+  \textbf{6. Glossary}
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{ezgas-glossary.png}
+    \caption{Ezgas Glossary}
+    \label{fig:ezgas-glossary}
+  \end{figure}
+  \textbf{7. System Design}
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{ezgas-system-design.png}
+    \caption{Ezgas System Design}
+    \label{fig:ezgas-system-design}
+  \end{figure}
+  \textbf{8. Deployment Diagram}
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{ezgas-deployment-diagram.png}
+    \caption{Ezgas Deployment Diagram}
+    \label{fig:ezgas-deployment-diagram}
+  \end{figure}
+\end{example}
+
+\hfill
+
+\begin{example}{Lab2 RVC}{lab2-rvc}
+  \textbf{6. Glossary}
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{rvc-glossary.png}
+    \caption{Rvc Glossary}
+    \label{fig:rvc-glossary}
+  \end{figure}
+  \textbf{7. System Diagram}
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{rvc-system-design.png}
+    \caption{Rvc System Design}
+    \label{fig:rvc-system-design}
+  \end{figure}
+  \textbf{8. Deployment Diagram}
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{rvc-deployment-diagram.png}
+    \caption{Rvc Deployment Diagram}
+    \label{fig:rvc-deployment-diagram}
+  \end{figure}
+\end{example}
 
 
 \subsection{Use Cases and Scenarios}
@@ -439,6 +443,105 @@ Non-functional requirements are some kind of properties associated to a function
 
 \textbf{Dependability}:
 
+\subsection{EZGas}
+\textbf{Scenarios and Usecases}
+\begin{itemize}
+  \item \textbf{Login Scenario}
+    \begin{itemize}
+      \item Precondition:
+        \begin{itemize}
+          \item User is not authenticated and not authorized;
+          \item User must be registerd;
+        \end{itemize}
+      \item Postcondition:
+        \begin{itemize}
+          \item User is authenticated and authorized;
+        \end{itemize}
+    \end{itemize}
+    \begin{enumerate}
+      \item User enters the app;
+      \item Inserts username and passwords;
+      \item Repeat until username and passwords are correct;
+      \item User is logged in;
+    \end{enumerate}
+  \item \textbf{Login Registration}
+    \begin{itemize}
+      \item Precondition:
+        \begin{itemize}
+          \item Download the app;
+        \end{itemize}
+      \item Postcondition:
+        \begin{itemize}
+          \item User has an account associated to a username and password;
+        \end{itemize}
+    \end{itemize}
+    \begin{enumerate}
+      \item User enters the app;
+      \item Click the sign in button;
+      \item Isert his username;
+      \item Repeat until a valid username;
+      \item Insert password;
+      \item Repeat until a valid password;
+      \item Insert email for password recovery;
+      \item Verify email;
+      \item User is now registrated;
+    \end{enumerate}
+  \item \textbf{User Needs Gas Station}
+    \begin{itemize}
+      \item Precondition: user logged in;
+      \item Postcondition: user finds gas station;
+    \end{itemize}
+    \begin{enumerate}
+      \item Users may set custom parameter for searching a gas station;
+      \item User is prompted with a gas station;
+      \item User may decline the gas station, if declined repeat previus step;
+      \item User drives to gas station following the map instructions;
+      \item User arrives;
+      \item User completes his journey;
+    \end{enumerate}
+  \item \textbf{User Becomes GasStation Administrator}
+    \begin{itemize}
+      \item Precondition: user is logged in;
+      \item Postcondition: user is now a gas station administrator;
+    \end{itemize}
+    \begin{enumerate}
+      \item User wants to become a gas station owner;
+      \item User enrolls to become a gas station owner;
+      \item User provides his details: partita IVA;
+      \item User pays monthly fee;
+      \item User becomes Administrator;
+    \end{enumerate}
+  \item \textbf{Administrator Add GasStaion}
+    \begin{itemize}
+      \item Precondition: user is an administrator, administartor has acces to local/global db;
+      \item Postcondition: a new gas station is added the EZGas system;
+    \end{itemize}
+    \begin{enumerate}
+      \item Admin enters gas station owner area in the application;
+      \item Admin can add or remove his owned gas stations;
+      \item Admin adds all the kinds of fuel present in a gas station;
+      \item Admin can add or remove discounts present for a fuel in a gas station;
+      \item Changes are submitted;
+      \item Validation is received from the server;
+    \end{enumerate}
+\end{itemize}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=1\textwidth]{ezgas-usecase-diagram.png}
+  \caption{Ezgas Usecase Diagram, \href{http://www.plantuml.com/plantuml/uml/PP31Rjim38RlVWgXzpGlC1JTKA0Ri6B1WkvEMun3G9O2ad9X37ltIQnS9-WXWSdl9_NpVnG5rZo5Bk19dIR7D9xLUM8Sb5BiEXWqiNkDZ2E98ljNGHO7ud9ki7QiqUglVg9On0oQ3403pvX26g0kFYwYE5KuIgC7M2QCUaIUQS2ABYlwMQR24oZq84Q2xzUT8VMtR2oiw-e14CU0hZtrj-kou515to7wWB_j8ZOxTUxC7u8VKP3rMl242XJiRcA_hRfxtrKSZXJlAhQlZV-1G1uKBQK84-uF8FAMs9jwRlXgupSSqeJkkT2ZskEtYThS26BDRUp0QIQFxjTRH7RDhscJH_ti-2L53SkQkWali7pINVim4KNPD2_9qscfRfmqhnUc0MNlIOQKe-vX1WhGbqsdZCtHb4g4_yfRsUrs3pNvCxlx-mVBDhilkrtj5LvnIzJ-JRHcPhm8jZ3QXydQsM3RLb1gMscNbh_tGbhRRYi_6pUFjR0dWk-tOhmff7l4wFCK_WC0}{Link} }
+  \label{fig:ezgas-usecase-diagram}
+\end{figure}
+\textbf{Non-Functional Requirements}
+\begin{itemize}
+  \item The app shall be developer for iOS, Android, Web;
+  \item Avarage users should be able to learn how to use the basic functionality of the app in 10 minutes
+  \item The application must satisfy the requirements of GDPR (EU) and CCPA (California) for the satisfaction of the app security.
+  \item A time of 20 hour person (5 persons in a week development) to add a new feature.
+  \item To develop an app for iOS, Android, Web shall take 6 months for the initial deplyment.
+  \item The map must be updated once a week to avoid bringing the users into hazardous situations like: work in progress zone, accident site, ...
+  \item The application server needs to have an \emph{up-time} of $99\%$ during the span of a year.
+  \item The application 
+\end{itemize}
 
 
 
