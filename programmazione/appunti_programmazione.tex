@@ -452,7 +452,9 @@ Le funzioni di free devono essere implementate.
 Se si volesse gestire la paginazione, si dovrebbe scindere i l'allocatore per kernel e user, infatti l'user dovrebbe vedere delle pagine mentre il kernel della memoria contigua. Per ora la soluzione proposta \`e:
 \begin{itemize}
   \item allocazione contigua (per pagine) comune;
+  \item l'allocatore in bumbvm: ...
   \item bitmap implementata come char array, dove ogni posizione rappresenta se la pagina \`e libera o presa;
+  \item 
 \end{itemize}
 
 
