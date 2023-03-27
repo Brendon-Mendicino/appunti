@@ -28,17 +28,22 @@ La memoria si compone si suddivide in:
   \item memoria primaria;
   \item memoria secondaria;
 \end{itemize}
-Uno principali problemi di accesso alla memoria \`e quello di assicurarne la sua protezione, ovvero evitare che un programma in memoria riesca ad accedere alle zone di memoria di altri programmi. Una volta fatto il bootstrap del SO, sia esso che i programmi verranno caricati in memoria, per evetire che ogni processo abbia una vista al di fuori del suo scope, si possono usare dei controlli a livello della CPU, esistono dei registri chimati \textbf{base} e \textbf{limit}, che attraverso dei meccanismi, riescono ad effettuare la protezione della memoria. Esiste anche un altro problema che \`e quello \textbf{relocation}, consiste nel come mappare gli indirizzi delle varie istruzioni di salto e dei vari puntari una volta che il programma viene caricato in memoria, se si utilizzaro degli indirizzi statici (creati solo in fase di compilazione e prendondo come riferimento di inizio del programma l'indirizzo 0), una volta che questo viene caricato in memoria le istrizioni non punterebbero pi\`u alle label corrispondenti  ma sempre nello stesso punto, dove ad esempio si trova un altro programma. Per questo motivo quando si utilizzano valori di registri vengono sommati al base register, mentre le boundry del programma in memoria vengono salvate nel limit.
-% TODO:  <27-02-23, yourname> rivedere %
-Binding ...
-Si fa:
+Uno principali problemi di accesso alla memoria \`e quello di assicurarne la sua protezione, ovvero evitare che un programma in memoria riesca ad accedere alle zone di memoria di altri programmi. Una volta fatto il bootstrap, sia il SO che i programmi verranno caricati in memoria, per evitare che ogni processo abbia una vista al di fuori del suo scope, si possono usare dei controlli a livello della CPU, esistono dei registri chiamati \textbf{base} e \textbf{limit}, che attraverso dei meccanismi riescono a effettuare la protezione della memoria. Esiste anche un altro problema che \`e quello della \textbf{relocation}, che consiste nel come mappare gli indirizzi delle varie istruzioni di salto e dei vari puntatori una volta che il programma viene caricato in memoria. Se si utilizzassero degli indirizzi statici (creati solo in fase di compilazione prendendo come riferimento d'inizio del programma l'indirizzo $0$), una volta che il programma viene caricato in memoria le istruzioni punterebbero sempre allo stesso indirizzo, ma i programmi non partono tutti dall'indirizzo $0$, sorge dunque il probelema di come gestire le istruzioni che fanno riferimento ad altre parti del programma. Immagginiamo che gli indirizzi vengano creati una mentre il programma viene caricato in memoria, cosa succede se quel programma viene mosso in un altra parte della memoria? I rifermenti degli indirizzi sarabbere tutti sbagliati o addirittura potrebbero puntare a pezzi di altri programmi in esecuzione. Per questo motivo quando si utilizzano valori di indirizzi, essi vengono sommati al \textbf{base register}, mentre le boundry del programma in memoria vengono salvate nel \textbf{limit register}, grazie a questa tecnica \textbf{hardware} \`e possibile scrivere i programmi come se gli indirizzi del programma partissero da $0$.
+
+\subsection{Indirizzamento}
+Gli indirizzi vengono rappresentati in modo diverso a differenza della fase di vita di un programma: durante la compilazione vengono considerati come simbolici, durante la compilazione agli indirizzi \`e fatto il \textbf{bind} ad un indirizzo relativo (base) in modo da poter essere rilocato (questa somma \`e fatto dall'hardware), durante il linking o durante il loading. Il \textbf{binding} si pu\`o fare:
 \begin{itemize}
-  \item \textbf{in compilazione}: fatto quando molto semplice, ad esempio quando esistono solo due programmi;
+  \item \textbf{in compilazione}: fatto quando molto semplice come nei sistemi embedded, ad esempio quando esistono solo due programmi;
   \item \textbf{in fase di load}: viene fatta la rilocazione durante il caricamento in memoria;
   \item \textbf{in esecuzione}: viene fatto il binding degli indirizzi in modo dinamico;
 \end{itemize}
-Per risolver questo problema ci si affida all'hardware, che \`e incaricato di fare la traduzione: l'indirizzo rimane lo stesso (logico) all'interno del processore, prima di arrivare all'address bus viene tradotto in indirizzo fisico, esiste dunque una dicotomia di indirizzo logico e fisico, in questo modo quando si scrive un programma, l'indirizzo parte sempre da 0. Esistono due tipi di indirizzamento che sono di tipo logico, dove l'intervallo degli indirizzi utilizzabili \`e logico, ed un indirizzamento fisico, dove il range \`e limitato dalla memoria del sistema. Per effettuare questa traduzione da indirizzo fisico a indirizzo logico e viceversa si utilizza una \textbf{MMU} (Memory Management Unit). Il modo pi\`u facile per realizzare una MMU, \`e quello di usare un \textbf{relocation register}, ovvero un registro che contiene il valore da aggiungere un indirizzo logico per fare un indirizzo fisico, il modello pi\`u semplice di MMU \`e fatto da un sommatore ed un comparatore.
-
+Per risolver questo problema ci si affida all'hardware, che \`e incaricato di fare la traduzione: l'indirizzo rimane lo stesso (logico) all'interno del processore e del programma, prima di arrivare all'address bus viene tradotto in indirizzo fisico, esiste dunque una dicotomia tra indirizzo logico e fisico, in questo modo quando si scrive un programma, l'indirizzo parte sempre da $0$. Esistono due tipi d'indirizzamento che sono di tipo logico, dove l'intervallo degli indirizzi utilizzabili \`e logico, e un indirizzamento fisico, dove il range \`e limitato dalla memoria del sistema. Per effettuare questa traduzione da indirizzo fisico a indirizzo logico e viceversa si utilizza una \textbf{MMU} (Memory Management Unit). Il modo pi\`u facile per realizzare una MMU, \`e quello di usare un \textbf{relocation register}, ovvero un registro che contiene il valore da aggiungere un indirizzo logico per fare un indirizzo fisico, il modello pi\`u semplice di MMU \`e fatto da un sommatore e un comparatore. Il \textbf{relocation register} va a sostituire il \textbf{base register}.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.6\textwidth]{basic-mmu.png}
+  \caption{Basic MMU}
+  \label{fig:basic-mmu}
+\end{figure}
 Per aumentare le prestazioni ed usare la memoria in modo pi\`u efficente si possono usare delle tecniche dinamiche.
 \begin{itemize}
   \tolerance=1000
@@ -57,24 +62,25 @@ void myPrinf(**args) {
   printf(args);
 }
 \end{lstlisting}
-% TODO:  <27-02-23, yourname> rivedere %
-Il \textbf{linker-assisted DL} si usa una chiamata fasulla che prima chiama la load, usando una \textbf{stub}.
+Il \textbf{linker-assisted DL} usa una chiamata fasulla che prima chiama la load della funzione linkata dinamicamento e poi la invoca, questi piccoli pezzi di codice vengono detti \textbf{stub}.
 
-Le \textbf{shared libraries} sono in grado di condividere le risorse, infatti se pi\`u processi utilizzano la stessa funzione essa viene messa a disposizione e per ogni nuova chiamata non ci sar\`a bisogno di chiamre una load.
+\hfill 
 
+Le \textbf{shared libraries} sono in grado di condividere le risorse, infatti se pi\`u processi utilizzano la stessa funzione essa viene messa a disposizione a livello globale e per ogni nuova chiamata non ci sar\`a bisogno di chiamare una load.
 
-Come si alloca memoria per un programma (immagine)? La pi\`u semplice \`e l'allocazoine contigua, dove si vede la RAM come due partizioni, una per il SO una per i processi (indirizzi pi\`u alti), per caricare un processo si parte da un indirizzo di inzio ed un indirizzo di fine, la MMU vista prima funziona solo con i casi di allocazione contigua (basilare). L'\textbf{allocazione contigua con paritizione variabile}: quando ci sono pi\`u buchi ci sono delle politiche differnti per inserire nuovi programmi:
+\subsection{Allocazione in Memoria}
+\tolerance=1000
+Come si alloca memoria per un programma (immagine)? La pi\`u semplice \`e l'allocazione contigua, dove si vede la RAM separata in due partizioni, una per il SO e una per i processi (indirizzi pi\`u bassi), per caricare un processo si parte da un indirizzo d'inizio e un indirizzo di fine, la MMU vista prima funziona solo con i casi di allocazione contigua (basilare). Una tecnica pi\`u efficente \`e l'\textbf{allocazione contigua con partizione variabile}, che consiste in: quando ci sono pi\`u buchi ci sono delle politiche differenti per inserire nuovi programmi:
 \begin{itemize}
   \item \textbf{first-fit}: il primo che si trova;
   \item \textbf{best-fit}: il buco con la dimensione pi\`u piccola;
-  \item \textbf{worst-fit}: il buco can li dimesnione pi\`u grande;
+  \item \textbf{worst-fit}: il buco con la dimensione pi\`u grande;
 \end{itemize}
-La frammentazione \`e sparsit\`a dei buchi all'interno della memoria. Si dice \textbf{esterna} perch\'e \`e al di fuori dei processi, si dice \textbf{interna} quando \`e interna al processo, ovvero che ha pi\`u memoria di quello che serve. La frammentazione ha bisongo di \textbf{compattazione}, il SO sposta i pezzi e poi si riparte, partitione della memoria in zona libera e zona occuputa, per fare una \textbf{deframmentazoine} (o compattazione) voul di re creare solo due partizioni (parte processi e zona libera), per effettuare la compattazione bisogna che i processi si possano spostare, inoltre un processo non pu\`o essere spostato se in quel momento il processo sta effettuando delle operazioni di IO, una soluzione per il problema dell'IO \`e il \textbf{latch job} in cui quella parte non pu\`o essere spostata, oppure si utilizza un \textbf{buffer IO del kernel}, si fa IO solo in buffer del sistema operativo.
-
-\tolerance=1000
-Con \textbf{backing store} si definisce uno spazio della memoria secondaria in cui non si salvano programmi ma vengono immagazzinati dei dati che altrimenti dovrebbero andare in RAM.
-
-La \textbf{Paginazione} risolve i problemi della allocazione continua, rimuovendo l'allocazione contigua al suo posto si utilizzano della pagine, che sono l'unit\`a minima di allocazione, questo risolve il problema della frammentazione.
+La \textbf{frammentazione} \`e definita come la \emph{sparsit\`a dei buchi all'interno della memoria}. Si dice \textbf{esterna} perch\'e \`e al di fuori dei processi, si dice \textbf{interna} quando \`e interna al processo, ovvero che ha pi\`u memoria di quello che serve. La frammentazione ha bisogno di \textbf{compattazione}, il SO sposta i pezzi e poi si riparte, partiziona la memoria in zona libera e zona occupata, per fare una \textbf{deframmentazione} (o compattazione) vuol dire creare solo due partizioni (parte processi e zona libera), per effettuare la compattazione bisogna che i processi si possano spostare, inoltre un processo non pu\`o essere spostato se in quel momento sta effettuando delle operazioni di IO, una soluzione per il problema dell'IO \`e il \textbf{latch job} in cui solo la parte che sta facendo IO non pu\`o essere spostata, oppure si utilizza un \textbf{buffer IO del kernel}, si fa IO solo in buffer del sistema operativo.
+\begin{definition}{Backing Store}{backing-store}
+  Con \textbf{backing store} si definisce uno spazio della memoria secondaria in cui non si salvano programmi ma vengono immagazzinati dei dati che altrimenti dovrebbero andare in RAM.
+\end{definition}
+La \textbf{Paginazione} risolve i problemi della allocazione contigua, al suo posto si utilizzano della \textbf{pagine} che sono l'unit\`a minima di allocazione e di trasferimento, questo risolve il problema della frammentazione.
 \begin{definition}{Pagine}{pagine}
   Le partizioni della memoria logica.
 \end{definition}
@@ -84,73 +90,100 @@ La \textbf{Paginazione} risolve i problemi della allocazione continua, rimuovend
 \begin{definition}{Blocco}{blocco}
   ...
 \end{definition}
-Tipicamente la loro dimensione \`e un multiplo di due, sia pagine che frame hanno la stessa dimensione, da qualche parte andranno salvate le informazioni di mapping tra pagine e frame, si utilizza un \textbf{frame table}, dove ogni riga corrisponde una mappatura. Anche utilizzando la paginazione si ha frammentazione interna, l'ultima pagina soffrir\`a di frammentazione.
+Tipicamente la loro dimensione \`e un multiplo di due, sia pagine che frame hanno la stessa dimensione, da qualche parte andranno salvate le informazioni di mapping tra pagine e frame, si utilizza una \textbf{frame table}, dove ogni riga corrisponde a una mappatura. Anche utilizzando la paginazione si ha frammentazione interna. 
 
-% TODO:  <28-02-23, yourname> rivedere, prendere immagini %
-Una indirizzo generato dall CPU si divide in:
+\hfill
+
+Un indirizzo generato dall CPU si divide in:
 \begin{itemize}
   \item \textbf{numero di pagine (p)}: 
-  \item \textbf{numro di offset (d)}:
+  \item \textbf{numero di offset (d)}:
   \item \textbf{numero di frame (f)}:
 \end{itemize}
-Un indirizzo \`e composto da: (p-d, d)
+Un indirizzo \`e composto da: $(p-d, d)$
 \begin{example}{}{}
   Se si hanno frame piccoli diminuisce la frammentazione ma aumentano anche le righe della tabella.
 \end{example}
-Nelle righe della tabelle si aggiungono dei bit in pi\`u:
+Nelle righe della tabella si aggiungono dei bit in pi\`u per rappresentare delle informazioni aggiuntive rispetto al frame:
 \begin{itemize}
-  \item parte di protezione, specifica che la parte di codice non pu\`o essere scritta;
+  \item \textbf{parte di protezione}: specifica che la parte di codice non pu\`o essere scritta;
   \item \textbf{modify bit}: pagina modifica;
-  \item \textbf{page present/absent}: 
+  \item \textbf{page present/absent}:  pagina presente in memoria;
 \end{itemize}
-Come si implementa una page table? La page table si trova in memoria RAM, per sapere dove si trova si utilizzano due rigistri: \textbf{page table base register} e \textbf{base table lenght register}, infatti la base table si trova in memoria contigua. Per velocizzare questa operazione si utilizza che TLB che \`e pi\`u piccola e si trova direttamente sulla CPU, si usa la \textbf{Translation Look-aside Buffer} (TLB), un tipo di memoria in cui si accede per contenuto. Si aggiunge anche un altra informazione \textbf{ASID} in cui viene salvata l'infromazione del processo a cui la pagina appartiene, se non \`e presente questa informazione si i processi si contentendono la TLB. Quando avviene un \textbf{TLB miss} se reinserisce nella TLB e poi si ritenta, utilizzando una politica scelta.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.7\textwidth]{page-table.png}
+  \caption{Page Table}
+  \label{fig:page-table}
+\end{figure}
+Come si implementa una \textbf{page table}? La page table si trova in memoria RAM, per sapere dove si trova si utilizzano due rigistri: \textbf{page table base register} e \textbf{base table lenght register}, infatti la base table si trova in memoria contigua. Per velocizzare questa operazione si pu\`o spostare questa tabella all'interno della CPU (le operazioni di accesso alla memoria sono costose), si usa la \textbf{Translation Look-aside Buffer} (TLB), un tipo di memoria in cui si accede per contenuto. Si aggiunge anche un altra informazione \textbf{ASID} in cui viene salvata l'infromazione del processo a cui la pagina appartiene, se non \`e presente questa informazione i processi si contendono la TLB. Quando avviene un \textbf{TLB miss} se reinserisce la pagina nella TLB e poi si ritenta, utilizzando una politica scelta. Anche usando una TLB si mantiene comunque la page table in RAM in caso di miss, in modo da recuperare il frame ed inserirlo nella TLB.
 \begin{center}
-  \emph{Lo schema finale \`e la combinazione di TLB e page table.}
+  \boxed{\emph{Lo schema finale \`e la combinazione di TLB e page table.}}
 \end{center}
+
+
 Il \textbf{Tempo di accesso effettivo} (EAT) in memoria \`e il tempo che mi costa accedere alla RAM:
 \[ EAT = h \cdot M + (1 - h) \cdot 2M  \]
 \begin{itemize}
   \item $h$ = TLB hit ratio;
   \item $M$ = Memory access time;
 \end{itemize}
-La protezione \`e implementata associando un bit di protezione per un frame specifico, e quindi per la rispettiva pagina, grazie a questo bit si possono definire parti ci codice che indica che il frame \`e in solo scrittura. Anche un altro bit associato \`e \textbf{validity} che indica quando una pagina \`e valida, ovvero quando c'\`e ed \`e associata ad un frame, o quando una pagina non \`e valida che vuol dire che la pagina non esiste o che non \`e associata ad frame, se si cerca di accedere una pagina non valida viene lanciata una \textbf{trap}.
+L'accesso alla memoria \`e raddoppiato perch\'e si deve prima recupare il frame dalla page table e poi si pu\`o accedere alla memoria.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.7\textwidth]{paginazione-con-tlb.png}
+  \caption{Paginazione Con TLB}
+  \label{fig:paginazione-con-tlb}
+\end{figure}
+La protezione \`e implementata associando un bit di protezione per un frame specifico, e quindi per la rispettiva pagina, grazie a questo bit si possono definire parti di codice che indica che il frame \`e in solo scrittura. Anche un altro bit associato \`e il \textbf{validity} che indica quando un frame \`e valido, ovvero quando c'\`e ed \`e associata a un indirizzo in RAM, o quando non \`e valida che vuol dire che il frame non esiste o che non \`e associato ad un indirizzo, se si cerca di accedere un frame non valido viene lanciata una \textbf{trap}.
 
 La tabella della pagina permette di \textbf{condividere le pagine} (anche se in realt\`a sono i frame), se pi\`u processi hanno delle pagine che sono comuni vengono condivise da entrambi i processi.
 
 La page table \`e una struttura dati del kernel:
 \begin{example}{}{}
-  HP: spazio logico di indirizzamento di 32 bit, una pagina di 4KB ($2^{12}$), la page table avr\`a un milione di entry ($2^{32}/2^{12}$), ogni entry della page table sono 4bytes, quindi una pagetable \`e grande 4MB. Adesso \`e possibile avare:
+  HP: spazio logico di indirizzamento di 32 bit, una pagina di 4KB ($2^{12}$), la page table avr\`a un milione di entry ($2^{32}/2^{12}$), ogni entry della page table sono 4 byte, quindi una page table \`e grande 4MB. Adesso \`e possibile avare:
   \begin{itemize}
     \item \textbf{page table contigua}:
-      \begin{itemize}
-        \item dimensione critica (troppo grande):
-          \begin{itemize}
-            \item page table gerarchica;
-            \item hash page table;
-            \item inverted page table;
-          \end{itemize}
-      \end{itemize}
   \end{itemize}
+  Se la dimensione \`e critica (troppo grande):
+    \begin{itemize}
+      \item page table gerarchica;
+      \item hash page table;
+      \item inverted page table;
+    \end{itemize}
 \end{example}
+
+\begin{wrapfigure}{R}{0.4\textwidth}
+  \centering
+  \includegraphics[width=1\linewidth]{page-table-gerarchica.png}
+\end{wrapfigure}
 La \textbf{la page table gerarchica}, la page table viene divisa in blocchi pi\`u piccoli non contigui, se usa una page table di livello superiore che porte alle page table di livello inferiore, questi blocchi devono rimanere contigui, anche se diventano molto piccoli. Il page number viene diviso in due parti, una per la tabella outer ed una per la tabella inner (pu\`o avere anche pi\`u di due livelli), quando si va su 64 bit e la outer dienta molto grande si pu\`o usare solo una parte dell'indirizzamento se l'eseguibili \`e molto piccolo.
 
-La \textbf{hashed page table} permette di creare una tabella di hash, con una funzione direttamente implementata in hardware che dato $p$ in input ritorna $f$. Vanno implementate delle liste di collisione, e quindi vieni immagazzinato che $p$ che \`e la chiave di accesso. Usando una tabella di hash si potrebbe pensare anche di usare una page table condivisa tra tutti i processi, ma a quel punto va inserito anche l'ID del processo.
+\begin{wrapfigure}{L}{0.4\textwidth}
+  \centering
+  \includegraphics[width=1\linewidth]{hashed-page-table.png}
+\end{wrapfigure}
+La \textbf{hashed page table} permette di creare una tabella di hash, con una funzione di hash direttamente implementata in hardware che dato $p$ in input ritorna l'hash a cui \`e associato $f$. Vanno implementate delle liste di collisione, e quindi vieni immagazzinato che $p$ che \`e la chiave di accesso e come suo valore $f$. Usando una tabella di hash si potrebbe pensare anche di usare una page table condivisa tra tutti i processi, ma a quel punto andr\`a inserito l'ID del processo all'interno della chiave primaria.
 
-La \textbf{inverted page table} \`e una tabella condivisa tra tutti i processi, la sua grandezza viene dimensionata sulla grandezza della RAM e non sulla grandezza dei processi, in cui ogni frame fisico \`e associata una pagina, in questo caso le entry che corrisponde ad un frame ritorna la pagina a cui \`e associto, il problema che si vuole la traduzione da pagine ad entry e non il contrario, la prima strategia che si pu\`o utilizzare \`e la scansione lineare. Per rendere l'accesso pi\`u veloce viene messa una tabella di hash prima di arrivare alla tabella invertita.
+\begin{wrapfigure}{R}{0.4\textwidth}
+  \centering
+  \includegraphics[width=1\linewidth]{inverted-page-table.png}
+\end{wrapfigure}
+La \textbf{inverted page table} \`e una tabella condivisa tra tutti i processi, la sua grandezza viene dimensionata ripetto alla grandezza della RAM e non sulla grandezza dei singoli processi, all'interno ogni frame fisico \`e associato a una pagina. In questo caso le entry che corrispondono a un frame hanno come valore di ritorno la pagina a cui \`e associato, il problema \`e che si vuole la traduzione da pagine ad entry e non il contrario, la prima strategia che si pu\`o utilizzare \`e la scansione lineare. Per rendere l'accesso pi\`u veloce viene messa una tabella di hash prima di arrivare alla tabella invertita.
 
 
 \subsection{Swapping}
-Si suppunga che ad un certo punto si volgia far partire un processo e che la memoria sia piena, cosa si pu\`o fare? Una soluzione \`e lo \textbf{swapping}, ovvere viene rimesso sul backing store (in modo temporaneo) che in linux \`e la partizione di swap, e viene caricato il nuovo processo, grazie allo swapping si possono avere processi che hanno pi\`u memoria occupata di quanto la RAM sia grande.
+Si suppunga che a un certo punto si voglia far partire un processo e che la memoria sia piena, cosa si pu\`o fare? Una soluzione \`e lo \textbf{swapping}, ovvero viene la memoria associata a quel processo viene messa nel backing store (in modo temporaneo) che in linux \`e la partizione di swap, e viene caricato il nuovo processo, grazie allo swapping si possono avere processi che hanno pi\`u memoria occupata di quanto la RAM sia grande.
 \begin{example}{}{}
-  Qunato costa il \textbf{context switch}? Memoria piena e viene fatto partire un programma, dunque deve essere portato un processo nel backing store. 100MB da fare la swap con velocit\`a di trasferimento di 50MB/sec.
+  Quanto costa il \textbf{context switch}? Memoria piena e viene fatto partire un programma, dunque deve essere portato un processo nel backing store. 100MB da fare la swap con velocit\`a di trasferimento di 50MB/sec.
   \begin{itemize}
     \item swap out = 2000ms
     \item pi\`u swap in dello stessa grandezza
     \item il tempo totole \`e di 4s
   \end{itemize}
-  Se il porcesso sta fendo IO non si pu\`o fare lo swap out, una soluzione \`e non spostare un processo che sta facendo IO e spanane un altro, oppure usare un buffer del kernel.
+  Se il processo sta facendo IO non si pu\`o fare lo swap out, una soluzione \`e non spostare un processo che sta facendo IO ma spostarne un altro, oppure usare un buffer del kernel.
 \end{example}
-Sui telefoni non esiste lo swaping, vengono in auito le \textbf{lifecycle dei contesti}. Il vantaggio di fare swapping \`e l'utilizzo del \textbf{paging swapping}, dove il swap in/out divento page in/out, dove vengono trasferite solo le pagine e non l'intero processo.
+Sui telefoni non esiste lo swaping, vengono in auito le \textbf{lifecycle delle Acrivity e dei Fragment}. Il vantaggio di fare swapping \`e l'utilizzo del \textbf{paging swapping}, dove il swap in/out divento page in/out, dove vengono trasferite solo le pagine e non l'intero processo.
 
 \subsection{Esercizi}
 \begin{example}{}{}
@@ -297,10 +330,45 @@ Il problema del working set \`e che non guarda quante volte si fa accesso ad una
   \item se $\tau$ \`e minore di una costante $c$ si prende un nuovo frame e lo si aggiunge al \emph{resident set};
   \item se $\tau$ \`e maggiore di $c$  si rimuove dal \emph{resident set} tutte le pagine con reference bit a zero e si settano i reference bit a zero della pagine rimanenti;
 \end{itemize}
+Normalmente il working set dovrebbe coincidere con i monti nel queale il SO ha delle spike di utilizzo dei frame, dovuti a vari motivi.
+
+\hfill
+
+Il kernel \`e allocato in modo contiguo, il motivo \`e che la maggior parte delle strutture dati presenti al suo interno sono allocate in modo contiguo, ad esempio la \textbf{page table}.
+
+Esempio di due tipi di allocazione:
+\begin{itemize}
+  \item \textbf{Buddy System}: L'idea \`e che va bene l'allocazione contigua va bene ma l'allocazione pu\`o essere solo una potenza di $2$, questo causa un sacco di frammentazione interna.
+  \item \textbf{Slab Allocator}: L'idea \`e allocare per pagina ma si prendono in modo contiguo. In linux c'\`e una struttura di slab allocation.
+\end{itemize}
 
 
+Per diminuire il numero di page fault, si pu\`o allocare un po di pagine iniziali ed essere bravi ad indovinarle, questa tecnica viene detta \textbf{prepaging}.
+
+Quanto deve essere grande una pagina? Per diminuire la frammentazione si vorrebbere pagine piccole, per diminuire la dimensione della page table si volgiono pagine grandi. Un altro parametro \`e dato dalle operazioni di IO, infatti una volta che si legge dal disco (molto lento), tanto vale prendere tanta roba.  La grandezza prende in considerazione anche la \emph{localit\`a} dei dati. Se si guarda l'efficienza della TLB avere poche entry \`e molto meglio (pagine grandi). Solitamente le pagine hanno una grandezza compresa tra $2^{12}$ e $2^{22}$ (la grandezza \`e sempre un multiplo di $2$).
+
+Il \textbf{TLB reach}, \`e la percentuale di spazio che la TLB vede sulla memoria (quantit\`a di memoria vista dalla TLB)
+\[ TLBreach = TLBsize \cdot PageSize \]
+
+La struttura dei programmi ha anche un effetto sui page fault.
+\begin{example}{}{}
+  Si supponga di voler azzerare una matrice in un doppio loop annidato.
+  \begin{lstlisting}[language=c]
+for (int i = 0; i < 128; i++)
+  for (int j = 0; j < 128; j++)
+    matrx[i][j] = 0;
+  \end{lstlisting}
+  \begin{lstlisting}[language=c]
+for (int j = 0; j < 128; i++)
+  for (int i = 0; i < 128; i++)
+    matrx[i][j] = 0;
+  \end{lstlisting}
+  Supponendo che una riga stia all'interno di una singola pagina, il primo programma causa $128$ page faults, mentre il secondo causa $128 \times 128$ page fault.
+\end{example}
 
 
+\subsection{Esercizi}
+Gestione della memoria 3.
 
 
 
@@ -324,7 +392,68 @@ Per creare compilare i nuovi moduli si pu\`o creare un nuovo file in \texttt{con
 #endif
 \end{lstlisting}
 
+\subsection{Dumbvm e kmalloc}
+L'allocazione in OS161 \`e allocazione contigua sia per i processi che per il kernel, inoltre questo allocatore non rilascia la memoria. Il file \texttt{dumbvm.c} \`e l'allocatore del mips, \texttt{vm.c} \`e un allocatore opzionale ma \`e vuoto.
 
+\texttt{ram\_stealmem} nel file \texttt{ram.c}, perdende della pagine dalla ram e le alloca.
+
+L'allocatore \`e diviso in allocatore User e allocatore Kernel.
+
+Il kernel \`e basato su mips (32 bit) quindi ha 4GB di memeria logica, \`e diviso in:
+\begin{itemize}
+  \item \texttt{kuseg}; (0x00000000, 0x80000000) [user]
+  \item \texttt{kseg0}: (0x80000000, 0xa0000000) [kernel]
+  \item \texttt{kseg1}: (0xa0000000, 0xc0000000) [kernel]
+  \item \texttt{kseg2}: (0xc0000000, 0xffffffff) [kernel]
+\end{itemize}
+Dall'indirizzo si capisce se il programma \`e kernel o user, i processi user non possono vedere lo spazio del kernel mentre il kernel pu\`o vedere lo spazio user.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{mips-virtual-address-space.png}
+  \caption{Mips Virtual Address Space}
+  \label{fig:mips-virtual-address-space}
+\end{figure}
+
+Il kernel utilizza kseg0 e kseg1 per TLB e cache. Se si fa accesso alla memoria solo \texttt{kuseg} e \texttt{kseg2} sono mappati sulla TLB, negli altri spazi non si intende usare la TLB e quindi sono \emph{invisibili}. Il \texttt{kseg1} \`e una memoria \textbf{uncached} e patr\`a essere usata per parlare con i dispositivi di IO, il motivo \`e che questi dispositivi non funzionano bene con le cache.
+
+Quando il kernel viene caricato la memoria \`e disposta in.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{kernel-loader-initial.png}
+  \caption{Kernel Loader Initial}
+  \label{fig:kernel-loader-initial}
+\end{figure}
+
+Una volta che viene fatto il bootstrap, si hanno a dipsosizione il \texttt{firstfree} (primo indirizzo di ram libera, logico) e \texttt{firstpfree} (primo indirizzo fisico) e \texttt{lastpaddr} (ultimo indirizzo fisico).
+
+Quando si vuole allocare della memoria, si usa \texttt{ram\_stealmem} a cui gli vanno passete il numero di pagine.
+\begin{lstlisting}[language=c]
+// kern/arch/mips/vm/ram.c
+paddr_t ram_stealmem(unsigned long npages) {
+  paddr_t paddr;
+  size_t size = npages * PAGE_SIZE;
+  if (firstpaddr + size > lastpaddr) {
+    return 0;
+  }
+  paddr = firstpaddr;
+  firstpaddr += size;
+  return paddr;
+}
+\end{lstlisting}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.7\textwidth]{interfaccia-dumbvm.png}
+  \caption{Interfaccia Dumbvm}
+  \label{fig:interfaccia-dumbvm}
+\end{figure}
+Le funzioni di free devono essere implementate.
+
+
+Se si volesse gestire la paginazione, si dovrebbe scindere i l'allocatore per kernel e user, infatti l'user dovrebbe vedere delle pagine mentre il kernel della memoria contigua. Per ora la soluzione proposta \`e:
+\begin{itemize}
+  \item allocazione contigua (per pagine) comune;
+  \item bitmap implementata come char array, dove ogni posizione rappresenta se la pagina \`e libera o presa;
+\end{itemize}
 
 
 

@@ -319,7 +319,15 @@ In CSS there 4 position schemes: \textbf{static}, \textbf{relative}, \textbf{abs
 
 In CSS the flex schema allows for direct control over the element of the page, it allows modifying: direction, sizes, alignment, position, spacing, ...
 
-\subsection{Resposive}
+In CSS the $\~$ selector is called \textbf{subsequent sibling combinator}, the element represented by the first sequence precedes (not necessarily immediately) the element presented by the second one.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{subsequent-sibling-operator.png}
+  \caption{Subsequent Sibling Operator}
+  \label{fig:subsequent-sibling-operator}
+\end{figure}
+
+\subsection{Responsive}
 It's possible to achieve a responsive layout by using \texttt{media query}:
 \begin{lstlisting}[language=html]
 @media(min-width:900) { }
