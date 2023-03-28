@@ -319,7 +319,7 @@ In CSS there 4 position schemes: \textbf{static}, \textbf{relative}, \textbf{abs
 
 In CSS the flex schema allows for direct control over the element of the page, it allows modifying: direction, sizes, alignment, position, spacing, ...
 
-In CSS the $\~$ selector is called \textbf{subsequent sibling combinator}, the element represented by the first sequence precedes (not necessarily immediately) the element presented by the second one.
+In CSS the \texttt{\~} selector is called \textbf{subsequent sibling combinator}, the element represented by the first sequence precedes (not necessarily immediately) the element presented by the second one.
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.8\textwidth]{subsequent-sibling-operator.png}
@@ -334,11 +334,39 @@ It's possible to achieve a responsive layout by using \texttt{media query}:
 \end{lstlisting}
 
 
+\section{JS inside HTML}
+The perferred way to include javascript code inside the html is:
+\begin{lstlisting}[language=js]
+<script async src="script.js"></script>
+// or better
+<script defer src="script.js"></script>
+\end{lstlisting}
+Where does the code run?
+
+
+The main objects of the browser:
+\begin{itemize}
+  \item \textbf{DOM}: Document Object Model 
+  \item \textbf{BOM}: Browser Object Model, non-standard
+\end{itemize}
+The BOM has a \texttt{window} object, which contains: \texttt{console, document, history, location, localStorage, sessionStorage}.
+
+The DOM is 
+
+The DOM can be accessed like a squence of Nodes. To find a node there are vaarius methods, like:
+\begin{itemize}
+  \item \texttt{document.getElementById(value)}
+  \item \texttt{document.getElementsByTagName(value)}
+  \item \texttt{document.getElementsByClassName(value)}
+  \item \texttt{document.querySelector(css)}
+  \item \texttt{document.querySelectorAll(css)}
+\end{itemize}
+From each node there are many mothod to access all the neigbhor nodes.
 
 
 
 
-
+\subsection{Event Handling}
 
 
 
