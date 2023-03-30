@@ -378,6 +378,9 @@ Gestione della memoria 3.
 
 \newpage
 \section{OS161}
+Ogni versione del kernel corrisponde ad un file di configurazione tutto in maiscolo, la prima versione \`e \texttt{DUMBVM} e tutti i file di configurzazione si trovano in \texttt{\$HOME/kern/conf}.
+
+.....
 La cartella \texttt{conf} contiene le versioni dei kernel. Per abilitare nuovi moduli si va in \texttt{conf.kern} e:
 \begin{lstlisting}[language=]
 defoption hello
@@ -456,6 +459,52 @@ Se si volesse gestire la paginazione, si dovrebbe scindere i l'allocatore per ke
   \item bitmap implementata come char array, dove ogni posizione rappresenta se la pagina \`e libera o presa;
   \item 
 \end{itemize}
+
+
+
+\subsection{Overview}
+In os161 si parla di thread di kernel e poi di processi utenti (in futuro un thread di kernel si sgancia dal kernel e diventa processo user), ogni thread ha us suo \textbf{context} di esecuzione, in cui sono contenuti dei dati e il suo stack. Gli user thread sono generati da un altro processo thread, ad esempio i \emph{POSIX pthread} permettono di creare dei nuovi thread.
+
+La differenza tra un processo ed un thread \`e:
+un processo ha uno spazio di indirizzamento in cui sono contenute le istruzioni ed i dati, poi esistono due aree che sono lo stack e lo heap, il processo arriva da un file eseguibile (tutto o in parte). Un processo pu\`o essere \emph{single-threaded} o \emph{multi-threaded}, tutti i dati globali sono condivisi e visibili dai thread, ogni thread ha privato il suo \textbf{context} (registri, stack, program counter).
+
+In os161 il contesto di kernel thread, \`e: stack, registri, dati. I due modi di implementare la creazione dei nuovi thread \`e diviso in:
+\begin{itemize}
+  \item i thread sono gestiti dalla libreria;
+  \item i thread sono gestiti dal kernel;
+\end{itemize}
+Questo \`e dovuto al fatto che: il kernl vede solo dei processi (al posto dei thread) e da come \`e fatto lo scheduler dei thread. In os161 un thread \`e fatto da:
+\begin{lstlisting}[language=c]
+/* see kern/include/thread.h */
+struct thread {
+  char *t_name; /* Name of this thread */
+  const char *t_wchan_name; /* Name of wait channel, if sleeping */
+  threadstate_t t_state; /* State this thread is in */
+  /* Thread subsystem internal fields. */
+  struct thread_machdep t_machdep;
+  struct threadlistnode t_listnode;
+  void *t_stack; /* Kernel-level stack */
+  struct switchframe *t_context; /* Saved register context (on stack) */
+  struct cpu *t_cpu; /* CPU thread runs on */
+  struct proc *t_proc; /* Process thread belongs to */
+  ...
+};
+\end{lstlisting}
+Esistono 3 funzioni per gestire dei thread:
+\begin{itemize}
+  \item \texttt{thread\_fork}: crea un nuovo thread;
+  \item \texttt{thread\_exit}: termina il thread;
+  \item \texttt{thread\_yield}: sospende l'esecuzione del thread;
+\end{itemize}
+Quando viene creato un nuovo thread viene fatto un context switch.
+
+Come viene fatto il context switch? Si utilizza \texttt{switchframe\_switch}, il codice scritto \`e in assembler MIPS,
+
+
+Quando viene creato uno user thread, viene generato un nuovo stack per per il processo user, lo stack kernel viene comquneu mantenuto, quando il processo far\`a una chiamata ad una systema call allora passar\`a in modalit\`a kernl ed user\`a lo stack kernel che ha lasciato indietro.`
+
+
+
 
 
 
