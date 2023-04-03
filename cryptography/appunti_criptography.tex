@@ -196,11 +196,48 @@ EVP_CHIPER *c = EVP_bf_cbc();
 
 
 \subsection{Symmetric Encryption}
-The \textbf{context} where the data and algorithms are stored are the \texttt{EVP\_CIPHER\_CONTEXT} data structure. 
+The \textbf{context} where the data and algorithms are stored are the \texttt{EVP_CIPHER_CONTEXT} data structure. 
 Example of a string saved in memory:
 
 
+\subsection{Big Number}
+In OpenSSL to handle big number (biggere that the CPU registers), the \texttt{bn.h} library is used to handle this kind of numbers, for example to represent the keys of the RSA algorithm \texttt{BIGNUM}s are used.
 
+A way to generete a big number is by using:
+\begin{lstlisting}[language=c]
+BIGNUM *a = BN_new();
+BIGNUM *b;
+
+BN_copy(a, b);
+BIGNUM *c = BN_dup(b);
+
+BN_free(a);
+// ...
+\end{lstlisting}
+The bignum needs to always be freed.
+
+The library offers a way to convert the big numbers into other types, like into a string of raw bytes (\texttt{BN_bn2bin()}), or from a decimal string to a big number (\texttt{BN_dec2bn()}), ...
+
+
+\subsection{Asymmetric Cryptoraphy}
+In OpenSSL 3.0, the EVP interface allows to generate the keys and use them in the algorithm, but in OpenSSL 1.0, the functions use are \verb|RSA_generate_key_ex| (the version without the \texttt{ex} is deprecated), \texttt{RSA\_public\_ecrypt}. On the other hand with EVP we can use the basic way using of using the asymmetric encryption which is not very modifiable, or it's possible to use the \texttt{context} or the \texttt{OSSL\_PARAM} data structure, which allows to very detailed way of secifing the parameters.
+
+It's also possible to sign some data, there are steps to be taken in order to sign:
+\begin{enumerate}
+  \item create context;
+  \item \texttt{EVP\_DigestSignInit}: which takesas input the private key and the digest alogrithm;
+  \item \texttt{EVP\_DigestSignUpdate}
+  \item \texttt{EVP\_DigestSingFinal}
+\end{enumerate}
+
+How to generate a \emph{RSA private key}:
+\begin{lstlisting}[language=c]
+RSA *rsa_keypair = RSA_new();
+BIGNUM *bne = BN_new();
+BN_set_word(bne, RSA_F4);
+
+RSA_generate_key_ex(rsa_keypair, 2048, bne, NULL);
+\end{lstlisting}
 
 
 

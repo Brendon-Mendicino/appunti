@@ -1125,6 +1125,8 @@ fn main() {
 }
 \end{lstlisting}
 
+Esistono due tratti per poter fare dei confronti tra tipi su rust, che sono \texttt{Eq} e \texttt{PartialEq}. Un caso particolare di confronto sono i floating point. Quando si vogliono gestire dei confronti di ordine, ovvero quando un tipo \`e maggiore/minore, si utilizza il tratto \texttt{PartialOrd}. Quando si usa \texttt{PartialX} l'uguaglianza non \`e riflessiva mentre mentre senza \texttt{Partial} la comparazione \`e riflessiva.
+
 
 
 
