@@ -408,7 +408,21 @@ There are two types of component:
   \item \textbf{container component} manages the state of all his children;
 \end{itemize}
 \texttt{props} can only be passed from a parent to his children, if the changes shoul be performed from the a children to a parent then, a callback needs to be passed.
-
+\begin{center}
+  \boxed{React flow: view $ \implies $ actions $ \implies $ state $ \implies $ view $ \implies \dots $}
+\end{center}
+\begin{itemize}
+  \item A \textbf{state} is always \textbf{owned be one compoment}.
+  \item Changing state on a childred should not affect the state of a parent.
+\end{itemize}
+To create a React application
+\begin{lstlisting}[language=]
+$ npm create vite@latest my-app
+// Choose React, javascript + SWC
+$ cd my-app
+$ npm install
+$ npm run dev
+\end{lstlisting}
 
 
 
