@@ -367,7 +367,47 @@ From each node there are many mothod to access all the neigbhor nodes.
 
 
 \subsection{Event Handling}
+...
 
+
+
+
+\newpage
+\section{React}
+React is a framework that allows DOM manipulation with a level of abstractions, and while using it won't be necessary to touch the DOM directly.
+
+React has a functional approach, which allows bulding a web page in a declarative approach. On any change that is acted on a component all the other components are rerendered. Fot this reason React has a \textbf{virtual DOM} which is built on top of the DOM which will eventually push his changes to the original DOM.
+
+The basic information that are shared between components are the \texttt{state} and \texttt{props} (properties), which are passed to functions inside the component.
+
+On re-rendering when the virtual DOM is stabilized, the difference between the virtual DOM and the DOM are computed and only then the changes are moved on the actual DOM, this is why this re-rendering is not so heavy.
+
+There are event that are normalized across the browser, this are called \textbf{synthetic events}.
+
+If we want to write a minimal React application:
+\begin{lstlisting}[language=js]
+const container = document.getElementById('root');
+
+const root = createRoot(container);
+root.render(<h1>Hello, world!</h1>);
+\end{lstlisting}
+React uses \texttt{jsx} that are translated into \emph{react elements}, this \texttt{jsx} will be then be translated to plain javascript by React. To define a component in React we do:
+\begin{lstlisting}[language=js]
+const BlogPostExcerpt = (props) => {
+  return (
+    <div>
+      <h1>Title</h1>
+      <p>{props.content}</p>
+    </div>
+  )
+}
+\end{lstlisting}
+There are two types of component: 
+\begin{itemize}
+  \item \textbf{presentation component} don't manage the state;
+  \item \textbf{container component} manages the state of all his children;
+\end{itemize}
+\texttt{props} can only be passed from a parent to his children, if the changes shoul be performed from the a children to a parent then, a callback needs to be passed.
 
 
 
