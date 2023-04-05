@@ -549,27 +549,28 @@ Non-functional requirements are some kind of properties associated to a function
 
 \newpage
 \section{User Interface}
-Starting from the requirements document the User Interface will be based upon.
-
-Typcally the user interface represent a human interacting with the graphical interface of the program.
+Typcally the user interface represent a human interacting with the graphical interface of the program. Usually when we start to build a UI for our applications we need to start from: \textbf{context diagrams and actors}, \textbf{function requirements} and esecially \textbf{use cases}. When looking at our use cases we can the steps that an actor is performing and the UI should represent this steps in simple way. A key idea to always remember is to \emph{keep the UI simple}, in fact \emph{"A user interface is like a joke. If you have to explain it, it's not that good"}, also another key aspect of implementing a UI is \textbf{experimentation}.
 
 The context is also important, in fact nowadays the applications can be developed for many differet devices, like: desktop, web, mobile phone, smartwatch, etc...
 
-As a principle we should use the \textbf{simpicity}, we can represent it iwth three different axis, which are all related to each other.
+As a principle we should use the \textbf{simpicity}, we can represent it with three different axes, which are all related to each other, and we should remain as close to the orgin as possible.
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.8\textwidth]{ui-simplicity.png}
+  \includegraphics[width=0.4\textwidth]{ui-simplicity.png}
   \caption{Ui Simplicity}
   \label{fig:ui-simplicity}
 \end{figure}
-Obviously the simplicity of the interface depends on the funcionality that it is built on.
+Obviously the simplicity of the interface depends on the funcionality that it is built on, if for example we are building an application to pilot a shuttle to the ISS, it's not a very good idea to implent the controller with three buttons, obviosly shuch application will have thousends of lines of code and hundreds of buttons to control every funcitonality, that's way the context of build a UI is very important.
+
+\hfill
 
 The main approaches for designing an interface are:
 \begin{itemize}
-  \item \textbf{Ergonomy}: safety, adaptability, comfort, usability, ...
+  \item \textbf{Ergonomy}: safety, adaptability, comfort, usability, one entry point, ...
   \item \textbf{Emotional Design}: is about the emotion about using a certain device raise in a user using it, like Apple products.
-  \item \textbf{User Experience (UX)}
+  \item \textbf{User Experience (UX)}: usability + feelings + emotions + values.
 \end{itemize}
+We also need to keep in mind the at the end of day the end-user will interact with the UI and so our choices needs to based on \emph{feedback from the real user}, and not on our personal opinion, this is called \textbf{User Centered Design (UCD)}. The UCD has five steps:
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.8\textwidth]{user-centered-design-process.png}
@@ -580,7 +581,7 @@ The main approaches for designing an interface are:
 
 
 \subsection{Prototype}
-A proptotype is a simplified version of the final version of the final interface. The inital steps can be made on: paper, postit, sketches, ... (\textbf{Low Fidelity}: needs to be done fast). The next step is by producing \textbf{High Fidelity}, this is done by using a computer, there are many products to do this, like: \textbf{Balsamiq}, \textbf{Figma}, ... The final step will be to use an \emph{actual GUI Builder}, which will generate all the software calsses and all the methods needed to link the software with the GUI.
+A proptotype is a simplified version of the final version of the interface. The inital steps can be made on: paper, postit, sketches, ... (\textbf{Low Fidelity}: needs to be done fast). The next step is by producing \textbf{High Fidelity} UI, this is done by using a computer, there are many products to do this, like: \textbf{Balsamiq}, \textbf{Figma}, ... The final step will be to use an \emph{actual GUI Builder}, which will generate all the software calsses and all the methods needed to link the software and his functionality with the GUI.
 
 
 \subsection{In Lab Tests}
@@ -610,9 +611,6 @@ After many years there are some conventions used in the design of a product:
   \item links change color on mouse hover;
   \item next/back is always in the same place;
 \end{itemize}
-
-
-
 
 
 

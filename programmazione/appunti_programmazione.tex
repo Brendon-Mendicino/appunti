@@ -1162,10 +1162,60 @@ fn generic<T>(w: &mut T) where T: Write { ... }
 
 
 \subsection{Lifetimes}
-In rust ogni riferimento ha tempo di vita, :
+In Rust ogni riferimento ha tempo di vita, il compilatore \`e in grado d'inferire il tempo di vita dei riferimenti nella maggior parte dei casi, quando questo non \`e possibile deve essere scritti esplicitamente, la sintassi per farlo \`e: \verb|fn test<'a>(number: &'a i32)|, dove le lifetimes sono precedute da un apice e vengono dalle lettere dell'alfabeto in modo ordinato.
+\begin{example}{Uso delle Lifetimes}{uso-delle-lifetimes}
+  Si preda come esempio il caso in cui un funzione che prende in input due riferimenti e ne ritorna un'altro:
+  \begin{lstlisting}[language=rust]
+fn max<'a>(num1: &'a i32, num2: &'a i32) -> &'a i32 {
+  if num1 > num2 {
+    return num1;
+  } else {
+    return num2;
+  }
+}
+  \end{lstlisting}
+  In questo caso le lifetimes coincidono, proviamo ad usarla:
+  \begin{lstlisting}[language=rust]
+fn main() {                 // lifetimes:
+  let n = 10;               // n+
+  let res;                  //  |      
+  {                         //  |      
+    let m = 19;             //  | m+ 'a+
+    res = max(&n, *m);      //  |  |   |
+  }                         //  |  |   |
+  println!("max: {}", res); //  |      
+  // ERRORE-----------^     //  |
+}                           //  |
+  \end{lstlisting}
+  In questo caso il codice non compiler\`a perch\'e quando si utilizzano delle lifetimes si assume come intervallo \textbf{l'interseizione delle lifetimes} e quindi viene presa la pi\`u piccola, in questo casa \verb|'a| concide con il tempo di vita di \texttt{b}.
+\end{example}
 
 
 
+\subsection{Closures}
+Una \textbf{funzione di ordine superiore} \`e detta tale se prende in input a da in output una funzione. In rust \`e possibile assegnare ad una variabile una funzione is suo tipo sar\`a \texttt{fn(T1, T2, ..., Tn) -> U}. Quando una variabile ha un tipo \texttt{fn} questa sar\`a legata ad una funzione classica, se invece si usano le \emph{lambda} esistono altri tre tipi:
+\begin{itemize}
+  \item \texttt{FnOnce}: struttura che pu\`o essere invocata una sola volta.
+  \item \texttt{FnMut}: la struttura pu\`o essere chiamata pi\`u volte e a ogni chiamata pu\`o alterare il suo stato.
+  \item \texttt{Fn}: la struttura pu\`o essere chiamata pi\`u volte ma non pu\`o mutare il suo stato.
+\end{itemize}
+Il corpo della funzione lambda pu\`o fare riferimento alla variabili locali nello scope in cui sono state create, in questo caso la lambda acquisisce uno stato e le variabili vengono dette \textbf{variabili libere}, in questo caso si dice che le viabili vengono \textbf{catturate}. La cattura pu\`o avvenire per \textbf{riferimento}, e quindi la variabile sar\`a accessibile solo nel suo tempo di vita, oppure la cattura pu\`o avvenire per \textbf{movimento}, dove la variabile viene mossa all'interno della funzione lambda e quindi ne prende il possesso.
+\begin{lstlisting}[language=rust]
+let number = 10;
+let with_reference = |...| { number ... };
+let with_movement = move |...| { number ... };
+\end{lstlisting}
+Il tipo di una lambda \`e inferito in compilazione a differenza degli utilizzi, oppure si pu\`o specificare:
+\begin{lstlisting}[language=rust]
+fn generator<F>(base: &str) -> F
+where F: impl FnMut() -> String {
+  let mut v = 0;
+  return move || {
+    v += 1;
+    format!("{}{}", base, v)
+  };
+}
+\end{lstlisting}
 
 
 

@@ -26,7 +26,7 @@ JS is backward compatible, to be able to use the previous features is use the di
 \end{lstlisting}
 JS has primitive types and non-primitive types, JS is also and strongly typed language, the primitive types are: string, number, boolean, null, undefined. The non-primitive are the objects, which can be: array, function, user-defined.
 
-The all possible false values in JS: \texttt{0, -0, NaN, undefined, null,''}, in JS there are two main comparison operators:
+The all possible false values in JS: \verb|0, -0, NaN, undefined, null, ''|, in JS there are two main comparison operators:
 \begin{lstlisting}[language=js]
 a == b    // equal, convert types and compare
 a === b   // strict equal, inhibits automatic type conversion
@@ -409,7 +409,7 @@ There are two types of component:
 \end{itemize}
 \texttt{props} can only be passed from a parent to his children, if the changes shoul be performed from the a children to a parent then, a callback needs to be passed.
 \begin{center}
-  \boxed{React flow: view $ \implies $ actions $ \implies $ state $ \implies $ view $ \implies \dots $}
+  \boxed{\text{React flow: view $\implies$ actions $ \implies $ state $ \implies $ view $ \implies \dots $}}
 \end{center}
 \begin{itemize}
   \item A \textbf{state} is always \textbf{owned be one compoment}.
@@ -423,6 +423,20 @@ $ cd my-app
 $ npm install
 $ npm run dev
 \end{lstlisting}
+In \texttt{jsx} the attributes of a component (\texttt{props}) are translated into js objects
+\begin{lstlisting}[language=js]
+color="red" -> {color: "red"}
+tone={2} -> {tone: 2}
+// it's possible compute exressions
+color={active ? 'green' : 'red'}
+\end{lstlisting}
+Some attributes in HTML do not a value like \texttt{selected} \texttt{disabled}, but in \texttt{jsx} they can have a value: \verb|selected={true}|
+
+In React when using a list it's mandatory to use give a key to each element of the list (the key is unique in the list, not globally), this is done because React internally can recognise if the list has changed, if this is not done there are undefined behaviur in the page.
+\begin{lstlisting}[language=js]
+<li key={todo.id}>{todo.text}</li>
+\end{lstlisting}
+When returning a gruop of components they should always be packed in a root component, when returing a  group of components there is \emph{React Fragment} which makes it more easy.
 
 
 
