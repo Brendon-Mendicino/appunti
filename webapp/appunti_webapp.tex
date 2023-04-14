@@ -439,8 +439,51 @@ In React when using a list it's mandatory to use give a key to each element of t
 When returning a gruop of components they should always be packed in a root component, when returing a  group of components there is \emph{React Fragment} which makes it more easy.
 
 
+\subsection{State}
+Ad we have seen using pure functions to create Components in react, this is very simple but in react the various components need a state, to use this feature \textbf{Hooks} have been proposed which intruduce a way to indroduce a state. One of them is \texttt{useState}. While \textbf{props} are passed from father to child, \textbf{state} is private to the component and hold his data, the \textbf{context} is a global variabl eavailable to every component.
+
+To create a hook, we use the \texttt{useState} and it gives back the current value and a callback to cahnge that satate.
+\begin{lstlisting}[language=js]
+function ShortText(props) {
+  const [hidden, setHidden] = useState(true);
+  return (
+    <span>
+      {hidden ? "Hidden" : "Not hidden"}
+      <a onClick={() => setHidden(hidden => !hidden)}>hide</a>
+    </span>
+  );
+}
+\end{lstlisting}
+\emph{\textbf{All the modification of the state need to be done through \texttt{setVariable}.}} The value can be set by passing a value or with a function.
+
+Can a child mutate the state of the parent? This simplest way is to pass a the \texttt{setVaraible} to the child inside a callback through the \texttt{props}
+\begin{lstlisting}[language=js]
+function App() {
+  const [hidden, setHidded] = useState(tru);
+
+  function hide() {
+    setHidden(hidden => !hidden);
+  }
+
+  return (
+    <>
+      <span>
+        {hidden ? "Hidden" : "Not hidden"}
+      </span>
+      <Change hide={hide} />
+    </>
+  );
+}
+
+function Change(props) {
+  return (
+    <a onClick={() => props.hide()}>Hide</a>
+  );
+}
+\end{lstlisting}
 
 
+\subsection{Forms}
 
 
 
