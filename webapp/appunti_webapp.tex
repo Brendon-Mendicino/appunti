@@ -484,9 +484,28 @@ function Change(props) {
 
 
 \subsection{Forms}
+In HTML form are inconsistent, because of that React tried to formalize the input and output of forms, in fact everything that can accept an input in React the element has a \texttt{value}, which then will be translated to HTML by the React engine.
 
+In \texttt{jsx} to subscribe to the input event there is an attribute called \texttt{onChange}. There are events that wrap all the events that you can catch in the DOM, that are called \textbf{synthetic events}.
 
+Forms are inherently statefull, there are specifics way to bind the input with the event of the form. In React there are \textbf{controlled} and \textbf{uncontrolled} forms component.
 
+When submitting a form the \texttt{onSubit} needs to be used.
+
+Also to update the state when it data is an array the \texttt{setValue} needs to be used.
+\begin{lstlisting}[language=js]
+const [list, setList] = useState(array);
+
+setList(oldList => {
+  return oldList.map(item => {
+    if (item.id === id) {
+      rerturn { id: item.id, val: 'NewVal' };
+    } else {
+      return item;
+    }
+  });
+});
+\end{lstlisting}
 
 
 

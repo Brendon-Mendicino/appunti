@@ -100,7 +100,7 @@ Un indirizzo generato dall CPU si divide in:
   \item \textbf{numero di offset (d)}:
   \item \textbf{numero di frame (f)}:
 \end{itemize}
-Un indirizzo \`e composto da: $(p-d, d)$
+Un indirizzo \`e composto da: $(\underbrace{p-d}_\text{parte logica da sostiture}, \underbrace{d}_\text{accesso interno al frame})$
 \begin{example}{}{}
   Se si hanno frame piccoli diminuisce la frammentazione ma aumentano anche le righe della tabella.
 \end{example}
@@ -109,6 +109,8 @@ Nelle righe della tabella si aggiungono dei bit in pi\`u per rappresentare delle
   \item \textbf{parte di protezione}: specifica che la parte di codice non pu\`o essere scritta;
   \item \textbf{modify bit}: pagina modifica;
   \item \textbf{page present/absent}:  pagina presente in memoria;
+  \item \textbf{page referenced};
+  \item \textbf{caching disabled};
 \end{itemize}
 \begin{figure}[H]
   \centering
@@ -116,7 +118,7 @@ Nelle righe della tabella si aggiungono dei bit in pi\`u per rappresentare delle
   \caption{Page Table}
   \label{fig:page-table}
 \end{figure}
-Come si implementa una \textbf{page table}? La page table si trova in memoria RAM, per sapere dove si trova si utilizzano due rigistri: \textbf{page table base register} e \textbf{base table lenght register}, infatti la base table si trova in memoria contigua. Per velocizzare questa operazione si pu\`o spostare questa tabella all'interno della CPU (le operazioni di accesso alla memoria sono costose), si usa la \textbf{Translation Look-aside Buffer} (TLB), un tipo di memoria in cui si accede per contenuto. Si aggiunge anche un altra informazione \textbf{ASID} in cui viene salvata l'infromazione del processo a cui la pagina appartiene, se non \`e presente questa informazione i processi si contendono la TLB. Quando avviene un \textbf{TLB miss} se reinserisce la pagina nella TLB e poi si ritenta, utilizzando una politica scelta. Anche usando una TLB si mantiene comunque la page table in RAM in caso di miss, in modo da recuperare il frame ed inserirlo nella TLB.
+Come si implementa una \textbf{page table}? La page table si trova in memoria RAM, per sapere dove si trova si utilizzano due rigistri: \textbf{page table base register} e \textbf{base table lenght register}, infatti la base table si trova in memoria contigua. Per velocizzare questa operazione si pu\`o spostare questa tabella all'interno della CPU (le operazioni di accesso alla memoria sono costose), si usa la \textbf{Translation Look-aside Buffer} (TLB), un tipo di memoria in cui si accede per contenuto (memoria associativa). Si aggiunge anche un altra informazione \textbf{ASID} in cui viene salvata l'infromazione del processo a cui la pagina appartiene, se non \`e presente questa informazione i processi si contendono la TLB. Quando avviene un \textbf{TLB miss} se reinserisce la pagina nella TLB e poi si ritenta, utilizzando una politica scelta. Anche usando una TLB si mantiene comunque la page table in RAM in caso di miss, in modo da recuperare il frame ed inserirlo nella TLB.
 \begin{center}
   \boxed{\emph{Lo schema finale \`e la combinazione di TLB e page table.}}
 \end{center}
@@ -135,9 +137,9 @@ L'accesso alla memoria \`e raddoppiato perch\'e si deve prima recupare il frame 
   \caption{Paginazione Con TLB}
   \label{fig:paginazione-con-tlb}
 \end{figure}
-La protezione \`e implementata associando un bit di protezione per un frame specifico, e quindi per la rispettiva pagina, grazie a questo bit si possono definire parti di codice che indica che il frame \`e in solo scrittura. Anche un altro bit associato \`e il \textbf{validity} che indica quando un frame \`e valido, ovvero quando c'\`e ed \`e associata a un indirizzo in RAM, o quando non \`e valida che vuol dire che il frame non esiste o che non \`e associato ad un indirizzo, se si cerca di accedere un frame non valido viene lanciata una \textbf{trap}.
+La protezione \`e implementata associando un bit di protezione per un frame specifico, e quindi per la rispettiva pagina, grazie a questo bit si possono definire parti di codice che indica che il frame \`e in solo scrittura. Anche un altro bit associato \`e il \textbf{validity} che indica quando un frame \`e valido, ovvero quando c'\`e ed \`e associata a un indirizzo in RAM, o quando non \`e valida che vuol dire che il frame non esiste o che non \`e associato a un indirizzo, se si cerca di accedere un frame non valido viene lanciata una \textbf{trap}.
 
-La tabella della pagina permette di \textbf{condividere le pagine} (anche se in realt\`a sono i frame), se pi\`u processi hanno delle pagine che sono comuni vengono condivise da entrambi i processi.
+La tabella della pagine permette di \textbf{condividere le pagine} (anche se in realt\`a sono i frame), se pi\`u processi hanno delle pagine che sono comuni vengono condivise da entrambi i processi.
 
 La page table \`e una struttura dati del kernel:
 \begin{example}{}{}
@@ -153,15 +155,15 @@ La page table \`e una struttura dati del kernel:
     \end{itemize}
 \end{example}
 
-\begin{wrapfigure}{R}{0.4\textwidth}
+\begin{wrapfigure}{R}{0.5\textwidth}
   \centering
-  \includegraphics[width=1\linewidth]{page-table-gerarchica.png}
+  \includegraphics[width=.9\linewidth]{page-table-gerarchica.png}
 \end{wrapfigure}
-La \textbf{la page table gerarchica}, la page table viene divisa in blocchi pi\`u piccoli non contigui, se usa una page table di livello superiore che porte alle page table di livello inferiore, questi blocchi devono rimanere contigui, anche se diventano molto piccoli. Il page number viene diviso in due parti, una per la tabella outer ed una per la tabella inner (pu\`o avere anche pi\`u di due livelli), quando si va su 64 bit e la outer dienta molto grande si pu\`o usare solo una parte dell'indirizzamento se l'eseguibili \`e molto piccolo.
+La \textbf{la page table gerarchica}, la page table viene divisa in blocchi pi\`u piccoli non contigui, si usa una page table di livello superiore che porta alle page table di livello inferiore, questi blocchi devono rimanere contigui, anche se diventano molto piccoli. Il page number viene diviso in due parti, una per la tabella outer ed una per la tabella inner (pu\`o avere anche pi\`u di due livelli), quando si va su 64 bit e la outer dienta molto grande si pu\`o usare solo una parte dell'indirizzamento se l'eseguibile \`e molto piccolo.
 
-\begin{wrapfigure}{L}{0.4\textwidth}
+\begin{wrapfigure}{L}{0.5\textwidth}
   \centering
-  \includegraphics[width=1\linewidth]{hashed-page-table.png}
+  \includegraphics[width=.9\linewidth]{hashed-page-table.png}
 \end{wrapfigure}
 La \textbf{hashed page table} permette di creare una tabella di hash, con una funzione di hash direttamente implementata in hardware che dato $p$ in input ritorna l'hash a cui \`e associato $f$. Vanno implementate delle liste di collisione, e quindi vieni immagazzinato che $p$ che \`e la chiave di accesso e come suo valore $f$. Usando una tabella di hash si potrebbe pensare anche di usare una page table condivisa tra tutti i processi, ma a quel punto andr\`a inserito l'ID del processo all'interno della chiave primaria.
 
@@ -173,7 +175,7 @@ La \textbf{inverted page table} \`e una tabella condivisa tra tutti i processi, 
 
 
 \subsection{Swapping}
-Si suppunga che a un certo punto si voglia far partire un processo e che la memoria sia piena, cosa si pu\`o fare? Una soluzione \`e lo \textbf{swapping}, ovvero viene la memoria associata a quel processo viene messa nel backing store (in modo temporaneo) che in linux \`e la partizione di swap, e viene caricato il nuovo processo, grazie allo swapping si possono avere processi che hanno pi\`u memoria occupata di quanto la RAM sia grande.
+Si suppunga che a un certo punto si voglia far partire un processo e che la memoria sia piena, cosa si pu\`o fare? Una soluzione \`e lo \textbf{swapping}, ovvero la memoria associata a quel processo viene messa nel backing store (in modo temporaneo) che in linux \`e la partizione di swap, e viene caricato il nuovo processo, grazie allo swapping si possono avere processi che hanno pi\`u memoria occupata di quanto la RAM sia grande.
 \begin{example}{}{}
   Quanto costa il \textbf{context switch}? Memoria piena e viene fatto partire un programma, dunque deve essere portato un processo nel backing store. 100MB da fare la swap con velocit\`a di trasferimento di 50MB/sec.
   \begin{itemize}
@@ -183,9 +185,10 @@ Si suppunga che a un certo punto si voglia far partire un processo e che la memo
   \end{itemize}
   Se il processo sta facendo IO non si pu\`o fare lo swap out, una soluzione \`e non spostare un processo che sta facendo IO ma spostarne un altro, oppure usare un buffer del kernel.
 \end{example}
-Sui telefoni non esiste lo swaping, vengono in auito le \textbf{lifecycle delle Acrivity e dei Fragment}. Il vantaggio di fare swapping \`e l'utilizzo del \textbf{paging swapping}, dove il swap in/out divento page in/out, dove vengono trasferite solo le pagine e non l'intero processo.
+Sui telefoni non esiste lo swaping, vengono in auito le \textbf{lifecycle delle Activity e dei Fragment}. Il vantaggio di fare swapping \`e l'utilizzo del \textbf{paging swapping}, dove lo swap in/out diventa page in/out, che consiste nel trasferire solo le pagine e non l'intero processo.
 
 \subsection{Esercizi}
+Esericizi:
 \begin{example}{}{}
   \begin{itemize}
     \item memoria fisica da 512MB
@@ -198,6 +201,7 @@ Sui telefoni non esiste lo swaping, vengono in auito le \textbf{lifecycle delle 
   \end{itemize}
   Si supponga ...
 \end{example}
+
 \begin{example}{}{}
   Si descrivano brevemente 
   \begin{itemize}
@@ -213,19 +217,19 @@ Sui telefoni non esiste lo swaping, vengono in auito le \textbf{lifecycle delle 
 
 \newpage
 \section{Memoria Virtuale}
-Con \textbf{memoria virtuale} si indica che delle pagine esistono solo virtualemente ma non fisicamente, in questo modo si vuole supportare uno spazio di indirizzamento pi\`u grande dello spazio di indirizzamento fisico. Si parte dalla premessa che \emph{un programma non bisogna di essere tutto in memoria per essere esguito}, si pensa ad un programma parzialmente caricato in memoria, dunque le mamoria di un programma non \`e pi\`u vincolato dalla grandezza della RAM, in questo caso si parla di \textbf{memoria virtuale}. Avere questa memoria virtuale porta una serie di vantaggi che volocizzano tutte le operazioni di IO tra la RAM e la memoria secondaria. La conseguenza \`e che viene introdotta la \textbf{demand paging}, ovvero che un pagina viene caricata solo quando \`e richiesta. Il \textbf{demand paging} \`e molto simile allo swapping, infatti il caso limite \`e il \textbf{lazy swapper} dove inizialmente non si ha nessun frame caricato, e ad ogni richiesta viene preso un frame.
+Con \textbf{memoria virtuale} si indica che delle pagine esistono solo virtualmente ma non fisicamente, in questo modo si vuole supportare uno spazio d'indirizzamento pi\`u grande dello spazio d'indirizzamento fisico. Si parte dalla premessa che \emph{un programma non bisogna di essere tutto in memoria per essere eseguito}, si pensi a un programma parzialmente caricato in memoria che contiene solo i componenti necessari a lui in quel momento, in questo caso la grandezza di un programma non \`e pi\`u vincolato dalla grandezza della RAM, si parla allora di \textbf{memoria virtuale}. Avere questa memoria virtuale porta una serie di vantaggi che velocizzano tutte le operazioni di IO tra la RAM e la memoria secondaria. La conseguenza \`e che viene introdotta la \textbf{demand paging}, ovvero che un pagina viene caricata solo quando \`e richiesta. Il \textbf{demand paging} \`e molto simile allo swapping, infatti il caso limite \`e il \textbf{lazy swapper} dove inizialmente non si ha nessun frame caricato, e ad ogni richiesta viene preso un frame.
 
 
 Quasi tutto il meccansico si basa sul \emph{validity bit}, infatti l'invalid bit pu\`o rappresetnare una pagina che non ha un frame associato, i casi sono due: il frame non esiste proprio, il frame c'\`e ma deve essere recuperato, infatti il programma viene comunque caricato in memoria (backing store), perch\'e lo spazio \`e tanto.
 
 \hfill
 
-Il \textbf{page fault}, \`e una \emph{trap} che viene scatenata quando si cerca di accedere ad una pagina con invalid bit, il processo viene bloccato e da via al sistema operativo, i casi sono due:
+Il \textbf{page fault}, \`e una \emph{trap} che viene scatenata quando si cerca di accedere a una pagina con invalid bit, il processo viene bloccato e si passa in modalit\`a kernel, il sistema operativo agisce in due modi:
 \begin{itemize}
   \item \textbf{invalid refernce} $ \implies$ abort;
-  \item \textbf{non in memoria}: viene recuperato il frame;
+  \item \textbf{non in memoria} $ \implies$ viene recuperato il frame;
 \end{itemize}
-Il farme viene portato in memoria dal disco, la page table viene aggiornata, viene fatto ripartire il processo. Un caso estremo di esecuzione \`e quella di avere nessuna pagina disponibile e poi caricarle in modo incrementale.
+Quando il frame viene portato in memoria dal disco, la page table viene aggiornata e viene fatto ripartire il processo. Un caso estremo di esecuzione \`e quello di avere nessuna pagina disponibile e poi caricarle in modo incrementale.
 
 Quanto costa una page fault?
 \begin{enumerate}
@@ -378,25 +382,33 @@ Gestione della memoria 3.
 
 \newpage
 \section{OS161}
-Ogni versione del kernel corrisponde ad un file di configurazione tutto in maiscolo, la prima versione \`e \texttt{DUMBVM} e tutti i file di configurzazione si trovano in \texttt{\$HOME/kern/conf}.
+\subsection{Configurazioni del Kernel}
+Ogni versione del kernel corrisponde a un file di configurazione tutto in maiuscolo, la prima versione \`e \texttt{DUMBVM} e tutti i file di configurazione si trovano in \texttt{\$HOME/kern/conf}.
 
-.....
-La cartella \texttt{conf} contiene le versioni dei kernel. Per abilitare nuovi moduli si va in \texttt{conf.kern} e:
+Ogni volta che si aggiunge un nuovo modulo al kernel, questo va abilitato, per abilitare nuovi moduli si va in \texttt{conf.kern} e si aggiunge
 \begin{lstlisting}[language=]
 defoption hello
 optfile hello main/hello.c
 \end{lstlisting}
-\texttt{defoptions} crea un file \texttt{opt-hello.h}, che crea un file \texttt{.h} di configurazione che contiene una define per specificare se un opzione \`e abilitata o meno. Questo serve nei file del kernel per abilitare l'aggancio di altri moduli che vengono aggiunti.
-
-Per creare compilare i nuovi moduli si pu\`o creare un nuovo file in \texttt{conf} per compilare, si pu\`o copiare uno esistene, in questo caso \`e \texttt{DUMBVM} ed aggiungere \texttt{options hello} per far compilare i nuovi file inseriti.
+dove \texttt{hello.c} \`e il nome del nuovo modulo. \texttt{defoptions \emph{name}} crea un file \texttt{opt-\emph{name}.h} che \`e un file \texttt{.h} di configurazione, esso contiene una define per specificare se un opzione \`e abilitata o meno.
 \begin{lstlisting}[language=c]
-#if OPT_HELLO     // variabili aggiunte nei file opt-hello.h
-  hello((char *)"PdS");
-#endif
+/* Automatically generated; do not edit */
+#ifndef _OPT_HELLO_H_
+#define _OPT_HELLO_H_
+#define OPT_HELLO 1
+#endif /* _OPT_HELLO_H_ */
+\end{lstlisting}
+Questo serve nei file del kernel per abilitare l'aggancio di altri moduli che vengono aggiunti.
+
+Per compilare i nuovi moduli si pu\`o creare un nuovo file di configurazione nella cartella \texttt{conf}, solitamente \`e meglio partire da uno gi\`a esistente come \texttt{DUMBVM}, farne una copia e poi aggiungere i nuovi file opzionali. Una volta creato il nuovo file di configurazione, ad esempio \texttt{HELLO}, si esegue il comando \texttt{./config HELLO} per creare la configurazione compilata della versione del kernel, si dovr\`a poi andare in \texttt{kern/compile/HELLO} e poi eseguire
+\begin{lstlisting}[language=]
+$ bmake depend
+$ bmake
+$ bmake install
 \end{lstlisting}
 
-\subsection{Dumbvm e kmalloc}
-L'allocazione in OS161 \`e allocazione contigua sia per i processi che per il kernel, inoltre questo allocatore non rilascia la memoria. Il file \texttt{dumbvm.c} \`e l'allocatore del mips, \texttt{vm.c} \`e un allocatore opzionale ma \`e vuoto.
+\subsection{Memoria}
+Nella versione base (\texttt{DUMNBVM}) di OS1616 l'allocazione  \`e allocazione contigua sia per i processi che per il kernel, inoltre questo allocatore non rilascia la memoria. Il file \texttt{dumbvm.c} \`e l'allocatore del mips, \texttt{vm.c} \`e un allocatore opzionale ma \`e vuoto.
 
 \texttt{ram\_stealmem} nel file \texttt{ram.c}, perdende della pagine dalla ram e le alloca.
 
@@ -416,18 +428,14 @@ Dall'indirizzo si capisce se il programma \`e kernel o user, i processi user non
   \caption{Mips Virtual Address Space}
   \label{fig:mips-virtual-address-space}
 \end{figure}
-
-Il kernel utilizza kseg0 e kseg1 per TLB e cache. Se si fa accesso alla memoria solo \texttt{kuseg} e \texttt{kseg2} sono mappati sulla TLB, negli altri spazi non si intende usare la TLB e quindi sono \emph{invisibili}. Il \texttt{kseg1} \`e una memoria \textbf{uncached} e patr\`a essere usata per parlare con i dispositivi di IO, il motivo \`e che questi dispositivi non funzionano bene con le cache.
-
-Quando il kernel viene caricato la memoria \`e disposta in.
+Il kernel utilizza \texttt{kseg0} e \texttt{kseg1} per TLB e cache. Se si fa accesso alla memoria \texttt{kuseg} e \texttt{kseg2} i loro indirizzi sono mappati sulla TLB, negli altri spazi non si intende usare la TLB e quindi sono \emph{invisibili} alla TLB. Il \texttt{kseg1} \`e una memoria \textbf{uncached} e potr\`a essere usata per parlare con i dispositivi di IO, il motivo \`e che questi dispositivi non funzionano bene con le cache. Quando il kernel viene caricato la memoria la prima funzione chiamata \`e \texttt{ram\_bootstrap}, partizionando la memoria in:
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.8\textwidth]{kernel-loader-initial.png}
   \caption{Kernel Loader Initial}
   \label{fig:kernel-loader-initial}
 \end{figure}
-
-Una volta che viene fatto il bootstrap, si hanno a dipsosizione il \texttt{firstfree} (primo indirizzo di ram libera, logico) e \texttt{firstpfree} (primo indirizzo fisico) e \texttt{lastpaddr} (ultimo indirizzo fisico).
+Una volta che viene fatto il bootstrap, si hanno a dipsosizione il \texttt{firstfree} (primo indirizzo di ram libera, logico), \texttt{firstpfree} (primo indirizzo fisico) e \texttt{lastpaddr} (ultimo indirizzo fisico).
 
 Quando si vuole allocare della memoria, si usa \texttt{ram\_stealmem} a cui gli vanno passete il numero di pagine.
 \begin{lstlisting}[language=c]
@@ -496,12 +504,9 @@ Esistono 3 funzioni per gestire dei thread:
   \item \texttt{thread\_exit}: termina il thread;
   \item \texttt{thread\_yield}: sospende l'esecuzione del thread;
 \end{itemize}
-Quando viene creato un nuovo thread viene fatto un context switch.
+Quando viene creato un nuovo thread viene fatto un context switch. Come viene fatto il context switch? Si utilizza \texttt{switchframe\_switch}, il codice scritto \`e in assembler MIPS perch\'e vanno salvati anche i registri e questo non \`e possibile farlo in C.
 
-Come viene fatto il context switch? Si utilizza \texttt{switchframe\_switch}, il codice scritto \`e in assembler MIPS,
-
-
-Quando viene creato uno user thread, viene generato un nuovo stack per per il processo user, lo stack kernel viene comquneu mantenuto, quando il processo far\`a una chiamata ad una systema call allora passar\`a in modalit\`a kernl ed user\`a lo stack kernel che ha lasciato indietro.`
+Quando viene creato un nuovo user thread, viene generato un nuovo stack per il processo user, lo stack kernel non viene rimosso ma rimane in memoria, quando il processo far\`a una chiamata ad una systema call e passar\`a in \emph{modalit\`a kernel} e user\`a lo stack kernel che ha lasciato indietro.
 
 
 
