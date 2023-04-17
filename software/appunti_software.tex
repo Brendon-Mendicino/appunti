@@ -686,6 +686,98 @@ Other ways (more objective) to estimate a prject are the following techniques:
 How to keep track of the project? The first step is to collect data, to do that we need to collect 
 
 
+\subsection{Staffing Profile}
+Typically, by increasing the number of people working on a single feature it increaces productivity up to a certain point, and then it starts to decrease, this shape follows a Bell's Curve.
+
+
+\subsection{Stories and personas}
+(Mettere in Requirements)
+
+How to define how the people using our app will behave? One solutoion is using personas, this comes from the technique of fragmentation. For example people can bertitioned by:
+\begin{itemize}
+  \item \textbf{Domographic:} age, gender, income, religion, level of education, ...
+\end{itemize}
+A persona idintifies and describes typical users, and we target the application to a subset of personas, obviously it's not possible to define every subset of people.
+
+\subsection{Elicitation}
+(Da finire: Requiremnt)
+We take a group of people wich coul represent the personas.
+\subsubsection{Interview}
+Interview people with a set of prepared questions
+
+\subsubsection{Ethnographics}
+The data collecotr is not present in the room and the people aare alone in the room, and the collector observers how to peaple behave with the app, this is also done online with tracking tool that observer how we intercat with the applications.
+
+
+\subsection{Exercise}
+\textbf{Exercise 1:}
+...
+
+\textbf{Exercise 2:}
+A new software project has an estimated size of 210000 lines of code. Past similar projects in the same company had a productivity 30 person day.
+\begin{enumerate}
+  \item Esimate the effort for the new project: ouput / effort = LOC / effort
+    210000 loc / 30 loc/pd = 7000 person day \\
+    7000 / 140 = ... p month
+  \item Estimate the duration of the porject, assuming to have 4 people available to work on it.
+
+    7000 pd / 4 p =  1750 calendar days = 12.5 calendar months
+  \item on avarage the cost of a person day is 150 Euros. Estimate the cost of the prject.
+
+    150 * 7000 euro
+\end{enumerate}
+
+\textbf{Exercise 3:}
+\begin{enumerate}
+  \item Compute the effort (peron hours) estimated for developement, according to the article (assume a person wrokd 140 hours per calendar month):
+
+    5 * 2 * 140 = 1400 ph
+  \item Compute the cost per person hour, during developemnt:
+
+    300000 / 1400 = 214 euros per person hour
+  \item Discuss the estimates of time and cost for development.
+
+    2 months seems very short time, cost very high
+  \item Using the cost per person hour at point 2, compute the person hourse estimated fot eh maintanance phase, per year.
+
+    200000 / 214 = 1000 ph = 7 pm
+\end{enumerate}
+
+
+\newpage
+\section{VV, Inspection, Reading}
+Whatever we produce can contain bugs and errors, this is why there is the last part wiich is the inpection of the work done, ...
+
+Verification and Validation: checking that what we did is correct. Validation: doing the right software system valued by the stackeholders. Verification: is doing correctly the internal transformation.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{vv.png}
+  \caption{V\&V}
+  \label{fig:vv}
+\end{figure}
+
+
+
+\subsection{Failure, Fault, Defect}
+Failure is an execution event where the software behaven in unexpected way. The end-user catched the problem
+
+Fault: a feature in software that causes a problem, error in the code or in documents.
+
+A failure is caused by a fault. A failure may never araise, the simple reason is that that part of the code/documnents is unused.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{failure-fault-defect.png}
+  \caption{Failure Fault Defect}
+  \label{fig:failure-fault-defect}
+\end{figure}
+Someties it's not clear what is the fault and what is the failure so can both call them defects.
+
+\subsection{Inspections}
+This is done for document checking (also applyable to code), is a reading technique and it uses group dynamic, the aim is to \textbf{find defects}.
+
+
+
+
 
 
 
