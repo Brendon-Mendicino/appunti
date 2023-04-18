@@ -508,6 +508,29 @@ Quando viene creato un nuovo thread viene fatto un context switch. Come viene fa
 
 Quando viene creato un nuovo user thread, viene generato un nuovo stack per il processo user, lo stack kernel non viene rimosso ma rimane in memoria, quando il processo far\`a una chiamata ad una systema call e passar\`a in \emph{modalit\`a kernel} e user\`a lo stack kernel che ha lasciato indietro.
 
+\hfill
+
+I processi sono rappresentati dalla \texttt{struct proc}, questa struct ha tutte le informazioni relative al processo, un campo in esso contenuto (\texttt{struct addrspace}) contiene al suo interno che definisce lo spazio d'indirizzamento del processo, se ci fosse paginazione dovrebbe contenere la tabella della pagine (non \`e il caso in \texttt{DUMBVM}). Nella versione base di OS161 non ha un puntatore a ogni thread che ha (ha solo il numero di thread), mentre i thread hanno un puntatore al processo padre. Un processo user non esegue istruzioni solo in modalit\`a user ma richiede del lavoro in modalit\`a kernel, usando le system call.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{process-stack.png}
+  \caption{Process Stack}
+  \label{fig:process-stack}
+\end{figure}
+Per creare un programma user da os161 si fa
+\begin{lstlisting}[language=]
+p <elf_file> {<args>}
+\end{lstlisting}
+Quello che avviene \`e:
+\begin{enumerate}
+  \item si chiama 
+\begin{lstlisting}[language=]
+proc_create_runprogram
+\end{lstlisting}
+    che crea lo spazio d'indirizzamento del processo
+  \item legge il file ELF per caricarlo in memoria
+  \item si passa da kernel thread user thread
+\end{enumerate}
 
 
 
