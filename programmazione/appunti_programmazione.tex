@@ -531,6 +531,74 @@ proc_create_runprogram
   \item legge il file ELF per caricarlo in memoria
   \item si passa da kernel thread user thread
 \end{enumerate}
+...
+
+
+\subsection{Semafori}
+...
+Inizialmente i semafori venogno implementati con \emph{busy waiting},
+
+...
+
+Un semaforo contiene al suo interno una lista di processi, ovvero i processi in attesa. In os161 esistono \texttt{thread\_sleep} e \texttt{thread\_wakeup}, la differenza tra \texttt{sleep} e \texttt{yield} \`e che dopo \texttt{sleep} il thread \`e stato di blocco mentre con \texttt{yield} il processo \`e ready.
+
+I \texttt{lock} sono degli oggetti simili a dei semafori binari, i \texttt{lock} per\`o sono adatti solo alla mutua esclusione, il vincolo \`e che che fa il lock-acquire deve fare anche il lock-realease.
+
+Esistono dei casi in cui (\textbf{wait on codition}) la struttura va guradata al di fuori di P(), per questo motivo severno dei lock per ogni variabile all'interno delle
+\begin{lstlisting}[language=c]
+/* shared state vars with some initial value */
+int x,y,z;
+/* mutual exclusion for shared vars */
+struct lock *mylock = lock_create("Mutex");
+/* semaphore to wait if necessary */
+struct semaphore *no_go = sem_create("MySem", 0);
+compute_a_thing {
+  lock_aquire(mylock); /* lock out others */
+  /* compute new x, y, z */
+  x = f1(x); y = f2(y); z = f3(z);
+  if (x != 0 || (y <= 0 && z <= 0)) V(no_go);
+    lock_release(mylock); /* enable others */
+}
+
+//...
+use_a_thing {
+  lock_aquire(mylock); /* lock out others */
+  if(x == 0 && (y > 0 || z > 0))
+    P(no_go);
+  /* Now either x is non-zero or y and z are
+  non-positive. In this state, it is safe to run
+  “work” on x,y,z, which may also change them */
+  work(x,y,z);
+  lock_release(mylock); /* enable others */
+}
+\end{lstlisting}
+In questo caso se \texttt{use\_a\_thing} arriva per primo al lock ci sar\`a un deadlock.
+
+Una soluzione \`e:
+\begin{lstlisting}[language=c]
+use_a_thing {
+  lock_aquire(mylock); /* lock out others */
+  while (x == 0 && (y > 0 || z > 0)) {
+    lock_release(mylock); /* no deadlock */
+    P(no_go);
+    lock_aquire(mylock); /* lock for next test */
+  }
+  /* Now either x is non-zero or y and z are
+  non-positive. In this state, it is safe to run
+  “work” on x,y,z, which may also change them */
+  work(x,y,z);
+  lock_release(mylock); /* enable others */
+}
+\end{lstlisting}
+Per questo motivo esistono le \textbf{condition variable}. I \textbf{Monitor} sono dei costrutti di alti livello che contengono delle code di attesa, ..., che mettono tutto insieme.
+
+La differenza tra signlal e condition variable \`e che quando la signal viene segnalata, se un semaforo arriva dopo pu\`o comunque prenderla, la condition varaible quando segnala se nessuno prende il segnale allora viene perso, se un semaforo arriva dopo non vede la signal.
+
+
+
+
+\subsection{Esame}
+
 
 
 
