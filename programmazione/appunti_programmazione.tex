@@ -567,7 +567,7 @@ use_a_thing {
     P(no_go);
   /* Now either x is non-zero or y and z are
   non-positive. In this state, it is safe to run
-  “work” on x,y,z, which may also change them */
+  "work" on x,y,z, which may also change them */
   work(x,y,z);
   lock_release(mylock); /* enable others */
 }
@@ -585,7 +585,7 @@ use_a_thing {
   }
   /* Now either x is non-zero or y and z are
   non-positive. In this state, it is safe to run
-  “work” on x,y,z, which may also change them */
+  "work" on x,y,z, which may also change them */
   work(x,y,z);
   lock_release(mylock); /* enable others */
 }
