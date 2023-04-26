@@ -67,6 +67,87 @@ After the requirements there should be some checking with \textbf{Validation and
 After the first version of the product is released there is a deployment phase where people will install the product, the product will need \textbf{operation} and \textbf{maintenance} operations and after a period of time the product will \textbf{retire} meaning that it will no longer be supported. During the support span the operations are all the set of the actions done on the product, like security tasting, bug discovery, etc. While maintenance is the action of changing the code to do bug fixes or publish new feature.
 
 
+\newpage
+\section{Git}
+Git uses distributed CMS (Content Management System) to provide version control of a project, using the concept of snapshots which allows developers to work concurrently on a single project, other than that git also has integrity with a checksum and instead of storing whole files it just stores the \textbf{delta} of the changed file (a delta represent the changes in a file based on base file). Basic git concepts:
+\begin{itemize}
+  \item \textbf{repository}: contains all the files and versions of the project;
+  \item \textbf{working copy}: it is a snapshot of the repository, the working copy is on the client side;
+  \item \textbf{commit}: it is an atomic operator that modifies the repository, all commits are tracked into a log file, to every commit a message is associated;
+  \item \textbf{push}: is an operation that updates the modifications from a local server to the online server;
+  \item \textbf{update}: updates the working copy by merging the changes;
+  \item \textbf{staging area}: it is local dock that stores the changes that are not committed yet;
+  \item \textbf{typical workflow}: checkout project, stage changes, commit;
+\end{itemize}
+Git basic commands: 
+\begin{itemize}
+  \item \texttt{\$ git init}: initialize a local repo;
+  \item \texttt{\$ git remote add origin http://server.com/project.git}: add a new remote repository;
+  \item \texttt{\$ git status}: status;
+  \item \texttt{\$ git add}: add a file;
+  \item \texttt{\$ git diff}: changes;
+  \item \texttt{\$ git commit -m "..."}: commit changes;
+  \item \texttt{\$ git commit -am "..."}: commit all changes;
+  \item \texttt{\$ git rm}: removes a file with git tracking, adding the staging area;
+  \item \texttt{\$ git mv}: moves a file adding modifications to staging area;
+  \item \texttt{\$ git log}: logs;
+  \item \texttt{\$ git reflog}
+  \item \texttt{\$ git pull/push}
+  \item \texttt{\$ git checkout <branch-name>}: switch between branches;
+\end{itemize}
+Every commit points to a tree which contains a list of modified files, it's possible to reach the \textbf{blob} of the changes made to that file via a pointer, every commit is linked to the previous one. The last commit of the current working branch is called \textbf{HEAD}, every HEAD points to a branch that we last commit to. If we want to switch branch we need to check out the branch, and the HEAD will change which branch it is pointing to. If there are many branches we want to bring the changes of a branch to our current one, we need to use \texttt{git checkout other-branch}, when merging two branches some \textbf{conflict} can be created, when this happens the changes need to solved by hand, in other case git is able to fix them on his own.
+
+Other than merge there is also \textbf{rebase}, which is a bit different that merge, it tries to rewrite the history of the branch we are rebasing to and to commit all our changes to the last commit. The difference between merge and rebase, is the rebase it creates a linear commit history, while merge is keeps track of every commit where done in different branches.
+\begin{itemize}
+  \item \texttt{\$ git rebase -i HEAD$\sim$4}:
+    \begin{itemize}
+      \item -i $ \implies$ interactive mode
+      \item $\sim$ 4 $ \implies$ number of commits we want to target;
+    \end{itemize}
+  \item \texttt{\$ git merge <other-branch>}: this command tries to merge \texttt{other-branch} inside the current working branch.
+\end{itemize}
+\begin{example}{Revert cahnges}{revert-cahnges}
+  In case an uncommited file needs to be reset to the oringinal version it is possible to use two commands:
+  \begin{itemize}
+    \item \texttt{\$ git checkout <name-of-file>}
+    \item \texttt{\$ git reset --hard}
+  \end{itemize}
+\end{example}
+\begin{example}{Resolve a conflict}{resolve-a-conflict}
+  When merging two branches conflicts can arise, if git is not able to automatically solve it will prompt the user to do so. When a conflict needs to be solved manually a new version of the file is created and inside both versions of the branches are present (highlighted) with conflicting sections, the conflict is solved be hand and then by committing the file.
+\end{example}
+\textbf{Fork and pull} is the way to go for open source development, the operation of fork copies the full project in your account and thus becoming the new owner, the two projects are separate unless it is synched to the original one.
+\begin{definition}{Conventional commit message}{conventional-commit-message}
+\begin{lstlisting}[language=]
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+\end{lstlisting}
+  Type of commit: 
+  \begin{itemize}
+    \item \textbf{fix}: a commit the type \texttt{fix} patches a bug in your codebase.
+    \item \textbf{feat}: a commit of type \texttt{feat} introduces a new feature to the codebase.
+    \item \textbf{BREAKING CHANGE}: a commit with \texttt{BREAKING CHANGE} or appends \texttt{!}, introduces a breaking API change
+  \end{itemize}
+\end{definition}
+
+
+\newpage
+\section{CI/CD}
+We start first by using Docker, Docker is a software that allows running different applications in a virtualized environmnet, this allows having specific versions of the required sofwares without accuring in any conflic between the various applications. Docker shared the current kernel with all the running containers, Docker is composes of the three main components:
+\begin{itemize}
+  \item Docker CLI, whice manages the images, the containers, the volumes, networking.
+  \item REST API, which links the Docker CLI with the Docker Engine.
+  \item Docker Engine, which manages the interface with the kernel.
+\end{itemize}
+
+
+
+
+
+\newpage
 \section{Requirement Engineering}
 The aim of requirement engineering is to define the \emph{properties of the product} before starting implementation. When defining the functionality there is one or more non-functional property associated. Requirement engineering is divided into:
 \begin{itemize}
@@ -775,83 +856,101 @@ Someties it's not clear what is the fault and what is the failure so can both ca
 \subsection{Inspections}
 This is done for document checking (also applyable to code), is a reading technique and it uses group dynamic, the aim is to \textbf{find defects}.
 
-
-
-
-
-
-
-
-
-
-
-\newpage
-\section{Git}
-Git uses distributed CMS (Content Management System) to provide version control of a project, using the concept of snapshots which allows developers to work concurrently on a single project, other than that git also has integrity with a checksum and instead of storing whole files it just stores the \textbf{delta} of the changed file (a delta represent the changes in a file based on base file). Basic git concepts:
+the aim is to find the \textbf{taxonomy of the defetcs}. Find:
 \begin{itemize}
-  \item \textbf{repository}: contains all the files and versions of the project;
-  \item \textbf{working copy}: it is a snapshot of the repository, the working copy is on the client side;
-  \item \textbf{commit}: it is an atomic operator that modifies the repository, all commits are tracked into a log file, to every commit a message is associated;
-  \item \textbf{push}: is an operation that updates the modifications from a local server to the online server;
-  \item \textbf{update}: updates the working copy by merging the changes;
-  \item \textbf{staging area}: it is local dock that stores the changes that are not committed yet;
-  \item \textbf{typical workflow}: checkout project, stage changes, commit;
+  \item inconsistency
+  \item abiguity
+  \item ...
 \end{itemize}
-Git basic commands: 
+Another tachnique is to do a \textbf{checklist}.
+
+
+\section{Architecture and Design}
+Requirements: what the system shoud do; Architecture: how the system should be built. In general many differnt designs are possible, but there are some common desgin patterns. After many iterations of a disign for a product a \textbf{dominant design} will araise.
+
+Software design is defining modules and their interactions so that they satisfy function and non-functional requiremnts (usually the most difficoult to satisfy).
+
+Architecture: high level components are designed with their interactions, a comunication and coordination model is selected, like: process, threads; messages, procedure calls; broadcast, blackboard; so we need to select either one of them.
+
+Design: is about high level decisions inside each component.
+
+There are some non-functioal properties for architecture design:
 \begin{itemize}
-  \item \texttt{\$ git init}: initialize a local repo;
-  \item \texttt{\$ git remote add origin http://server.com/project.git}: add a new remote repository;
-  \item \texttt{\$ git status}: status;
-  \item \texttt{\$ git add}: add a file;
-  \item \texttt{\$ git diff}: changes;
-  \item \texttt{\$ git commit -m "..."}: commit changes;
-  \item \texttt{\$ git commit -am "..."}: commit all changes;
-  \item \texttt{\$ git rm}: removes a file with git tracking, adding the staging area;
-  \item \texttt{\$ git mv}: moves a file adding modifications to staging area;
-  \item \texttt{\$ git log}: logs;
-  \item \texttt{\$ git reflog}
-  \item \texttt{\$ git pull/push}
-  \item \texttt{\$ git checkout <branch-name>}: switch between branches;
+  \item testability
+  \item monitorability
+  \item interopelability
+  \item scalability
+  \item deployability
+  \item mdobility
 \end{itemize}
-Every commit points to a tree which contains a list of modified files, it's possible to reach the \textbf{blob} of the changes made to that file via a pointer, every commit is linked to the previous one. The last commit of the current working branch is called \textbf{HEAD}, every HEAD points to a branch that we last commit to. If we want to switch branch we need to check out the branch, and the HEAD will change which branch it is pointing to. If there are many branches we want to bring the changes of a branch to our current one, we need to use \texttt{git checkout other-branch}, when merging two branches some \textbf{conflict} can be created, when this happens the changes need to solved by hand, in other case git is able to fix them on his own.
-
-Other than merge there is also \textbf{rebase}, which is a bit different that merge, it tries to rewrite the history of the branch we are rebasing to and to commit all our changes to the last commit. The difference between merge and rebase, is the rebase it creates a linear commit history, while merge is keeps track of every commit where done in different branches.
+Other non-functional properties are:
 \begin{itemize}
-  \item \texttt{\$ git rebase -i HEAD$\sim$4}:
-    \begin{itemize}
-      \item -i $ \implies$ interactive mode
-      \item $\sim$ 4 $ \implies$ number of commits we want to target;
-    \end{itemize}
-  \item \texttt{\$ git merge <other-branch>}: this command tries to merge \texttt{other-branch} inside the current working branch.
+  \item complexity: minimize number of components and number of interations
 \end{itemize}
-\begin{example}{Revert cahnges}{revert-cahnges}
-  In case an uncommited file needs to be reset to the oringinal version it is possible to use two commands:
-  \begin{itemize}
-    \item \texttt{\$ git checkout <name-of-file>}
-    \item \texttt{\$ git reset --hard}
-  \end{itemize}
-\end{example}
-\begin{example}{Resolve a conflict}{resolve-a-conflict}
-  When merging two branches conflicts can arise, if git is not able to automatically solve it will prompt the user to do so. When a conflict needs to be solved manually a new version of the file is created and inside both versions of the branches are present (highlighted) with conflicting sections, the conflict is solved be hand and then by committing the file.
-\end{example}
-\textbf{Fork and pull} is the way to go for open source development, the operation of fork copies the full project in your account and thus becoming the new owner, the two projects are separate unless it is synched to the original one.
-\begin{definition}{Conventional commit message}{conventional-commit-message}
-\begin{lstlisting}[language=]
-<type>[optional scope]: <description>
 
-[optional body]
-
-[optional footer(s)]
-\end{lstlisting}
-  Type of commit: 
-  \begin{itemize}
-    \item \textbf{fix}: a commit the type \texttt{fix} patches a bug in your codebase.
-    \item \textbf{feat}: a commit of type \texttt{feat} introduces a new feature to the codebase.
-    \item \textbf{BREAKING CHANGE}: a commit with \texttt{BREAKING CHANGE} or appends \texttt{!}, introduces a breaking API change
-  \end{itemize}
-\end{definition}
+Coupling: modules shoul have least amount of coupling between them, the coupling is the degree of dependance between two components.
 
 
+Cohesion: we should put in the same components parts that are related to the component
+\begin{itemize}
+  \item higher: Engine: (start(), stop())
+  \item lower: Engine: (start(), stop(), monitorObstacles()), monitorObstables() doesn't fit inside the Engine module, thus causing lower cohesion
+\end{itemize}
+
+...
+
+Cost: some functionalityies are more expensive than others
+
+Schedule: if there are more than one component they can be developed in parallel
+
+Staff skills: the staff needs to be trained to work on a specific component.
+
+
+...
+
+Performance: minimaze number of operations and comunications, larger components
+
+Security: use a layerd architecture, like a firewall
+
+Safety: more control on seaty-critical features, make the subsystem
+
+Availability: add redunt components
+
+Maintanability: replacable components
+
+Performance vs Security; Availability vs Security, Performance; there conficts we need a trade off, we need to choose which non-functional requirement is more important, defined by the stakeholders.
+
+\subsection{Notations}
+A simple box and line diagram, where a box is a component and an arrow is an interaction. These can also be done with UML class diagrams or packages diagrams. The sequence of function calls should never be displayed in the class diagram, to do that there is the dynamic view, that may correspond to the implementation of a use case.
+\begin{wrapfigure}{L}{0.4\textwidth}
+  \centering
+  \includegraphics[width=1\linewidth]{sequence-diagram.png}
+  \caption{Sequence Diagram}
+  \label{fig:sequence-diagram}
+\end{wrapfigure}
+
+
+
+
+\subsection{Patterns}
+Patterns are similar to dominant design in other engeneering fields, to solve common recurring problems. 
+
+\subsubsection{Architecture Patterns}
+\textbf{Repository style}: each interaction happens through a file system
+
+\textbf{Client server}:
+
+\textbf{ISO/OSI model}:
+
+\textbf{3 tier architecture}: persentation, application login, data.
+
+\textbf{Pipes and Filters}: like linux pipes
+
+\textbf{MVC (Model View Controller)}: The proble with have a graphical part to display. The simplest way is to have a single class, but everithing gets messy really quickly, and having more than one representation we will have to write everithing from scratch because the logic and graphic part are tightly coupled togheter, one way of extraciting that is using a \texttt{Model} of the the grohpical part wich will contain the logic while the \texttt{View} will only contain the graphical representation, the \texttt{Controller} is what controls the flow of data on logic, for example Android uses MVC, the \texttt{Controller} is the generic \texttt{View} class, his \texttt{View} is the XML file associated, while the \texttt{Model} is the data associated with the current XML file. Usually the cycle is: \texttt{View} fire events, \texttt{Controller} update model, \texttt{Model} update view.
+
+\textbf{Miccrokernel}: 
+
+\textbf{Microservices}:
 
 
 

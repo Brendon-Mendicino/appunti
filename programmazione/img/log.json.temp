@@ -1,1 +1,1 @@
-["basic-mmu.png", "page-table.png", "paginazione-con-tlb.png", "page-table-gerarchica.png", "hashed-page-table.png", "inverted-page-table.png", "kernel-loader-initial.png", "mips-virtual-address-space.png", "interfaccia-dumbvm.png", "process-stack.png"]
+["basic-mmu.png", "page-table.png", "paginazione-con-tlb.png", "page-table-gerarchica.png", "hashed-page-table.png", "inverted-page-table.png", "kernel-loader-initial.png", "mips-virtual-address-space.png", "interfaccia-dumbvm.png", "process-stack.png", "os-overview.png"]

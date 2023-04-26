@@ -508,8 +508,6 @@ Quando viene creato un nuovo thread viene fatto un context switch. Come viene fa
 
 Quando viene creato un nuovo user thread, viene generato un nuovo stack per il processo user, lo stack kernel non viene rimosso ma rimane in memoria, quando il processo far\`a una chiamata ad una systema call e passar\`a in \emph{modalit\`a kernel} e user\`a lo stack kernel che ha lasciato indietro.
 
-\hfill
-
 I processi sono rappresentati dalla \texttt{struct proc}, questa struct ha tutte le informazioni relative al processo, un campo in esso contenuto (\texttt{struct addrspace}) contiene al suo interno che definisce lo spazio d'indirizzamento del processo, se ci fosse paginazione dovrebbe contenere la tabella della pagine (non \`e il caso in \texttt{DUMBVM}). Nella versione base di OS161 non ha un puntatore a ogni thread che ha (ha solo il numero di thread), mentre i thread hanno un puntatore al processo padre. Un processo user non esegue istruzioni solo in modalit\`a user ma richiede del lavoro in modalit\`a kernel, usando le system call.
 \begin{figure}[H]
   \centering
@@ -521,7 +519,7 @@ Per creare un programma user da os161 si fa
 \begin{lstlisting}[language=]
 p <elf_file> {<args>}
 \end{lstlisting}
-Quello che avviene \`e:
+quello che avviene \`e:
 \begin{enumerate}
   \item si chiama 
 \begin{lstlisting}[language=]
@@ -532,19 +530,107 @@ proc_create_runprogram
   \item si passa da kernel thread user thread
 \end{enumerate}
 ...
+La \texttt{runprogram} al suo interno fa partire la \texttt{enter\_new\_process}, che si appoggia ad una strutturea siimila allo \texttt{switchframe} che si chiama \texttt{trapframe}, questa struttura server per fare un \emph{cambio di contesto} (context switch), la \texttt{enter} crea un nuovo processo come se questo processe stesse ritornando da una trap, infatti il \texttt{trapframe} \`e proprio la struttura in cui vengono salvati i dati alla chiamata di una trap.
 
 
-\subsection{Semafori}
-...
-Inizialmente i semafori venogno implementati con \emph{busy waiting},
+\subsection{Systemcall}
+Le \textbf{systemcall} sono un modo per i processi di utenti di far eseguire al kernel delle operazioni.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{os-overview.png}
+  \caption{Os Overview}
+  \label{fig:os-overview}
+\end{figure}
+In os161 quando viene invocato una system call i dati vengono passati nel \texttt{trapframe} (come in linux), uno user program chiamer\`a la system call con il suo numero associato e inserisce i dati necessari.
 
-...
+Di system call ce ne sono di vario genere, tra le pi\`u importanti ci sono: sincronizzazione, file system, tempo, ... In MIPS esiste un solo handler per gestire gli interrupt, le eccezioni e le system calls, questo \`e fatto perch\`e la differenza sar\`a gestita in hardware, il syscall handler prende un numero ad attraverso uno switch decide che tipo di trap \`e stata scatenata (hardware o software). Nel processo utente il \texttt{trapframe} ed il \texttt{contextframe} si trovano entrami nello stack del processo.
+
+Esistono due tipi di programmi che interagiscono che sono i processi utenti ed il kernel, come gi\`a visto i processi utenti usano indirizzi virtuali, ma il kernel ha bisogno di utilizzare indirizzi virtuali? La possibilit\`a sono:
+\begin{itemize}
+  \item Il kernel \`e in memoria fisica: la CPU \`e a consoscenza della modalit\`a di operazione, quindi quando \`e il kernel ad operare viene spenta la traduzione da indirizzo logico a fisico.
+  \item Il kernel si trova in un spazio di indirizzamento virtuale separato: in questi casi non ci sar\`a paginazione del suo spazio di indirizzamento
+  \item 
+\end{itemize}
+In linux tutti gli indirizzi sono separati, infatti si potrebbero avere due indirizzi identici che in due contesti diversi puntano a memoria diversa, in linux questo non piace, perch\'e il kernel pu\`o metter mano all'interno dei processi, per questo motivo esistono indirizzi utente ed indirizzi kernel.
+
+Nel MIPS la traduzione logico/fisica avviene nella TLB, che contiene: numero di pagina virtuale, numero di frame fisico, falgs, ID indirizzo (non usato in OS161). In \texttt{dumbvm} l'allocazione delle pagine \`e contigua, vengono definiti dei campi per l'\texttt{addrspace} di un processo e sono:
+\begin{lstlisting}[language=c]
+\struct addrspace {
+#if OPT_DUMBVM
+  vaddr_t as_vbase1; /* base virtual address of code segment */
+  paddr_t as_pbase1; /* base physical address of code segment */
+  size_t as_npages1; /* size (in pages) of code segment */
+  vaddr_t as_vbase2; /* base virtual address of data segment */
+  paddr_t as_pbase2; /* base physical address of data segment */
+  size_t as_npages2; /* size (in pages) of data segment */
+  paddr_t as_stackpbase; /* base physical address of stack */
+#else
+/* Put stuff here for your VM system */
+#endif
+};
+\end{lstlisting}
+In questo modo basta conoscere il \texttt{base} ed il numero di pagine che il processo possiede. In questo modo si evita di avere una page table per tenere traccia delle pagine.
+
+Se non \`e presente la entry nella TLB viene generato un \texttt{page fault}.
+
+
+\subsection{Sincronizzazione}
+I problemi delle programmazione concorrente sono: deadlock, starvation, race conditions. Si chiama \textbf{sezione critica} un pezzo di codice che accede a della memoria condivisa che pu\`o essere eseguito da un solo processo. Le sezioni critiche possono essere garantite da: mutua esclusione, progresso, bounded wait. Si possono usare due approcci che garantiscono la sincronizzazione, questo \`e discriminato dal fatto che il sistema sia \textbf{preemptive} o \textbf{non-preemptive}, ovvero se le primitive di sincronizzazione possono essere bloccate o se non possono essere bloccate (in questo caso in kernel mode non esistono problemi di race conditions).
+\begin{example}{Algoritmo di Peterson}{algoritmo-di-peterson}
+  Supponiamo che \texttt{load} e \texttt{sotre} sia atomiche, e che siano due variabili condivise tra due processi \texttt{turn} (dice a chi tocca) e \texttt{flag[2]} (indica se il processo 1 o 2 \`e pronto ad entrare nella sezione critica),
+\begin{lstlisting}[language=c]
+/* Processo Pi, l'altro e' Pj */
+while (true)
+{
+  flag[i] = true;
+  turn = j;
+  while (flag[j] && turn == j);
+
+  /* Critical section */
+
+  flag[i] = false;
+}
+\end{lstlisting}
+  si pu\`o dimostrare che se lettura e scrittura sono atomiche questo algoritmo funziona e la mutua esclusione \`e garantita. Il problema \`e che nelle architetture moderne questo non \`e vero, perch\'e non \`e detto che le letture e scritture funzionino in modo atomico, soprattutto nei processori multicore e con pipeline.
+\end{example}
+A causa di questi problemi si sono inventati dei metodi appositi per effettuare la sincronizzazione, i \textbf{lock}. I modi di acquisire un lock sono:
+\begin{itemize}
+  \item spin o busy-waiting
+  \item lasciare il processore
+\end{itemize}
+Per realizzare queste primitive l'hardware mette a disposizione \textbf{test and set} e \textbf{compare and swap} in modo atomico. La \textbf{test and set} fa
+\begin{lstlisting}[language=c]
+bool test_and set(bool *lock)
+{
+  bool prev = *lock;
+  *lock = true;
+  return prev;
+}
+\end{lstlisting}
+mentre la \textbf{compare and swap}
+\begin{lstlisting}[language=c]
+itn compare_and_swap(int *value, int expected, int new_value)
+{
+  int temp = *value;
+
+  if (*value == expected)
+    *value = new_value;
+
+  return temp;
+}
+\end{lstlisting}
+entrambe sarebbero le realizzazioni in C, ma queste operazioni sono realizzate in hardware. Insieme a queste due istruzioni esistono anche le \textbf{variabili atomiche}, che permettono operazioni atomiche su di loro.
+
+In OS161 esistono gli \textbf{spinlock} ovvero dei lock con busy-waiting, vengono usati quando la critical section non \`e molto complicata.
+
+Esistono poi anche i \textbf{semafori}, che sono pi\`u potenti dei lock, ne esistono di counting e di binary. Le primitive sono dette \texttt{wait} (\texttt{P}) e \texttt{signal} (\texttt{V}), dove \texttt{wait} decrementa il semaforo se maggiore di 0 e \texttt{signal} incrementa il semaforo. I semafori solitamente non vengono implementati con del busy-waiting, per questo motivo i semfori al loro interno contengono una lista di attesa, quando la \texttt{wait} fallisce si inserisce un nuovo processo nella lista. Quando sar\`a fatta la \texttt{signal} si dovr\`a decidere quale processo svegliare. Un modo di rendere un operazione atomica \`e quello di disabilitare l'handler di un interrupt, questo va bene in un single core, ma in un multicore questo non si pu\`o fare.
+
 
 Un semaforo contiene al suo interno una lista di processi, ovvero i processi in attesa. In os161 esistono \texttt{thread\_sleep} e \texttt{thread\_wakeup}, la differenza tra \texttt{sleep} e \texttt{yield} \`e che dopo \texttt{sleep} il thread \`e stato di blocco mentre con \texttt{yield} il processo \`e ready.
 
 I \texttt{lock} sono degli oggetti simili a dei semafori binari, i \texttt{lock} per\`o sono adatti solo alla mutua esclusione, il vincolo \`e che che fa il lock-acquire deve fare anche il lock-realease.
 
-Esistono dei casi in cui (\textbf{wait on codition}) la struttura va guradata al di fuori di P(), per questo motivo severno dei lock per ogni variabile all'interno delle
+Esistono dei casi (\textbf{wait on codition}) in cui data una condizione basata su pi\`u variabili, si manda una \texttt{signal} per fare un'operazione su queste variabili
 \begin{lstlisting}[language=c]
 /* shared state vars with some initial value */
 int x,y,z;
@@ -552,7 +638,8 @@ int x,y,z;
 struct lock *mylock = lock_create("Mutex");
 /* semaphore to wait if necessary */
 struct semaphore *no_go = sem_create("MySem", 0);
-compute_a_thing {
+compute_a_thing
+{
   lock_aquire(mylock); /* lock out others */
   /* compute new x, y, z */
   x = f1(x); y = f2(y); z = f3(z);
@@ -561,7 +648,8 @@ compute_a_thing {
 }
 
 //...
-use_a_thing {
+use_a_thing
+{
   lock_aquire(mylock); /* lock out others */
   if(x == 0 && (y > 0 || z > 0))
     P(no_go);
@@ -572,13 +660,13 @@ use_a_thing {
   lock_release(mylock); /* enable others */
 }
 \end{lstlisting}
-In questo caso se \texttt{use\_a\_thing} arriva per primo al lock ci sar\`a un deadlock.
-
-Una soluzione \`e:
+In questo caso se \texttt{use\_a\_thing} arriva per primo al lock ci sar\`a un deadlock. Una soluzione \`e
 \begin{lstlisting}[language=c]
-use_a_thing {
+use_a_thing 
+{
   lock_aquire(mylock); /* lock out others */
-  while (x == 0 && (y > 0 || z > 0)) {
+  while (x == 0 && (y > 0 || z > 0)) 
+  {
     lock_release(mylock); /* no deadlock */
     P(no_go);
     lock_aquire(mylock); /* lock for next test */
@@ -1314,11 +1402,63 @@ where F: impl FnMut() -> String {
 \end{lstlisting}
 
 
+\section{Errori ed Eccezioni}
+In Rust non esistono le eccezioni ma usa invece \texttt{Result<T, E>} e \texttt{Option<T>}. In Java quando si lancia un eccezione si ritorna al pi\`u basso contesto di gestione di eccezioni, dove si va alle differenti \texttt{catch} fino a trovare un match, in C++ le eccezioni funzionano quasi in modo identico
+\begin{lstlisting}[language=c++]
+int f2() {
+  if (...)
+    throw std::logic_error("err");
+  return 1;
+}
+int f1() {
+  try {
+    return f2();
+  }
+  catch (std::locic_error e) {
+    return -1;
+  }
+}
+\end{lstlisting}
+in C++, alla radice di programma c'\`e un \texttt{try catch} in grado di catchare tutte le eccezioni non gestite. Quando viene scritto un blocco \texttt{try}, nello stack viene inserito un nuovo \textbf{exception context}, che avr\`a il riferimento a quello precedente, il corrente invece si trova in un registro dalla CPU, in questo modo quando viene lanciata un eccezione in modo ricorsivo si controllano tutti gli exception context fino a trovare un match. A differenza di Java in C++ si pu\`o lanciare qualsiasi valore invece di classi \texttt{throwable}, quando viene lanciata un eccezione il pattern RAII permette di pulire lo stack prima di lasciare la funzione.
+
+In Rust non esistono le eccezioni e adotta un approccio funzionale con \texttt{Result} e \texttt{Option}, il tipo \texttt{Result} 
+\`e una \textbf{Monade} che incapsula il valore o l'errore. In Rust si pu\`o terminare l'interno processo con \texttt{exit} oppure si pu\`o terminare il thread corrente con \texttt{panic!}. Gestire gli errori \`e tedioso, allora Rust mette a disposione l'operatore \texttt{?} che in caso di successo ritorna \texttt{Ok} altrimenti esce dalla funzione e ritorna \texttt{Err}. Per gestire pi\`u tipi di errori come valori di ritorno si pu\`o astrarre l'errore a uno generico usando come valore di ritorno
+\begin{lstlisting}[language=rust]
+Result<(), Box<dyn error::Error>>
+\end{lstlisting}
+poi si pu\`o anche generare un nostro errore, per fare questo si implementa il tratto \texttt{Error}, il problema \`e che si devono implementare una serie di tratti, che sono richiesti da \texttt{Error}: \texttt{Display, Debug, From}. Un crete chiamato \texttt{thiserror}, permette di implentare direttamente il tratto \texttt{Error} per ogni tipo usando la macro \texttt{#[derive]}
+\begin{lstlisting}[language=rust]
+#[derive(Error, Debug)]
+enum SumFileError {
+  #[error("IO error {0}")]
+  Io(#[from] io::Error)
+
+  #[error("Parse error {0}")]
+  Io(#[from] ParseIntError)
+}
+\end{lstlisting}
+Un altro create \`e \texttt{anyhow}, che gestisce gli errori in modo ideomatico.
 
 
+\section{Iteratori}
+Un iteratore \`e una struttura dati che ha un suo stato, che premette di esplorare i dati contenuti all'interno di un altra struttura. Rust usa il tratto \texttt{Iterator}, che ha un solo metodo da implementare
+\begin{lstlisting}[language=rust]
+trait Iterator {
+  type Item;
+  fn next(&mut self) -> Option(Self::Item);
+}
+\end{lstlisting}
+poi esistono 3 metodi che servono a trasformare un oggetto in un iteratore: \texttt{iter(), into_iter(), iter_mut()}.
 
-
-
+Un \textbf{adattatore} \`e un metodo che ogni iteratore offre che permette di trasformare l'iteratore originale in uno diverso, fino ad arrivare ad un consumatore finale
+\begin{lstlisting}[language=rust]
+let sum = list
+  .iter()
+  .filter(|x| x.len() < 4)
+  .map(|x| x.into::<i32>())
+  .sum();
+\end{lstlisting}
+alcuni adattori sono: \texttt{map, take_while, skip, skip_while, peekable, fuse, rev, ...} I \textbf{consumatori} invece consumano un adattatore.
 
 
 
