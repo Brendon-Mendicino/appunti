@@ -1426,7 +1426,7 @@ In Rust non esistono le eccezioni e adotta un approccio funzionale con \texttt{R
 \begin{lstlisting}[language=rust]
 Result<(), Box<dyn error::Error>>
 \end{lstlisting}
-poi si pu\`o anche generare un nostro errore, per fare questo si implementa il tratto \texttt{Error}, il problema \`e che si devono implementare una serie di tratti, che sono richiesti da \texttt{Error}: \texttt{Display, Debug, From}. Un crete chiamato \texttt{thiserror}, permette di implentare direttamente il tratto \texttt{Error} per ogni tipo usando la macro \texttt{#[derive]}
+poi si pu\`o anche generare un nostro errore, per fare questo si implementa il tratto \texttt{Error}, il problema \`e che si devono implementare una serie di tratti, che sono richiesti da \texttt{Error}: \texttt{Display, Debug, From}. Un crete chiamato \texttt{thiserror}, permette di implentare direttamente il tratto \texttt{Error} per ogni tipo usando la macro \texttt{\#[derive]}
 \begin{lstlisting}[language=rust]
 #[derive(Error, Debug)]
 enum SumFileError {
@@ -1459,6 +1459,37 @@ let sum = list
   .sum();
 \end{lstlisting}
 alcuni adattori sono: \texttt{map, take_while, skip, skip_while, peekable, fuse, rev, ...} I \textbf{consumatori} invece consumano un adattatore.
+
+
+\section{Collezioni di Dati}
+% TODO: immagini %
+Le collezioni mettono a disposizione: \texttt{new(), len(), clear(), is\_empy(), iter()}.
+
+\texttt{VecDeque} \`e una coda in cui si pu\`o inserire/rimuovere in modo costante in testa e in coda, in Rust viene implementato come buffer circolare.
+
+\texttt{Mappe}, in Rust sono presnti due tipi di mappe che sono \texttt{HashMap} e \texttt{BTreeMap}, il vantaggio sul tratto delle chiavi \`e che possibile fare delle operazioni di ricerca e di sostituzione una sola volta, questo grazie al tratto \texttt{Entry<'a,K,V>}
+\begin{lstlisting}[language=rust]
+let mut animals = HashMap::<&str, u32>::new();
+
+animals.entry("dog")
+  .and_modify(|e| *e += 1)
+  .or_insert(1);
+\end{lstlisting}
+
+\texttt{BinaryHeap<T>} \`e una collezione di elementi con una priorit\`a associata, infatti \texttt{T} deve implentare il tratto \texttt{Ord}, \texttt{peek()} mi permette di vedere l'elemento pi\`u grande in tempo unitario.
+
+\section{IO}
+Nei sistemi operativi i file sono stati implementati in modo gerarchico per ragioni storiche, anche se sarebbe molto pi\`u effincente rappresentare tutto con una mappa e la rappresentazione gerarchica solo come un tag. Esiste anche il problema della compatibilit\`a tra i diversi SO e le diverse system call, Rust cerca di unificare le diverse rappresentazioni nella libreria standard, per ovviare a questo esistono \texttt{Path} e \texttt{PathBuf}, la rappresentazione interna dei nomi dei file \`e fatta con \texttt{OsString} che permette di avere compatibilit\`a tra i diversi SO. Per aprire un file si utilizza \texttt{std::fs::OpenOption} o \texttt{File}. La libreria mette a disposizione quattro tratti fondamentali che sono \texttt{Read}, \texttt{BufRead}, \texttt{Write}, \texttt{Seek}.
+
+
+\section{Smart pointer}
+In C e C++ \`e lecito creare dei puntatori e derefernziarli con \texttt{*}, in Rust cos\'i come avere un tratto per usare l'uguaglianza tra due struct, o l'ordine, \`e lecito implementare il tratto per la dereferenziazione pur non essendo un puntatore, anche questo \`e possibile farlo in C++ con l'operator overloading. In Rust questo quando si vuole che una struttura viva fin tanto che esiste qualcuno che la referenzia si vuole che questa struttura venga mantenuta in vita, grazie al conteggio delle referenze. Il bisogno di gestire queste casistiche in C++ si sono introdotti gli \textbf{smart pointer}, questo stesso concetto \`e stato portato in Rust e viene esresso con \texttt{Rc} (Reference Count) e \texttt{Arc} (Atomic Reference Count). In Rust ad esempio \`e impossibile creare una struttura ciclica, perch\'e sorge la domanda, \emph{chi possiede chi?}
+
+In C++ si accede ad un pezzo di memoria dinamca ci si deve assicurare che quel pezzo di memoria esiste e che il possessore sia uno solo, per questo motivo esiste il tipo \texttt{std::unique\_ptr<T>}
+
+
+
+
 
 
 
