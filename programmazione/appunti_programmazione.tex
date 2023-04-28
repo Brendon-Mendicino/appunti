@@ -621,7 +621,24 @@ itn compare_and_swap(int *value, int expected, int new_value)
 \end{lstlisting}
 entrambe sarebbero le realizzazioni in C, ma queste operazioni sono realizzate in hardware. Insieme a queste due istruzioni esistono anche le \textbf{variabili atomiche}, che permettono operazioni atomiche su di loro.
 
-In OS161 esistono gli \textbf{spinlock} ovvero dei lock con busy-waiting, vengono usati quando la critical section non \`e molto complicata.
+In OS161 esistono gli \textbf{spinlock} ovvero dei lock con busy-waiting, vengono usati quando la critical section non \`e molto complicata, vengono implementati con \texttt{test-and-test-and-set}, che \`e un leggera variante del \texttt{test-and-set} dove lo spinlock viene prima testata in modo non atomico e poi in modo atomico
+\begin{lstlisting}[language=c]
+void spinlock_acquire(struct spinlock *splk)
+{
+  // ...
+  while (1)
+  {
+    if (spinlock_data_get(&splk->splk_lock) != 0)
+      continue;
+    if (spinlock_data_testandset(&splk->splk_lock) != 0)
+      continue;
+
+    break;
+  }
+  // ...
+}
+\end{lstlisting}
+questo viene fatto per motivi di performance, infatti fare il \texttt{testandset} inficia sulla performance dell'intero sistema.
 
 Esistono poi anche i \textbf{semafori}, che sono pi\`u potenti dei lock, ne esistono di counting e di binary. Le primitive sono dette \texttt{wait} (\texttt{P}) e \texttt{signal} (\texttt{V}), dove \texttt{wait} decrementa il semaforo se maggiore di 0 e \texttt{signal} incrementa il semaforo. I semafori solitamente non vengono implementati con del busy-waiting, per questo motivo i semfori al loro interno contengono una lista di attesa, quando la \texttt{wait} fallisce si inserisce un nuovo processo nella lista. Quando sar\`a fatta la \texttt{signal} si dovr\`a decidere quale processo svegliare. Un modo di rendere un operazione atomica \`e quello di disabilitare l'handler di un interrupt, questo va bene in un single core, ma in un multicore questo non si pu\`o fare.
 
@@ -680,7 +697,10 @@ use_a_thing
 \end{lstlisting}
 Per questo motivo esistono le \textbf{condition variable}. I \textbf{Monitor} sono dei costrutti di alti livello che contengono delle code di attesa, ..., che mettono tutto insieme.
 
-La differenza tra signlal e condition variable \`e che quando la signal viene segnalata, se un semaforo arriva dopo pu\`o comunque prenderla, la condition varaible quando segnala se nessuno prende il segnale allora viene perso, se un semaforo arriva dopo non vede la signal.
+La differenza tra signal e condition variable \`e che quando la signal viene segnalata, se un semaforo arriva dopo pu\`o comunque prenderla, la condition varaible quando segnala se nessuno prende il segnale allora viene perso, se un semaforo arriva dopo non vede la signal.
+
+Esistono anche i \textbf{wait channel}, in OS161 quando un 
+
 
 
 
@@ -1448,7 +1468,7 @@ trait Iterator {
   fn next(&mut self) -> Option(Self::Item);
 }
 \end{lstlisting}
-poi esistono 3 metodi che servono a trasformare un oggetto in un iteratore: \texttt{iter(), into_iter(), iter_mut()}.
+poi esistono 3 metodi che servono a trasformare un oggetto in un iteratore: \texttt{iter(), into\_iter(), iter\_mut()}.
 
 Un \textbf{adattatore} \`e un metodo che ogni iteratore offre che permette di trasformare l'iteratore originale in uno diverso, fino ad arrivare ad un consumatore finale
 \begin{lstlisting}[language=rust]
@@ -1458,7 +1478,7 @@ let sum = list
   .map(|x| x.into::<i32>())
   .sum();
 \end{lstlisting}
-alcuni adattori sono: \texttt{map, take_while, skip, skip_while, peekable, fuse, rev, ...} I \textbf{consumatori} invece consumano un adattatore.
+alcuni adattori sono: \texttt{map, take_while, skip, skip\_while, peekable, fuse, rev, ...} I \textbf{consumatori} invece consumano un adattatore.
 
 
 \section{Collezioni di Dati}
@@ -1483,9 +1503,35 @@ Nei sistemi operativi i file sono stati implementati in modo gerarchico per ragi
 
 
 \section{Smart pointer}
-In C e C++ \`e lecito creare dei puntatori e derefernziarli con \texttt{*}, in Rust cos\'i come avere un tratto per usare l'uguaglianza tra due struct, o l'ordine, \`e lecito implementare il tratto per la dereferenziazione pur non essendo un puntatore, anche questo \`e possibile farlo in C++ con l'operator overloading. In Rust questo quando si vuole che una struttura viva fin tanto che esiste qualcuno che la referenzia si vuole che questa struttura venga mantenuta in vita, grazie al conteggio delle referenze. Il bisogno di gestire queste casistiche in C++ si sono introdotti gli \textbf{smart pointer}, questo stesso concetto \`e stato portato in Rust e viene esresso con \texttt{Rc} (Reference Count) e \texttt{Arc} (Atomic Reference Count). In Rust ad esempio \`e impossibile creare una struttura ciclica, perch\'e sorge la domanda, \emph{chi possiede chi?}
+In C e C++ \`e lecito creare dei puntatori e derefernziarli con \texttt{*}, in Rust cos\'i come avere un tratto per usare l'uguaglianza tra due struct, o l'ordine, \`e lecito implementare il tratto per la dereferenziazione pur non essendo un puntatore, anche questo \`e possibile farlo in C++ con l'operator overloading. In Rust questo quando si vuole che una struttura viva fin tanto che esiste qualcuno che la referenzia si vuole che questa struttura venga mantenuta in vita, grazie al conteggio delle referenze. Il bisogno di gestire queste casistiche in C++ si sono introdotti gli \textbf{smart pointer}, questo stesso concetto \`e stato portato in Rust. In Rust ad esempio \`e impossibile creare una struttura ciclica, perch\'e sorge la domanda, \emph{chi possiede chi?}
 
-In C++ si accede ad un pezzo di memoria dinamca ci si deve assicurare che quel pezzo di memoria esiste e che il possessore sia uno solo, per questo motivo esiste il tipo \texttt{std::unique\_ptr<T>}
+In C++ si accede a un pezzo di memoria dinamica ci si deve assicurare che quel pezzo di memoria esiste e che il possessore sia uno solo, per questo motivo esiste il tipo \texttt{std::unique\_ptr<T>} (che non pu\`o essere duplicato) e \texttt{std::shared\_ptr<T>} (che pu\`o essere copiato).
+
+In Rust vengono ripresi gli stessi concetti di C++ con \texttt{Box}, \texttt{Rc} (Reference Count), \texttt{Arc} (Atomic Reference Count), ... Una struct che implementa il tratto \texttt{Deref/DerefMut}, permette di utilizzare delle struct come se fossero delle referenze
+\begin{lstlisting}[language=rust]
+trait Deref {
+  type Target: ?Sized;
+  fn deref(&self) -> &Self::Target;
+}
+trait DerefMut: Deref {
+  type Target: ?Sized;
+  fn deref_mut(&mut self) -> &mut Self::Target;
+}
+\end{lstlisting}
+as esempio \texttt{Box<T>} si comporta come se possedesse una reference al tipo \texttt{T}, in pi\`u quando \texttt{Box} verra droppato rilascer\`a i dati contenuti al suo interno allocati sull'heap. \texttt{Rc} permette invece di contare il numero di volte che il dato \`e referenziato, solo quando il numero di conteggi \texttt{strong} e \texttt{weak} saranno zero la struttura \texttt{T} non verr\`a rilasciata. Per risolvere il problema dei cilci si utilizza \texttt{Weak}, per distinguere i puntatori che tengono in vita e quelli che non lo fanno, per ovviare al fatto di puntare ad una refernza nulla, per fare fare questo \texttt{Weak} offre \texttt{upgrade()}, che permette di ritornare ad \texttt{Rc} e se il dato \`e ancora esistente ci permette di accedere altrimenti no.
+\begin{lstlisting}[language=rust]
+let five = Rc::new(5);
+let weak_five = Rc::downgrade(&five);
+
+let strong_five = weak_five.upgrade();
+assert!(string_five.is_some());
+
+drop(strong_five);
+drop(five);
+
+assert!(weak_five.upgrade().is_none());
+\end{lstlisting}
+Esistono delle situazioni in cui si potrebbe volere un possesso condiviso ad un dato sullo stack, questo \`e un problema perch\`e un solo una variabile pu\`o possedere un dato come mutabile, Rust permette per\`o di cambiare un dato anche possedendo un refernce non mutabile, il borrow checker dice che: esiste un unico riferimento mutabile, ci sono pi\`u riferimenti, in alcuni casi questa condizione \`e troppo restrittiva, per questo motivo esiste \texttt{Cell<T>} che permette di scambiare un riferimento con un riferimento mutabile.
 
 
 
