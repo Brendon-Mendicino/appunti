@@ -142,6 +142,327 @@ We start first by using Docker, Docker is a software that allows running differe
   \item REST API, which links the Docker CLI with the Docker Engine.
   \item Docker Engine, which manages the interface with the kernel.
 \end{itemize}
+Docker has two big arguments: \textbf{Docker Images} (is a template of an applicatoin), \textbf{Docker Container} (the real application based on the respective image).
+
+The image is composed of many layers that are read-only (called \textbf{union file system}), when creating a container and some data are changed docker use a \emph{copy-on-write} policy. In this way when having multiple container the common unchanged parts are shared while the differences are contained only within that container. To keep the data persisten there are three ways that docker exposes:
+\begin{itemize}
+  \item \textbf{Volumes}: specifing a directory in the pc
+  \item \textbf{Bind Mount}: docker will handle the path where the data wil be mounted
+  \item \textbf{Tempfs muonts}: temporary directory
+\end{itemize}
+To create an image we need to use \textbf{docker file}
+\begin{lstlisting}[language=]
+# base image
+FROM node:14
+# working directory inside the container
+WORKDIR /app
+# copy from the current path to the container
+COPY package*.json
+# run commands after install
+RUN npm install
+# copy the remaining files from host to the container
+COPY . .
+# cmd to start when running the container
+CMD npm install mongoose; npx nodemon server.js
+\end{lstlisting}
+and then to create a new container
+\begin{lstlisting}[language=]
+$ docker build -t my-app-image
+$ docker run -d -p 3000:3000 -v /path/to/folder:/app my-app-image
+\end{lstlisting}
+when having more docker images that need to run concurrently we use \textbf{docker compose}, that uses \texttt{docker-compost.yml} as configuration file, that allows us to define environmental variables, port forwarding, dependencies, valumes, the containers, ...
+
+\textbf{Continuos Integration} is a software methodology for high quality software, this is done by running automated test and highlighting any error.
+
+\textbf{Continuos Delivery/Deployment} when all the test are passed the software is automatically builded and deployed.
+
+To implement CI with \emph{gitlab} we need to create a \texttt{.gitlab-ci.yml}, by default the pipeline is triggered by \texttt{git push}.
+
+
+
+
+\newpage
+\section{Testing}
+Testing can be performed in two ways: \emph{static} (by doing code review), \emph{dynamic} (unit testing). The purpose of the test is trying to find defects in the code, while on the other hand debugging should be performed when a fault arises. When a test is failing then we can start debugging.
+
+A \textbf{test suit} is a set of unit test related to a specific context. Usally who writes the test should not be same person who writes the code, this is because there could be some bais in the way the code is written, thus not catching some defects, the tema should be dived in \textbf{tester team} and \textbf{developer team}, or even have a \textbf{3rd party tester}. The ideal condition is to have an \textbf{Oracle}. When creating tests, we would like \textbf{exhaustive test} but this in reality is impossible, due to the high amounts of test that would need to be performed.
+\begin{definition}{Dijkstra thesis}{}
+  \emph{"Testing can only reveal the precence of error, and never their abcence"}
+\end{definition}
+
+\subsection{Test classification}
+\begin{itemize}
+  \item \textbf{Per unit}: unit, integration, system, regression
+  \item \textbf{Per approach}: black box (functional) ,white box (structural), reliability assessment/prediction, risk based
+  \item \textbf{Per formality}: informal, formal
+\end{itemize}
+Unit test: individual modules, Integration: some modules work toghether, System test: all modules work togheter.
+
+When using the approaches, the test that can be done are:
+\begin{itemize}
+  \item black box: unit, integration, System
+  \item white box: unit
+  \item reliability, risk: system
+\end{itemize}
+
+The \textbf{coverage} is how much code we are coveringwith tests, and what kind of requirements we are covering, we are describeing what a test is calling. When doing utit test the converage can be defined for:
+\begin{itemize}
+  \item \textbf{methods}: methods of a class
+  \item \textbf{partitions}: defines a partition
+  \item \textbf{boundry}: when we have some thresholds in the partitions we can test them
+\end{itemize}
+When testing a \textbf{system} we can test:
+\begin{itemize}
+  \item function requirements
+  \item scenarios
+  \item non-functional requiremnts
+\end{itemize}
+
+Black box means to choose some random input.
+
+Equivalent class partitioning, highlight where the difference are and then test those differences, if a test fails in class then it will fail also in similar classes. An equivalence class is defined by: \textbf{creiteria}, \textbf{predicates}, \textbf{partitions}:
+\begin{lstlisting}[language=]
+Criterion: age
+Predicate: age < 100, age > 25
+\end{lstlisting}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{equivalence-class.png}
+  \caption{Equivalence Class}
+  \label{fig:equivalence-class}
+\end{figure}
+When building black box testing we need to write a table with all the combinations of the criteria (also boundry need to be included).
+
+
+
+In javascript it's possible to create a test by writing
+\begin{lstlisting}[language=js]
+import app from 'app';
+
+describe('test suite 1', () => {
+  test('T1: convert "123" -> 123', async() => {
+    const res = app.convert('123');
+    expect(res).toBe(123);
+  });
+
+  test('T2: convert "1d3" -> error', async() => {
+    expect(() => app.convert('1d3')).toThrow(Error);
+  });
+});
+\end{lstlisting}
+
+
+
+\subsection{Lab}
+\subsubsection{Exercise 1}
+\begin{lstlisting}[language=]
+boolean acceptableToEat(int carb, int protein, int fat);
+
+The function acceptableToEat receives the weight in grams of, respectively, carbohydrates, proteins, fats in a serving of food. It returns true if
+- the total amount of calories is < 1000
+- (carb + protein) / fat > 1/2
+\end{lstlisting}
+\textbf{Criteria}:
+\begin{center}
+  \begin{tabular}{|l|l|}
+    \hline
+    Criterion Id & description \\
+    \hline
+    C1: totCalories & total calories \\
+    \hline
+    C2: fat & fat input \\
+    \hline
+  \end{tabular}
+\end{center}
+\textbf{Predicates}:
+\begin{center}
+  \begin{tabular}{|l|l|}
+    \hline
+    CId & Predicate \\
+    \hline
+    totCalories & 1/2 $<$ totCalories $<$ 1000 \\
+    \hline
+    & 0 $<$ totCalories $<$ 1/2 \\
+    \hline
+    & totCalories $>$ 1000 \\
+    \hline
+    fat & fat $>$ 0 \\ 
+    \hline
+  \end{tabular}
+\end{center}
+\textbf{Boundaries:}
+\begin{center}
+  \begin{tabular}{|l|l|}
+    \hline
+    Criterion & Boundary \\
+    \hline
+    totCalories & totCalories == 1/2 \\
+    \hline
+    & totCalories == 0 \\
+    \hline
+    & totCalories == 1000 \\
+    \hline
+    fat & fat == 0 \\
+    \hline
+  \end{tabular}
+\end{center}
+\textbf{Equivalence classes and tests:}
+\begin{center}
+  \begin{tabular}{|l|l|l|l|}
+    \hline
+    totCalories & fat & Valid & Test case \\
+    \hline
+    any & == 0 & n & \texttt{T1(any, any, 0):error} \\
+    \hline
+    (0, 1/2] & (0, inf) & y & \texttt{T2(1/3):false} \\  
+     & & & \texttt{T3B(1/2):false} \\
+    \hline
+    (1/2, 1000) & (0, inf) & y & \texttt{T4(10):true} \\
+    \hline
+    [1000, inf) & (0, inf) & y & \texttt{T5B(1000):false} \\
+     & & & \texttt{T6(1010):false} \\
+    \hline
+  \end{tabular}
+\end{center}
+
+
+\subsubsection{Exercise 2}
+\begin{lstlisting}[language=]
+double computeFee (int duration, int minRate, int minRate2);
+
+This function computes (in euros) the fee for a bicycle rental, using these parameters
+    * duration: minutes the bicycle has been used
+    * minRate: cost per minute, in cents of euro
+    * minRate2: cost per minute, in cents of euro
+The fee is computed as follows: free the first 30 minutes. minRate per min for the first hour exceeding the first 30 min (30 to 90 minutes), minRate2 after 90 minutes
+\end{lstlisting}
+\textbf{Criteria}:
+\begin{center}
+  \begin{tabular}{|l|l|}
+    \hline
+    Criterion Id & description \\
+    \hline
+    duration & bicycle rental minutes \\
+    \hline
+  \end{tabular}
+\end{center}
+\textbf{Predicates}:
+\begin{center}
+  \begin{tabular}{|l|l|}
+    \hline
+    CId & Predicate \\
+    \hline
+    duration & 0 $<$ duration $<$ 30 \\
+    \hline
+    & 30 $<$ duration $<$ 90 \\
+    \hline
+    & duration $>$ 90 \\
+    \hline
+  \end{tabular}
+\end{center}
+\textbf{Boundaries:}
+\begin{center}
+  \begin{tabular}{|l|l|}
+    \hline
+    Criterion & Boundary \\
+    \hline
+    duration & duration == 0 \\
+    \hline
+    & duration == 90 \\
+    \hline
+  \end{tabular}
+\end{center}
+\textbf{Equivalence classes and tests:}
+\begin{center}
+  \begin{tabular}{|l|l|l|l|}
+    \hline
+    duration & fee & Valid & Test case \\
+    \hline
+    $>$ 0 \&\& $<$ 30 & == 0 & x & T1B \\
+    \hline
+    $>$ 30 & $>$ 0 &  & T2B \\
+    \hline
+  \end{tabular}
+\end{center}
+
+\subsubsection{Exercise 3}
+\begin{lstlisting}[language=]
+double computeFee(double basePrice, int n_passengers, int n_over18, int n_under15);
+
+A railway company offers the possibility to people under 15 to travel free. The offer is dedicated to groups from 2 to 5 people travelling together.
+
+For being eligible to the offer, at least a member of the group must be at least 18 years old. If this condition applies, all the under 15 members of the group travel free, and the others pay the Base Price.
+
+The function computeFee receives as parameters basePrice (the price of the ticket), n_passengers (the number of passengers of the group), n_over18 (the number of passengers at least 18 old), n_under15 (the number of passengers under 15 years old). It gives as output the amount that the whole group has to spend. It gives an error if groups are composed of more than 5 persons.
+\end{lstlisting}
+\textbf{Criteria}:
+\begin{center}
+  \begin{tabular}{|l|l|}
+    \hline
+    Criterion Id & description \\
+    \hline
+    C1 & basePrice \\
+    \hline
+    C2 & npassengers \\
+    \hline
+    C3 & over18 \\
+    \hline
+    C4 & under18 \\
+    \hline
+  \end{tabular}
+\end{center}
+\textbf{Predicates}:
+\begin{center}
+  \begin{tabular}{|l|l|}
+    \hline
+    CId & Predicate \\
+    \hline
+    C1 & basePrice $>$ 0 \\
+    \hline
+    C2 & 2 $<$ npassengers $<$ 5 \\
+    \hline
+    & 0 $<$ npassengers $<$ 2 \\
+    \hline
+    & npassengers $>$ 5 \\
+    \hline
+    C3 & over18 $>$ 0 \\
+    \hline
+    C4 & under18 $>$ 0 \\
+    \hline
+  \end{tabular}
+\end{center}
+\textbf{Boundaries:}
+\begin{center}
+  \begin{tabular}{|l|l|}
+    \hline
+    Criterion & Boundary \\
+    \hline
+    basePrice & basePrice == 0 \\
+    \hline
+    npassengers & npassengers == 2 \\
+    \hline
+    over18 & over18 == 0 \\
+    \hline
+    under18 & under18 == 0 \\
+    \hline
+  \end{tabular}
+\end{center}
+\textbf{Equivalence classes and tests:}
+\begin{center}
+  \begin{tabular}{|l|l|l|l|l|l|}
+    \hline
+    basePrice & npassengers & over18 & under18 & Valid & Test case \\
+    \hline
+     & $>$ 5 & & & & T1 \\
+     \hline
+     $>$ 0 & $>$ 0 & $>$ 0 & $>$ 0 & x & T2B \\
+    \hline
+     $>$ 0 & $>$ 0 & == 0 & $>$ 0 & x & T3 \\
+    \hline
+  \end{tabular}
+\end{center}
+
+
 
 
 
@@ -893,6 +1214,7 @@ Coupling: modules shoul have least amount of coupling between them, the coupling
 
 Cohesion: we should put in the same components parts that are related to the component
 \begin{itemize}
+  \tolerance=1000
   \item higher: Engine: (start(), stop())
   \item lower: Engine: (start(), stop(), monitorObstacles()), monitorObstables() doesn't fit inside the Engine module, thus causing lower cohesion
 \end{itemize}

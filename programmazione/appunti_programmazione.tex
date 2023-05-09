@@ -10,6 +10,8 @@
 
 
 
+
+
 \begin{document}
 
 \maketitle
@@ -380,6 +382,46 @@ Gestione della memoria 3.
 
 
 
+
+
+\newpage
+\section{Mass-Storage System}
+Una delle teconologie pi\`u utilizzata \`e quella delgi HDD, i dati pi\`u sensibili sono:
+\begin{itemize}
+  \item rotazioni al secondo;
+  \item \textbf{transer rate};
+  \item \textbf{positioning time} (random access);
+  \item 
+\end{itemize}
+I dischi sono divisi in:
+\begin{itemize}
+  \item \textbf{settori}: un certo numero di bit
+  \item \textbf{traccie}: insieme di settori
+  \item \textbf{cilindri}: traccie dello stesso raggio
+\end{itemize}
+\begin{example}{}{}
+  Si deve trasferire un blocco da $4KB$ su un disco a $7200RPM$, ...
+\end{example}
+Dal punto di vista logico un disco viene visto come un vettore monodimensionale di blocchi, dovesolitamente i blocchi hanno la dimensione delle pagine. I dischi sono attaccati al sistema tramite dei BUS.
+
+Il sistema operativo \`e respponsabile di gestire le sue risorse hardware come l'HDD, in questo caso c'\`e bisgono di fare dello scheduling, i tipi di politica possono essere:
+
+\textbf{FIFO} 
+
+\textbf{SCAN}: simile al funzionemanento di un ascenscore, quando si va in una direzione si servono tutti quelli lungo il commino e cos\'i in discesa.
+
+\textbf{C-SCAN}: simile a SCAN, ma si servono tutti quanto solo in salita (o discesa) e poi si ritorna velocmente all'inizio, il problema di SCAN e C-SCAN \`e che si potrebbe venire a creare della starvation.
+
+\textbf{NVM (Non-Volatile Memory)}: non esiste lo scheduling
+
+Gli errori su questi tipi di memoria vengono gestiti attraverso degli algoritmi di \emph{error detection} o \emph{error correction},  
+
+
+
+
+
+
+
 \newpage
 \section{OS161}
 \subsection{Configurazioni del Kernel}
@@ -467,7 +509,6 @@ Se si volesse gestire la paginazione, si dovrebbe scindere i l'allocatore per ke
   \item bitmap implementata come char array, dove ogni posizione rappresenta se la pagina \`e libera o presa;
   \item 
 \end{itemize}
-
 
 
 \subsection{Overview}
@@ -700,6 +741,7 @@ Per questo motivo esistono le \textbf{condition variable}. I \textbf{Monitor} so
 La differenza tra signal e condition variable \`e che quando la signal viene segnalata, se un semaforo arriva dopo pu\`o comunque prenderla, la condition varaible quando segnala se nessuno prende il segnale allora viene perso, se un semaforo arriva dopo non vede la signal.
 
 Esistono anche i \textbf{wait channel}, in OS161 quando un 
+
 
 
 
@@ -1483,7 +1525,7 @@ alcuni adattori sono: \texttt{map}, \texttt{take\_while}, \texttt{skip}, \texttt
 
 \section{Collezioni di Dati}
 % TODO: immagini %
-Le collezioni mettono a disposizione: \texttt{new(), len(), clear(), is\_empy(), iter()}.
+Le collezioni mettono a disposizione: \texttt{new()}, \texttt{len()}, \texttt{clear()}, \texttt{is\_empy()}, \texttt{iter()}.
 
 \texttt{VecDeque} \`e una coda in cui si pu\`o inserire/rimuovere in modo costante in testa e in coda, in Rust viene implementato come buffer circolare.
 

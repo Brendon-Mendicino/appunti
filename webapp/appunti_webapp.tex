@@ -508,6 +508,174 @@ setList(oldList => {
 \end{lstlisting}
 
 
+\subsection{Context}
+When passing information to the child we need to pass it to the props, every time without forgetting it, by using the context we make an information available to the whole application. When we create a context we need to define who is the \textbf{provider} (\texttt{React.createContext()}) and who is the \textbf{consumer}, the context can contain only one object.
+\begin{example}{}{}
+  We can import the languege context to change the language in the whole application
+\begin{lstlisting}[language=js]
+export const LanguageContext = React.createContext();
+
+/**/
+import languageContext from './languageContext';
+
+<LangugeContext.Provider value={language}>
+  <Button toggle={toggle} />
+</LangugeContext.Provider>
+
+return Button(props) {
+  const language = useContext(LanguageContext);
+
+  return (
+    ...
+  );
+}
+\end{lstlisting}
+   
+  Consumer
+  \begin{lstlisting}[language=js]
+<ExContext.Consumer>
+{value => /* render something based on the context value */ } 
+</ExContext.Consumer>
+  \end{lstlisting}
+  
+\end{example}
+
+
+
+\newpage
+\section{Routing}
+In react we need a library to handle routing, this app can read/write the url input ad be able to load the correct react component, to install
+\begin{lstlisting}[language=]
+npm install react-router-dom
+\end{lstlisting}
+To use the router we need to use \texttt{<Link>} component and not \texttt{<a>}
+\begin{lstlisting}[language=js]
+<Link to'/'>Home</Link>
+<Link to'/about'>About</Link>
+
+<Routes>
+  <Route path='/' element={<Home />} />
+  <Route path='/about' element={<About />} />
+</Routes>
+\end{lstlisting}
+There are two ways of creating a router in react, by using \emph{functions} or \emph{components}. We will use \texttt{BrowserRouter}, \texttt{HashRouter} also exitst but we won't use it.
+
+We can have:
+\begin{itemize}
+  \item \textbf{static}: \texttt{/user}
+  \item \textbf{dynamic}: \texttt{/:userId}
+  \item \textbf{star}: \texttt{/*}
+\end{itemize}
+React will always match to most specific path, and it's also possible to \emph{nest routes}.
+
+There are some special routes like \texttt{paht='/'} which is identified as the home it can be identified with \texttt{index} attribute, and the \texttt{paht='*'} which is the \texttt{<Layout>} route that will catch everithing, by doing that it is possible to disply error pages to users in case they mispell the URL. To navigate to a new page we use \texttt{<Link>} or \texttt{useNavigation()}, \texttt{<NavLink>} allows us to know if a link is active or not.
+
+To use dynamic routes
+\begin{lstlisting}[language=js]
+<Route paht='/user/:id' elemnt={<User />} />
+
+return User(props) {
+  const {id} = useParams();
+  
+  return (...);
+}
+\end{lstlisting}
+We can also pass informations when navigating
+\begin{lstlisting}[language=js]
+const navigate = useNavigation();
+navigate(url, {state: userData});
+
+/* ... */
+<Link to={url} state={userData}>
+</Link>
+
+/* ... */
+const location = useLocation();
+const userdate = location.state;
+\end{lstlisting}
+The state is serialized when it's sent to the route, it's important to remember that only strings can be serialized properly when passing this state, so when usign more complex object we need a way to modify them to able be serialized properly.
+
+
+
+\newpage
+\section{Server Side}
+\subsection{Express}
+The goal is to have e database in the backend that is able to talk with the React application. \textbf{Express} is one of the most used modules in Node to handle http requests. One usefull modules is \texttt{nodemon} which allows recompilation of the server when there are changes.
+\begin{lstlisting}[language=]
+$ npm install -g nodemon
+$ nodemon index.js
+\end{lstlisting}
+Express has three basic sections
+\begin{itemize}
+  \item create the application server
+  \begin{lstlisting}[language=js]
+const express = require('express');
+const app = express();
+  \end{lstlisting}
+  \item define the behaviour of the server
+  \begin{lstlisting}[language=js]
+app.get('/', (req, res) => res.send('Hello world!')); 
+  \end{lstlisting}
+  \item using the app created to launch a server
+  \begin{lstlisting}[language=js]
+app.listen(3000, () => console.log('Server ready')); 
+  \end{lstlisting}
+\end{itemize}
+When handling the the different http methods we use \texttt{res} and \texttt{req} which are the \textbf{response} sent to the server and \textbf{request} that will be sent back to the client.
+
+Express has \textbf{Middlewares} (between the request and the respones), which is a function called for every request or for specific ones. To create a middleware
+\begin{lstlisting}[language=js]
+express.static(root, [options]);
+// root: static content like css, html, ...
+\end{lstlisting}
+\begin{itemize}
+  \item GET (\texttt{localhost/some?user=brendon}): \texttt{req.query}, \texttt{req.query.user};
+  \item POST/PUT normal body: \texttt{req.body}, \texttt{req.body.user}. \\ Middleware: \texttt{express.urlencoded()};
+  \item POST/PUT json body: \texttt{req.body}, \texttt{req.body.user}. \\ Middleware: \texttt{express.json()};
+\end{itemize}
+To enable \textbf{loggin} we user \texttt{morgan}
+\begin{lstlisting}[language=js]
+const morgan = require('morgan');
+app.use(morgan...);
+\end{lstlisting}
+there are also middlewares for html validation.
+
+
+\subsection{HTTP API}
+Most of the API written today use json as format, in JavaScript there are some methods to coverert or parse json from/to a string (\texttt{JSON.stringify}, \texttt{JSON.parse}).
+\begin{lstlisting}[language=js]
+{
+  "something": "some",
+  "number": 1,
+  "listOfNumbers": [
+    1, 2, 3
+  ],
+  "object": {
+    "some": "some",
+    "id": 10
+  }
+}
+\end{lstlisting}
+A standard is to use URIs, the way to define one is to use:
+\begin{itemize}
+  \item use nouns (not verbs)
+  \item 
+\end{itemize}
+\begin{lstlisting}[language=]
+http://api.polito.it/students/s123456
+\end{lstlisting}
+We represent relationships with
+\begin{lstlisting}[language=]
+/collection/identifier/relationships
+\end{lstlisting}
+
+
+
+
+
+
+
+
 
 
 
