@@ -1576,7 +1576,63 @@ assert!(weak_five.upgrade().is_none());
 Esistono delle situazioni in cui si potrebbe volere un possesso condiviso ad un dato sullo stack, questo \`e un problema perch\`e un solo una variabile pu\`o possedere un dato come mutabile, Rust permette per\`o di cambiare un dato anche possedendo un refernce non mutabile, il borrow checker dice che: esiste un unico riferimento mutabile, ci sono pi\`u riferimenti, in alcuni casi questa condizione \`e troppo restrittiva, per questo motivo esiste \texttt{Cell<T>} che permette di scambiare un riferimento con un riferimento mutabile.
 
 
+\section{Programmazione Concorrente}
+...
 
+
+
+Alcuni modelli di concorrenza in Rust
+\begin{itemize}
+  \item \textbf{actix}: modello degli attori 
+  \item \textbf{rayon}: modello work stealing
+  \item \textbf{crossbeam}: modello di canali generalizzati
+\end{itemize}
+
+\subsection{Condivisione dello Stato}
+Siccome i thread vivono nello stesso ocntesto \`e possibile avere una vaiabile condivisa da tutti in cui \`e possibile sia leggere che scrivere. Per fare questo \`e presente un \texttt{Mutex}, esso ha due metodi: \texttt{lock()} che segna il thread da cui il lock \`e posseduto, \texttt{unlock()}. In C++ per implemetare i lock ad alto livello si usa \texttt{lock\_guard}, che utilizza il pattern RAII, durante la creazione viene usato messo il lock e durante la distruzione viene rilasciato il lock. Questo approccio previene l'uso in modo errato dei lock, esiste per\`o il problema dell'utilizzo inopportuno.
+
+In Rust il dato che si vuole condividere \`e incapsulato dentro il \texttt{Mutex}, evitando cos\`i di potervi accedere senza l'uso del \texttt{Mutex}. Un \texttt{Mutex<T>} contiene
+\begin{itemize}
+  \item \textbf{inner}: puntatore al mutex (nelle ultime versioni di Rust \`e contenuto direttamente all'intero della struttura)
+  \item \textbf{poison}: ci permette di sapere se il mutex \`e stato rilasciato in modo appropriato, as esempio se il thread va in \texttt{panic} la stack viene svuotato ma la struttura dati potrebbe essere corrotta, \`e per qeusto motivo che quando si fa il \texttt{lock()} viene restituito un \texttt{Result}, proprio per gestire questo tipo di castica
+  \item \textbf{T}: questo dato viene restituito dal metodo \texttt{lock()} all'interno di uno \emph{smart pointer}
+\end{itemize}
+Un \texttt{Mutex} di suo non pu\`o essere posseduto da due thread, per questo si utilizza un \texttt{Arc}, dove il pattern tipico \`e
+\begin{lstlisting}[language=rust]
+let shared_data = Arc::new(Mutex::new(vec![]));
+let mut thread = vec![];
+for i in 0..10 {
+  let mut data = shared_data.clone(); // un Arc e' clonabile
+  theads.push(thead::spawn(move|| {
+    let mut v = data.lock().unwarap(); // v e' di tipo MutexGuard<T>
+    v.push(i);
+  }));  // il lock viene rilasciato con RAII
+}
+for t in theads { t.join().unwarap(); }
+// shared_data contiene i numeri da 0 a 9
+\end{lstlisting}
+Il meccanismo della \emph{single ownership} ci perette di proteggere un dato con un sigolo \texttt{Mutex} condiviso dai processi.
+
+Un altro modo di condividere uno stato \`e quello di usare una reference (senza l'uso di \texttt{move}), con i thread per\`o questo \`e un problema perch\'e l'avanzamento dei due thead \`e diverso, questo comporta che se il chiamante termina per primo la reference esce al di fuori del suo tempo di vita, per questo motivo esiste \texttt{thead::scope(|s: std::thread::Scope| { ... })}, che non fa partire il thead, ma prepare un context in cui si possono creare dei thread che si aspettano , questo viene sincronizzato in base al prametro \texttt{s} che viene passato, grazie a \texttt{scope} si possono passare tranquillamente i parametri tra i thread senza il bisogno di usare \texttt{Arc} o di fare delle \texttt{join}
+\begin{lstlisting}[language=rust]
+let mut v = vec![1, 2, 3];
+let mut x = 0;
+thead::scope(|s| {
+  s.spawn(|| {
+    println!("length: {}", v.len());
+  });
+  s.spawn(|| {
+    for n in &v {
+      println!("{n}");
+    }
+    x += v[0] + v[2];
+  });
+});
+
+v.push(4);
+assert_eq!(x, v.len());
+\end{lstlisting}
+Oltre a \texttt{Mutex} esiste \texttt{RwLock} che si utilizza quando gli accessi in scrittura e lettura sono sbilanciati.
 
 
 
