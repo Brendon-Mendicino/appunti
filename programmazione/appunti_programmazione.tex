@@ -466,7 +466,27 @@ I direttori sono di fatto delle tabelle di ricerca, le operazioni che possono es
   \item \textbf{efficenti}
   \item \textbf{nominazione}
 \end{itemize}
-Le strutture possono essere degli alberi,
+Le strutture possono essere degli alberi, quanod si inziano a creare dei link si veonog acreare dei loop, esistono due soluzioni: si possono staccare dei link solo dalle foglie, c'\`e un sitema di garbage collection.
+
+Quando si hanno pi\`u file-system su uno stesso sistema, si pu\`o fare il mounting del file-system, questo permette di creare un link tra un file-system e quello oche verr\`a montato.
+
+I file-system in linux hanno dei permessi di accesso, questi sono gestiti grazione ai \textbf{GroupIDs} ed agli \textbf{UserIDs}.
+
+
+\newpage
+\section{File-System Implementation}
+La struttura
+
+La struttura che contiene le informazioni dei file sar\`a il \textbf{File Control Block} (FCB)
+
+Un file-system \`e organizzato in:
+\begin{itemize}
+  \item device
+  \item IO control
+  \item basic file-system: non vede la struttura del disco, gestisce eventuali buffer o cache, vede solo i blocchi
+  \item basic file organization: 
+  \item 
+\end{itemize}
 
 
 
