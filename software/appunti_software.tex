@@ -348,6 +348,10 @@ This function computes (in euros) the fee for a bicycle rental, using these para
     * minRate: cost per minute, in cents of euro
     * minRate2: cost per minute, in cents of euro
 The fee is computed as follows: free the first 30 minutes. minRate per min for the first hour exceeding the first 30 min (30 to 90 minutes), minRate2 after 90 minutes
+
+computeFee( 35, 10, 20) = (35-30) * 10
+computeFee( 65, 10, 20) = (65-30) * 10
+computeFee( 95, 10, 20) = (90-30) * 10 + (95-90) * 20
 \end{lstlisting}
 \textbf{Criteria}:
 \begin{center}
@@ -355,7 +359,11 @@ The fee is computed as follows: free the first 30 minutes. minRate per min for t
     \hline
     Criterion Id & description \\
     \hline
-    duration & bicycle rental minutes \\
+    duration & minutes duration \\
+    \hline
+    minRate & first rate \\
+    \hline
+    minRate2 & second rate \\
     \hline
   \end{tabular}
 \end{center}
@@ -363,15 +371,21 @@ The fee is computed as follows: free the first 30 minutes. minRate per min for t
 \begin{center}
   \begin{tabular}{|l|l|}
     \hline
-    CId & Predicate \\
+    duration & $\in$ (0, 30) \\
     \hline
-    duration & 0 $<$ duration $<$ 30 \\
+    & $\in$ (30, 90) \\
     \hline
-    & 30 $<$ duration $<$ 90 \\
+    & $>$ 90 \\
     \hline
-    & duration $>$ 90 \\
+    & $<$ 0 \\
     \hline
-    & duration $<$ 0 \\
+    minRate & $>$ 0 \\
+    \hline
+    & $<$ 0 \\
+    \hline
+    minRate2 & $>$ 0 \\
+    \hline
+    & $<$ 0 \\
     \hline
   \end{tabular}
 \end{center}
@@ -381,26 +395,42 @@ The fee is computed as follows: free the first 30 minutes. minRate per min for t
     \hline
     Criterion & Boundary \\
     \hline
-    duration & duration == 0 \\
+    duration & == 0 \\
     \hline
-    & duration == 90 \\
+    & == 30 \\
+    \hline
+    & == 90 \\
+    \hline
+    & == -1 \\
+    \hline
+    minRate & == 0 \\
+    \hline
+    & == -1 \\
+    \hline
+    minRate2 & == 0 \\
+    \hline
+    & == -1 \\
     \hline
   \end{tabular}
 \end{center}
 \textbf{Equivalence classes and tests:}
 \begin{center}
-  \begin{tabular}{|l|l|l|}
+  \begin{tabular}{|l|l|l|l|l|}
     \hline
-    duration & Valid & Test case \\
+    duration & minRate & minRate 2 &result & Test case \\
     \hline
-    $\in [0, 30)$ & y & \texttt{T1(15, 30, 30):0.0} \\
-    & & \texttt{T2B(0, 30, 30):0.0} \\
+    $>$ 0 & $>$ 0 & $<$ 0 & / & \texttt{T1(1,1,-1):error} \\
     \hline
-    $\in (-\infty, 0)$ & n & \texttt{T3(-10, 20, 30):error} \\
+    ... & ... & ... & / & ... \\
     \hline
-    $\in [30, 90)$ & y & \texttt{T4(40, 20, 30):...} \\
+    $<$ 0 & $<$ 0 & $<$ 0 & / & \texttt{T2(-1,-1,-1):error} \\
     \hline
-    $\in (90, \infty)$ & y & \texttt{T4(100, 20, 30):...} \\
+    $\in$ (0, 30) & $>$ 0 & $>$ 0 & ... & \texttt{T3(15, 10, 20):...} \\
+    & & & & \texttt{T4B(0, 30, 30):0.0} \\
+    \hline
+    $\in$ (30, 90) & $>$ 0 & $>$ 0 & ... & \texttt{T5(65, 10, 20):...} \\
+    \hline
+    $>$ 90 & $>$ 0 & $>$ 0 & ... & \texttt{T6(95, 10, 20):...} \\
     \hline
   \end{tabular}
 \end{center}
@@ -414,6 +444,9 @@ A railway company offers the possibility to people under 15 to travel free. The 
 For being eligible to the offer, at least a member of the group must be at least 18 years old. If this condition applies, all the under 15 members of the group travel free, and the others pay the Base Price.
 
 The function computeFee receives as parameters basePrice (the price of the ticket), n_passengers (the number of passengers of the group), n_over18 (the number of passengers at least 18 old), n_under15 (the number of passengers under 15 years old). It gives as output the amount that the whole group has to spend. It gives an error if groups are composed of more than 5 persons.
+
+computeFee(20.0, 3, 0, 1) -> 60.0
+computeFee(30.0, 5, 1, 2) -> 150.0
 \end{lstlisting}
 \textbf{Criteria}:
 \begin{center}
@@ -483,7 +516,7 @@ The function computeFee receives as parameters basePrice (the price of the ticke
 \end{center}
 
 \subsection{Statement Coverage}
-It's a test where we try to cover every statemnt branch, every statement terminates with an action.
+It's a test where we try to cover every statement branch, every statement terminates with an action.
 
 Sometimes it's better to transition the code to the to a \textbf{control flow graph}, with this approach we avoid the specific language dependency.
 
@@ -516,6 +549,30 @@ In practice path coverage is very simple, if we insert some loop then the number
   \item there is only one loop
   \item there are n-loop
 \end{itemize}
+
+\subsection{Dependency graph}
+When having multiple function that are getting called from one another, every function generates a dependency for the caller. When testing we have to consider all the dependencies because we may not know were the defect comes from. How do we approach this problem? We use separation of concearn. The idea is to use some kind of substitute, we use \emph{mocks}, \emph{stubs}, \emph{mockups}. A \emph{stub} is a substitute for some data, when calling a function there is a \textbf{driver} which calls a funciton and a \textbf{stub} which is used by the function. When mocking a function we can decide what is his value of return, by doing that it's possible eliminate the dependency required by that function. Test all the dependencies is very difficult, for this reason we use \textbf{incremental integration}, which consist in testing the small pieces first and then putting them together, the opposite of \textbf{incremental integration} is \textbf{big-bang testing} which it does not care about all the dependencies and test everything together.
+
+\subsection{System Testing}
+When doing system testing we can test functional and non-functional properties. When doing system testing the main focus are the non-functional properties, the reasons is that only the system is fully build we can grasp his real capabilities, for example the final speed to measure will be the sum of the other functions speed. Another step is testing the \textbf{functional proper}, starting from the requirements document we can design each test case starting from the use-cases.
+
+
+Test in summary:
+\begin{center}
+  \begin{tabular}{|p{0.15\textwidth}|p{0.15\textwidth}|p{0.15\textwidth}|p{0.15\textwidth}|p{0.15\textwidth}|}
+    \hline
+    & functional / non-funcitonal & who test & platforms & tecqniques \\
+    \hline
+    unit test & functional & developer & developmnt & BB,WB \\
+    \hline
+    integration & funcitonal & developer & developmtn & Incremental TD or BU \\
+    \hline
+    system test & funcitonal + non-functional & developer or usersl & developement / target & Requiremtn coverage/ use case coverage / functional coverage \\
+    \hline
+  \end{tabular}
+\end{center}
+
+Coverage: 
 
 
 

@@ -417,6 +417,62 @@ Il sistema operativo \`e respponsabile di gestire le sue risorse hardware come l
 Gli errori su questi tipi di memoria vengono gestiti attraverso degli algoritmi di \emph{error detection} o \emph{error correction},  
 
 
+\subsection{RAID Structure} 
+RAID (Redundant Array of Inexpensive Disks), \`e una struttura che ha come abbiettivo l'aumento del tempo medio tra due fallimenti (dove la ridondanza permette di perdere i dati in caso di fallimento di un singolo disco), ...
+
+Esistono dei diversi livelli di RAID:
+\begin{itemize}
+  \item RAID 0: \textbf{non-riduntant striping}
+  \item RAID 1: \textbf{mirroring}, si sicrive su entrambi i dischi (uno o pi\`u)
+  \item RAID 4: \textbf{block-interleaved parity}
+  \item RAID 5: \textbf{block-interleaved distributed parity}
+\end{itemize}
+
+\begin{example}{}{}
+  Dischi mirrored falliscono in modo indipendente, i dischi hanno 100000 ore, 
+\end{example}
+
+
+
+\section{File-System Interface}
+Un file sono di fatto uno spazio di indirizzamento continuo, pu\`o essere interpretato come una sequenza di byte, come un file testule, come un eseguibile, ..., questo dal punto di vista \emph{logico}. Un file ha una serie di attributi che vengono usati per gestrilo, ogni sistema operativo ha la sue caratteristiche ed il modo di gestirlo. Con i file \`e possibile: crearli, leggerli, scriverli, seek, rimuoverli, operirli, chiuderli.
+
+Dal punto di vista del SO si ha bisogno di una o pi\`u \textbf{tabelle dei file aperti}, un \textbf{puntatore al file} (dipende da contesto), un \textbf{conteggio del numero di aperture del file}, un \textbf{locazione sul disco}, \textbf{diritti di accesso}. Se si vogliono gestire dei file condivisi tra pi\`u processi i FileSystem mettono a disposizione dei lock interni al file, questi possono essere \textbf{esclusivi} (in scrittura) o \textbf{condivisi} (in lettura).
+
+La struttura di un file pu\`o essere un \emph{record}:
+\begin{itemize}
+  \item linee 
+  \item a lunghezza fissa 
+  \item a lunghezza variabile 
+\end{itemize}
+un \emph{struttura complessa} (solitamente si utilizza uno standard):
+\begin{itemize}
+  \item struttura formattata 
+  \item struttura binaria
+\end{itemize}
+
+
+I metodi di accesso ad un file possono essere: 
+\begin{itemize}
+  \item \textbf{sequenziale}
+  \item \textbf{ad accesso diretto}
+\end{itemize}
+Esistono anche degli altri metodi \textbf{gerarchici} di accesso, questo viene fatto inserendo degli indici all'interno di un file, questo permette una ricerca efficente che poi contiene la vera informazione all'interno del file.
+
+I \textbf{direttori} sono delle strutture dati che contengono informazioni sui file, attraverso cui \`e possibile accedere ai file. Tutte queste infromazioni sono contenute nei dischi. Solitamente i \textbf{dischi} sono partizionati, in ...  I file-system sono contentenuti in dei \textbf{volumi}, i volumi possono essere contenuti in una partizione o in pi\`u partizioni.
+
+I direttori sono di fatto delle tabelle di ricerca, le operazioni che possono essere fatte sono: ricerca, creazione, rimozione, listare, rinominare, attraversamento del file-system. Il direttori devono essere:
+\begin{itemize}
+  \item \textbf{efficenti}
+  \item \textbf{nominazione}
+\end{itemize}
+Le strutture possono essere degli alberi,
+
+
+
+
+
+
 
 
 
