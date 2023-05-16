@@ -487,10 +487,25 @@ Un file-system \`e organizzato in:
   \item basic file organization: 
   \item 
 \end{itemize}
+...
+
+L'\textbf{allocazione linkata} si fa quando un blocco viene linkata al prossimo, dove il puntatore al prossimo blocco viene messo all'interno del blocco, il problema di questa allocazione \`e che quando si vuole accedere in modo diretto ad un file si devono percorrere comunque tutti i precedenti, il motivo \`e che non abbiamo il puntatore.
+
+Per ovviare a questa limitazione \`e stato inventata la \textbf{FAT32} (File Allocation Table), che consiste sostanzialmente nello spostare tutti i puntatori in una tabella, in questo modo i tempi rimangono sempre lineari ma sono molto pi\`u efficenti che non leggere ogni volta un blocco dal disco.
+
+Il metodo \textbf{indicizzato} prende un allocazione contigua di spazio dove all'indice (del vettore) corrisponde il puntatore al blocco, in questo modo i tempi di accesso diventano $O(1)$ (il comportamento \`e simile alla \emph{page table}), nel File Control Block il primo puntatore sar\`a il puntatore all'indice. Se un blocco indice non basta a contere tutti gli indirizzi, le soluzioni sono:
+\begin{itemize}
+  \item \textbf{indicizzazione a due livelli}: dove ci sono dei blocci di indici (linkati tra di loro) che puntano ad i blocchi indice.
+\end{itemize}
+
+Il problema sorge quando in un sistema devono coesister sia file piccoli che file grandi, per questo motivo in Linux si usa una rappresentazione \textbf{INode}, dove nel FCB i primi 10 nodi sono all'interno, poi si trova un \textbf{signle indirect blocks}, che punta un blocco indice di primo livello, poi ci sono un \textbf{doulbe} ed un \textbf{triple}, che sono dei blocchi indice di secondo e terzo livello rispettivamente.
 
 
+Come si gestisce lo spazio libero sul disco? Si pu\`o usare la \textbf{free list} oppure una \textbf{bitmap}.
 
+Buffer Cache. ...
 
+Come si fa fare una \textbf{recovery} del sistema quando c'\`e un crash? Si pu\`o utilizzare un \textbf{logging strutturato} detto \textbf{journaling}, dove si tengono dei log per ricustruire la storia della azioni.
 
 
 

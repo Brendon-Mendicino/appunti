@@ -671,6 +671,67 @@ We represent relationships with
 
 
 
+\section{Fetch API}
+When have 3 problems when developing a React application and an API server:
+\begin{enumerate}
+  \item How can the two apps communicate?
+  \item How can the two apps live in one server? (The two apps cannot have tow different addresses)
+  \item How to handle the changes that are happening outside a component?
+\end{enumerate}
+The first problem is solved with a \textbf{Fetch API}. The goal is to load data asynchronously, the reason is that we don't know when the response will arrive, the API is a generic browser function, that will return a \texttt{Promise} that will resolve into an object that contains the response body.
+\begin{lstlisting}[language=js]
+const res = await fetch('https://example.com/exams.json');
+const data = await res.json();
+console.log(data);
+\end{lstlisting}
+Also calling \texttt{res.json()} return a \texttt{Promise}, the reason is that the body may be very long, and we don't want to block the program if that's the case. When sending a fetch request, we can add an optional object \texttt{fetch(resource [, init])}, the init object has:
+\begin{itemize}
+  \item method
+  \item headers 
+  \item body 
+  \item mode 
+  \item credentials 
+  \item signal
+\end{itemize}
+\begin{lstlisting}[language=js]
+fetch(url, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.strigify(objectToSend)
+})
+  .catch((err) => {
+    console.log(err)
+  })
+\end{lstlisting}
+The methods that can be called on a response can only be called once, the reason is that body is consumed with any operation.
+
+\section{Client Server Interaction}
+How to resolve the second problem? Even we want to include the React application inside Express, it won't understand jsx, while on the other hand a React application is not customizable. There are two possible solutions:
+\begin{itemize}
+  \item continue to use two different servers (the API server will need CORS Cross-Origin Resources Sharing)
+  \item create a bundle the React application (made only of html, css, js), and having the Express server serve those pages
+\end{itemize}
+We will use the two separate servers. A Browser can only make http request from js to the domain provided the response. The CORS must be enabled by the server
+
+
+
+\section{React Lifecycle}
+Every component follows some phases, that are dictaded by React: \textbf{mounting} the component (first in the virtual DOM and the in the real DOM), \textbf{updating}, \textbf{unmounting}. There are some actions that can only be done in a certain phase, for example \texttt{useState()} can only be used in the \textbf{updating} phase, or \texttt{useEffect()} that works during all the three phases, and will allow us to \textbf{handle side effects} in React.
+\begin{lstlisting}[language=js]
+function GreetBAD(props) {
+  const message = `Hello, ${props.name}`;
+
+  console.log(`Greetings: ${message}`);
+
+  return <div>{message}</div>;
+}
+\end{lstlisting}
+This \texttt{log} will be executed in a way that is not predictable, and could be executed more than one time (every time the component is updated). \texttt{useEffect} has a \emph{callback} (that contains the logic) and a \emph{list of dependencies} (\texttt{useEffect} will execute the callback only if a dependency has changed during the updating phase)
+ 
+
+
 
 
 
