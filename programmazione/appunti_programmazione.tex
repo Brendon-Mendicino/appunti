@@ -30,7 +30,7 @@ La memoria si compone si suddivide in:
   \item memoria primaria;
   \item memoria secondaria;
 \end{itemize}
-Uno principali problemi di accesso alla memoria \`e quello di assicurarne la sua protezione, ovvero evitare che un programma in memoria riesca ad accedere alle zone di memoria di altri programmi. Una volta fatto il bootstrap, sia il SO che i programmi verranno caricati in memoria, per evitare che ogni processo abbia una vista al di fuori del suo scope, si possono usare dei controlli a livello della CPU, esistono dei registri chiamati \textbf{base} e \textbf{limit}, che attraverso dei meccanismi riescono a effettuare la protezione della memoria. Esiste anche un altro problema che \`e quello della \textbf{relocation}, che consiste nel come mappare gli indirizzi delle varie istruzioni di salto e dei vari puntatori una volta che il programma viene caricato in memoria. Se si utilizzassero degli indirizzi statici (creati solo in fase di compilazione prendendo come riferimento d'inizio del programma l'indirizzo $0$), una volta che il programma viene caricato in memoria le istruzioni punterebbero sempre allo stesso indirizzo, ma i programmi non partono tutti dall'indirizzo $0$, sorge dunque il probelema di come gestire le istruzioni che fanno riferimento ad altre parti del programma. Immagginiamo che gli indirizzi vengano creati una mentre il programma viene caricato in memoria, cosa succede se quel programma viene mosso in un altra parte della memoria? I rifermenti degli indirizzi sarabbere tutti sbagliati o addirittura potrebbero puntare a pezzi di altri programmi in esecuzione. Per questo motivo quando si utilizzano valori di indirizzi, essi vengono sommati al \textbf{base register}, mentre le boundry del programma in memoria vengono salvate nel \textbf{limit register}, grazie a questa tecnica \textbf{hardware} \`e possibile scrivere i programmi come se gli indirizzi del programma partissero da $0$.
+Uno principali problemi di accesso alla memoria \`e quello di assicurarne la sua protezione, ovvero evitare che un programma in memoria riesca ad accedere alle zone di memoria di altri programmi. Una volta fatto il bootstrap, sia il SO che i programmi verranno caricati in memoria, per evitare che ogni processo abbia una vista al di fuori del suo scope, si possono usare dei controlli a livello della CPU, esistono dei registri chiamati \textbf{base} e \textbf{limit}, che attraverso dei meccanismi riescono a effettuare la protezione della memoria. Esiste anche un altro problema che \`e quello della \textbf{relocation}, che consiste nel come mappare gli indirizzi delle varie istruzioni di salto e dei vari puntatori una volta che il programma viene caricato in memoria. Se si utilizzassero degli indirizzi statici (creati solo in fase di compilazione prendendo come riferimento d'inizio del programma l'indirizzo $0$), una volta che il programma viene caricato in memoria le istruzioni punterebbero sempre allo stesso indirizzo, ma i programmi non partono tutti dall'indirizzo $0$, sorge dunque il probelema di come gestire le istruzioni che fanno riferimento ad altre parti del programma. Immagginiamo che gli indirizzi vengano creati mentre il programma viene caricato in memoria, cosa succede se quel programma viene mosso in un altra parte della memoria? I rifermenti degli indirizzi sarebbero tutti sbagliati o addirittura potrebbero puntare a pezzi di altri programmi in esecuzione. Per questo motivo quando si utilizzano valori di indirizzi, essi vengono sommati al \textbf{base register}, mentre le boundry del programma in memoria vengono salvate nel \textbf{limit register}, grazie a questa tecnica \textbf{hardware} \`e possibile scrivere i programmi come se gli indirizzi del programma partissero da $0$.
 
 \subsection{Indirizzamento}
 Gli indirizzi vengono rappresentati in modo diverso a differenza della fase di vita di un programma: durante la compilazione vengono considerati come simbolici, durante la compilazione agli indirizzi \`e fatto il \textbf{bind} ad un indirizzo relativo (base) in modo da poter essere rilocato (questa somma \`e fatto dall'hardware), durante il linking o durante il loading. Il \textbf{binding} si pu\`o fare:
@@ -90,7 +90,7 @@ La \textbf{Paginazione} risolve i problemi della allocazione contigua, al suo po
   Le partizioni della memoria fisica.
 \end{definition}
 \begin{definition}{Blocco}{blocco}
-  ...
+  Le partizioni della memoria secondaria.
 \end{definition}
 Tipicamente la loro dimensione \`e un multiplo di due, sia pagine che frame hanno la stessa dimensione, da qualche parte andranno salvate le informazioni di mapping tra pagine e frame, si utilizza una \textbf{frame table}, dove ogni riga corrisponde a una mappatura. Anche utilizzando la paginazione si ha frammentazione interna. 
 
@@ -98,7 +98,7 @@ Tipicamente la loro dimensione \`e un multiplo di due, sia pagine che frame hann
 
 Un indirizzo generato dall CPU si divide in:
 \begin{itemize}
-  \item \textbf{numero di pagine (p)}: 
+  \item \textbf{numero di pagina (p)}: 
   \item \textbf{numero di offset (d)}:
   \item \textbf{numero di frame (f)}:
 \end{itemize}
@@ -120,19 +120,17 @@ Nelle righe della tabella si aggiungono dei bit in pi\`u per rappresentare delle
   \caption{Page Table}
   \label{fig:page-table}
 \end{figure}
-Come si implementa una \textbf{page table}? La page table si trova in memoria RAM, per sapere dove si trova si utilizzano due rigistri: \textbf{page table base register} e \textbf{base table lenght register}, infatti la base table si trova in memoria contigua. Per velocizzare questa operazione si pu\`o spostare questa tabella all'interno della CPU (le operazioni di accesso alla memoria sono costose), si usa la \textbf{Translation Look-aside Buffer} (TLB), un tipo di memoria in cui si accede per contenuto (memoria associativa). Si aggiunge anche un altra informazione \textbf{ASID} in cui viene salvata l'infromazione del processo a cui la pagina appartiene, se non \`e presente questa informazione i processi si contendono la TLB. Quando avviene un \textbf{TLB miss} se reinserisce la pagina nella TLB e poi si ritenta, utilizzando una politica scelta. Anche usando una TLB si mantiene comunque la page table in RAM in caso di miss, in modo da recuperare il frame ed inserirlo nella TLB.
+Come si implementa una \textbf{page table}? La page table si trova in memoria RAM, per sapere dove si trova si utilizzano due rigistri: \textbf{page table base register} e \textbf{base table lenght register}, infatti la base table si trova in memoria contigua. Per velocizzare questa operazione si pu\`o spostare questa tabella all'interno della CPU (le operazioni di accesso alla memoria sono costose), si usa la \textbf{Translation Look-aside Buffer} (TLB), un tipo di memoria in cui si accede per contenuto (memoria associativa). Si aggiunge anche un altra informazione \textbf{ASID} in cui viene salvata l'infromazione del processo a cui la pagina appartiene, se non \`e presente questa informazione i processi si contendono la TLB. Quando avviene un \textbf{TLB miss} si reinserisce la pagina nella TLB e poi si ritenta, utilizzando una politica scelta. Anche usando una TLB si mantiene comunque la page table in RAM in caso di miss, in modo da recuperare il frame e inserirlo nella TLB.
 \begin{center}
   \boxed{\emph{Lo schema finale \`e la combinazione di TLB e page table.}}
 \end{center}
-
-
 Il \textbf{Tempo di accesso effettivo} (EAT) in memoria \`e il tempo che mi costa accedere alla RAM:
 \[ EAT = h \cdot M + (1 - h) \cdot 2M  \]
 \begin{itemize}
   \item $h$ = TLB hit ratio;
   \item $M$ = Memory access time;
 \end{itemize}
-L'accesso alla memoria \`e raddoppiato perch\'e si deve prima recupare il frame dalla page table e poi si pu\`o accedere alla memoria.
+Nella seconda parte dell'equazione l'accesso alla memoria \`e raddoppiato perch\'e si deve prima recupare il frame dalla page table e poi si pu\`o accedere alla memoria.
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.7\textwidth]{paginazione-con-tlb.png}
@@ -161,7 +159,7 @@ La page table \`e una struttura dati del kernel:
   \centering
   \includegraphics[width=.9\linewidth]{page-table-gerarchica.png}
 \end{wrapfigure}
-La \textbf{la page table gerarchica}, la page table viene divisa in blocchi pi\`u piccoli non contigui, si usa una page table di livello superiore che porta alle page table di livello inferiore, questi blocchi devono rimanere contigui, anche se diventano molto piccoli. Il page number viene diviso in due parti, una per la tabella outer ed una per la tabella inner (pu\`o avere anche pi\`u di due livelli), quando si va su 64 bit e la outer dienta molto grande si pu\`o usare solo una parte dell'indirizzamento se l'eseguibile \`e molto piccolo.
+La \textbf{la page table gerarchica}, la page table viene divisa in blocchi pi\`u piccoli non contigui, si usa una page table di livello superiore che porta alle page table di livello inferiore, questi blocchi devono rimanere contigui, anche se diventano molto piccoli. Il page number viene diviso in due parti, una per la tabella outer ed una per la tabella inner (pu\`o avere anche pi\`u di due livelli), quando si va su 64 bit e la outer diventa molto grande si pu\`o usare solo una parte dell'indirizzamento se l'eseguibile \`e molto piccolo.
 
 \begin{wrapfigure}{L}{0.5\textwidth}
   \centering
@@ -219,10 +217,10 @@ Esericizi:
 
 \newpage
 \section{Memoria Virtuale}
-Con \textbf{memoria virtuale} si indica che delle pagine esistono solo virtualmente ma non fisicamente, in questo modo si vuole supportare uno spazio d'indirizzamento pi\`u grande dello spazio d'indirizzamento fisico. Si parte dalla premessa che \emph{un programma non bisogna di essere tutto in memoria per essere eseguito}, si pensi a un programma parzialmente caricato in memoria che contiene solo i componenti necessari a lui in quel momento, in questo caso la grandezza di un programma non \`e pi\`u vincolato dalla grandezza della RAM, si parla allora di \textbf{memoria virtuale}. Avere questa memoria virtuale porta una serie di vantaggi che velocizzano tutte le operazioni di IO tra la RAM e la memoria secondaria. La conseguenza \`e che viene introdotta la \textbf{demand paging}, ovvero che un pagina viene caricata solo quando \`e richiesta. Il \textbf{demand paging} \`e molto simile allo swapping, infatti il caso limite \`e il \textbf{lazy swapper} dove inizialmente non si ha nessun frame caricato, e ad ogni richiesta viene preso un frame.
+Con \textbf{memoria virtuale} si indica che delle pagine esistono solo virtualmente ma non fisicamente, in questo modo si vuole supportare uno spazio d'indirizzamento pi\`u grande dello spazio d'indirizzamento fisico. Si parte dalla premessa che \emph{un programma non bisogna di essere tutto in memoria per essere eseguito}, si pensi a un programma parzialmente caricato in memoria che contiene solo i componenti necessari a lui in quel momento, in questo caso la grandezza di un programma non \`e pi\`u vincolato dalla grandezza della RAM, si parla allora di \textbf{memoria virtuale}. Avere questa memoria virtuale porta una serie di vantaggi che velocizzano tutte le operazioni di IO tra la RAM e la memoria secondaria. La conseguenza \`e che viene introdotta la \textbf{demand paging}, ovvero che un pagina viene caricata solo quando \`e richiesta. Il \textbf{demand paging} \`e molto simile allo swapping, infatti il caso limite \`e il \textbf{lazy swapper} dove inizialmente non si ha nessun frame caricato, e a ogni richiesta viene preso un frame.
 
 
-Quasi tutto il meccansico si basa sul \emph{validity bit}, infatti l'invalid bit pu\`o rappresetnare una pagina che non ha un frame associato, i casi sono due: il frame non esiste proprio, il frame c'\`e ma deve essere recuperato, infatti il programma viene comunque caricato in memoria (backing store), perch\'e lo spazio \`e tanto.
+Quasi tutto il meccanismo si basa sul \emph{validity bit}, infatti quando si cerca di accedere una pagina che non \`e valida il SO lancia una \textbf{trap}, i casi sono due: il frame non esiste proprio, oppure il frame c'\`e ma deve essere recuperato, infatti il programma viene comunque caricato in memoria (backing store), perch\'e lo spazio \`e tanto e in questo modo \`e pi\`u veloce recuperare le informazioni.
 
 \hfill
 
@@ -241,33 +239,38 @@ Quanto costa una page fault?
   \item recupera il frame facendo IO;
   \item quando si fa il trasferimento, l'OS viene fatto uscire dal processore e un altro processo inizia a girarare;
   \item viene tirata un eccezione al termine dell'IO;
+  \item viene fatto lo swapping;
+  \item il validity bit viene settato a valido;
+  \item si riparte dall'istruzione che ha causato il fault;
 \end{enumerate}
 L'IO \`e la parte pi\`u onerosa, per calcolare l'EAT:
 \begin{itemize}
   \item $p$ = probabilit\`a page fault
-  \item $pfo$ = page fault overhead;
-  \item $spo$ = swap page out;
-  \item $spi$ = swap page in;
+  \item $f$ = page fault overhead;
+  \item $s_{in}$ = swap page out;
+  \item $s_{out}$ = swap page in;
   \item $M$ = memory access
-  \item $EAT = (1-p)\cdot M + p (pfo + spo + spi)$
 \end{itemize}
+\[ \boxed{EAT = p \cdot (f + s_{out} + s_{in}) + (1-p) \cdot M} \]
 \begin{example}{}{}
   \begin{itemize}
-    \item memory access time = $20ns$;
+    \item memory access time = $200ns$;
     \item avg page-fault service time = $8ms$;
   \end{itemize}
-
-  Il page fault \`e molto onerso, anche con $p$ molto piccoli i tempi sono comunque molto lenti. L'approccio migliore \`e ottimizzare il tempo del service ed ottimizzare $p$.
+  \[ EAT = (1-p) \cdot 200ns + p \cdot 8ms = 200ns + p \cdot 7999800ns \]
+  Il page fault \`e molto oneroso, anche con $p$ molto piccoli i tempi sono comunque molto lenti. L'approccio migliore \`e ottimizzare il tempo del service e ottimizzare $p$.
 \end{example}
 
 
-\textbf{Copy-on-write} si genera una copia di un frame solo quando uno dei processi decidono di scrivere su un frame, questo approccio viene utilizzato quando viene chiamata una \texttt{fork()}, infatti la pagine dei due processi non venogno copiate ma  sono condivise, solo quando una dei due decide di scrivere la page veien copiata ed ogni processo ha i suoi dati modificati.
+\textbf{Copy-on-write} si genera una copia di un frame solo quando uno dei processi decidono di scrivere su un frame, questo approccio viene utilizzato quando viene chiamata una \texttt{fork()}, infatti la pagine dei due processi non vengono copiate ma  sono condivise, solo quando una dei due decide di scrivere la page viene copiata e ogni processo ha i suoi dati modificati.
 
 \hfill
 
-Che succede se non ci sono frame disponibili? Un processo che richiede una nuova pagina, \textbf{rimpiazza} (\textbf{page replacement}) una pagina non in uso che viene salvata sul disco, \`e possibile rimpiazzare una pagina dello stesso processo o anche di altri processi. Questa caratteristica va aggiunta nella funzione di gestione del page fault all'interno del sistema operativo, in questo caso deve essere aggiunto il \textbf{modify/dirty bit}, per gestire se delle pagine vengono modificate, se una pagina scelta ha il modify bit settato allore il frame ha un valore diverso rispetto rispetto al disco, allora primad i rimpiazzarla deve essere copiata, altrimenti \`e inutile salvare perch\'e tanto si trova gi\`a sul disco.
+Che succede se non ci sono frame disponibili? Un processo che richiede una nuova pagina, \textbf{rimpiazza} (\textbf{page replacement}) una pagina non in uso che viene salvata sul disco, \`e possibile rimpiazzare una pagina dello stesso processo o anche di altri processi. Questa caratteristica va aggiunta nella funzione di gestione del page fault all'interno del sistema operativo, in questo caso deve essere aggiunto il \textbf{modify/dirty bit} per gestire se delle pagine vengono modificate, se una pagina scelta ha il modify bit settato significa che il frame ha un valore diverso rispetto a quello sul disco, in questo caso prima di rimpiazzarla deve essere copiata, altrimenti i suoi cambiamenti verranno persi.
 
-\textbf{Page replacement}, se non esiste un frame libero, si deve scegliere un \textbf{victim frame} da rimpiazzare, quindi oltread i tempi per portare una pagina in memoria si deve anche portare una pagina su disco. \textbf{Algoritmi di Page Replacement}:
+\textbf{Page replacement}, se non esiste un frame libero, si deve scegliere un \textbf{victim frame} da rimpiazzare, quindi oltre ai tempi per portare una pagina in memoria si deve anche portare una pagina su disco.
+
+\subsection{Algoritmi di Page Replacement}:
 \begin{itemize}
   \item (il processo per il momento ha un numero fisso di frame), il primo algoritmo si basa su una \textbf{string reference} che indica il numero di pagina che vengono richieste in sequenza da un processo. Viene definita la \textbf{page fault frequency}:
     \begin{definition}{Page Fault Frequency}{page-fault-frequency}
@@ -683,7 +686,7 @@ Esistono due tipi di programmi che interagiscono che sono i processi utenti ed i
   \item Il kernel si trova in un spazio di indirizzamento virtuale separato: in questi casi non ci sar\`a paginazione del suo spazio di indirizzamento
   \item 
 \end{itemize}
-In linux tutti gli indirizzi sono separati, infatti si potrebbero avere due indirizzi identici che in due contesti diversi puntano a memoria diversa, in linux questo non piace, perch\'e il kernel pu\`o metter mano all'interno dei processi, per questo motivo esistono indirizzi utente ed indirizzi kernel.
+In linux tutti gli indirizzi sono separati, infatti si potrebbero avere due indirizzi identici che in due contesti diversi puntano a memoria diversa, in linux questo non piace, perch\'e il kernel pu\`o metter mano all'interno dei processi, per questo motivo esistono indirizzi utente e indirizzi kernel.
 
 Nel MIPS la traduzione logico/fisica avviene nella TLB, che contiene: numero di pagina virtuale, numero di frame fisico, falgs, ID indirizzo (non usato in OS161). In \texttt{dumbvm} l'allocazione delle pagine \`e contigua, vengono definiti dei campi per l'\texttt{addrspace} di un processo e sono:
 \begin{lstlisting}[language=c]
@@ -1047,7 +1050,7 @@ fn main() {
 
 }
 \end{lstlisting}
-Si pu\`o utilizzare la libreria \texttt{clap} per fare il parsing degli argomenti. per farlo si pu\`o andare nel file \texttt{.toml} ed inserire la dipendenza.
+Si pu\`o utilizzare la libreria \texttt{clap} per fare il parsing degli argomenti. per farlo si pu\`o andare nel file \texttt{.toml} e inserire la dipendenza.
 
 
 Per fare IO da console si utilizza \texttt{stdin}:
