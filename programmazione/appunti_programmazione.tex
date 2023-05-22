@@ -1729,6 +1729,145 @@ assert_eq!(x, v.len());
 Oltre a \texttt{Mutex} esiste \texttt{RwLock} che si utilizza quando gli accessi in scrittura e lettura sono sbilanciati.
 
 
+\subsection{Attese Condizionate}
+In alcuni casi di multithread si vuole sapere se un altro thread ha fatto delle operazioni, una delle modalit\`a per fare un check \`e il \textbf{polling} ovvero, mettendo in un loop se la variabile \`e stata settata, questa opzione \`e molto inefficente per la CPU, per questo i SO mettono a disposizione le \textbf{condition variable}, dove non viene implementato il busy-waiting (che \`e alla base del polling). Per utilizzare una condition variable va sempre accoppiata ad un mutex (quindi un dato condiviso), in Rust si ha \texttt{std::sync::Condvar}, che fornische dei metodi tra cui
+\begin{lstlisting}[language=rust]
+pub fn wait<'a, T>(
+  &self,
+  gruard: MutexGuard<'a, T>
+) -> LockResult<MutexGuard<'a, T>>
+
+pub fn notify_one(&self)
+
+pub fn notify_all(&self)
+\end{lstlisting}
+un esempio di utilizzo \`e
+\begin{lstlisting}[language=rust]
+let pair = Arc::new((Mutex::new(false), Condvar::new()));
+let pari2 = Arc::clone(&pair);
+
+thread::spawn(move|| {
+  let (lock, cv) = &*pair2;
+  let mut started = lock.lock().unwrap();
+  *started = true;
+  // We notify the condvar that teh value has changed.
+  cv.notify_one();
+});
+
+// Wait for the thread to start up.
+let (lock, cv) = &*pair;
+let mut started = lock.lock().unwrap();
+while !*started {
+  started = cv.wait(started).unwarap();
+}
+\end{lstlisting}
+Quando viene chiamata la wait il thread corrente viene messo all'interno di una coda di attesa in cui il thread sta dormendo, quando viene chiamata la \texttt{notify\_one} ne viene svegliato una, mentre can la \texttt{notify\_all} vengono svegliati tutti i thread della coda che poi sono in concorrenza per riacquisire il lock. \`E possible che un thread in attesa possa essere sveglita senza che nessuno abbia chiamato notify, queste vengono dette \textbf{notifiche spurie} e il programmatore ne deve essere consapevole perch\'e potrebbero avvenire in modo inpredicibile.
+
+
+\subsection{Condivisione di Messaggi}
+Nella programmazione concorrente esistone delle primitive dette \textbf{channel} che permettono di scrivere delle variabili in un channel e leggere delle variabili in un channel, questo \`e un approccio \emph{leggere per sincronizzare} a differenza dei lock che hanno un approccio \emph{sincronizzare per leggere}, un channel \`e come un tubo di collegamento in cui c'\`e un punto di entrata (in cui si pu\`o scrivere) ed un punto di uscita (da cui si pu\`o leggere), Rust mette a disposizione la funzione \texttt{std::mpsc::channel()} che ritorna una tupla \texttt{(Sender<T>, Receiver<T>)} (il canale \`e omogeneo, non \`e possibile avere tipi diversi), ripettivamente le struct implementano \texttt{send()} (che manda un dato) e \texttt{recv()} (che aspetta un dato in modo bloccante), l'implementazione che fornisce Rust \`e \textbf{single consumer - multiple producer}, infatti l'oggetto \texttt{Sender<T>} \`e clonabile.
+
+Se per caso tutti i sender dovessero morire il receiver riceve un errore quando cerca di scrivere, cos\`i anche i sendere ricevono un errore quando quando provano a mandare un dato sul canale ed il receiver non esiste pi\`u.
+
+I canali normalmente non hanno un limite a quante entry possono avere, in alcuni questo \`e buono in altri no, per questo Rust fornisce un \texttt{sync\_channel<T>(buond: usize)}, che prende in input la grandezza massima del canale, se si utilizza la dimenzione 0 si un canale di tipo \textbf{rendezvous} dove ogni operazione di scrittura deve avvenire insieme ad una di lettura (entrambi sender e receiver devono essere presenti nello stesso istante per far si che l'operazione abbia successo).
+
+Una libreria di Rust chiamata \textbf{crossbeam}, che fornisce costrutti avanzati per la sincronizzazione, come: \texttt{AtomicCell<T>}, \texttt{Injector}, \texttt{Stealer}, \texttt{Worker}, ... Per completare la descrizione dei canali \textbf{crossbeam} mette a disposizione dei canali \textbf{multiple producer - multipel consumer}, grazie a \texttt{crossbeam::channel::{buonded(...), unbouned()}}, che permette la distribuzione controllata del carico. Esistono anche canali senza entrata (\textbf{Fan-out}) o canali senza uscita (\textbf{Fan-in}), un esempio di \textbf{Fan-in/Fan-out}
+\begin{lstlisting}[language=rust]
+fn worker(id: usize, rx: Receiver<i32>, tx: Sender<String>) {
+  while let Ok(value) = rx.recv() {
+    tx.send(format!("W{} ({})", id, value));
+  }
+}
+
+fn main() {
+  let (tx_inupt, rx_input) = bounded::<i32>::(10);
+  let (tx_output, rx_output) = bounded::<String>::(10);
+
+  let mut worker_handles = Vec::new();
+  for i in 0..3 {
+    let rx = rx_input.clone();
+    let tc = tx_output.clone();
+    worker_handles.push(thread::spawn(move|| worker(i, rx, tx)));
+  }
+
+  for i in 1..=10 { tx_inptu.send(i).unwrap(); }
+
+  drop(tx_input);
+  whiel let Ok(result) = rx_output.recv() {
+    println!("Received results: {}", result);
+  }
+  for handle in worker_handles { handle.join().unwrap(); }
+}
+\end{lstlisting}
+in altre situazioni si hanno bisogno di \textbf{pipeline}, seguire delle operazioni una dopo l'altra, dove il prodotto intermedio viene poi terminato con un \textbf{consumer}
+\begin{lstlisting}[language=rust]
+fn stage_one(rx: Receiver<i32>, tx: Sender<String>) {
+  while let Ok(value) = rx.recv() {
+    tx.send(format!("S1({})", value)).unwrap();
+  }
+}
+
+fn stage_two(rx: Receiver<String>, tx: Sender<String>) {
+  while let Ok(value) = rx.recv() {
+    tx.send(format!("S2( {} )", value)).unwrap();
+  }
+}
+
+fn main() {
+  let (tx_input, rx_input) = bounded::<i32>(10);
+  let (tx_stage_one, rx_stage_one) = bounded::<String>(10);
+  let (tx_output, rx_output) = bounded::<String>(10);
+
+  let stage_one_handle = thread::spawn(move ||
+    stage_one(rx_input, tx_stage_one)
+  );
+  let stage_two_handle = thread::spawn(move || 
+    stage_two(rx_stage_one, tx_output)
+  );
+
+  for i in 1..=10 { tx_input.send(i).unwrap(); }
+  drop(tx_input);
+
+  while let Ok(result) = rx_output.recv() { 
+    println!("Received result: {}", result); 
+  }
+  
+  stage_one_handle.join().unwrap();
+  stage_two_handle.join().unwrap();
+}
+\end{lstlisting}
+si poi realizzare anche modelli di mutliple consumer - multiple producer, in cui il channel \`e condiviso ed \`e unico
+\begin{lstlisting}[language=rust]
+fn producer(id: usize, tx: Sender<(usize,i32)>) {
+  for i in 1..=5 { tx.send((id,i)).unwrap(); }
+}
+
+fn consumer(id: usize, rx: Receiver<(usize,i32)>) {
+  while let Ok((sender_id, val)) = rx.recv() {
+    println!("Consumer {} received {} from {}", id, val, sender_id);
+  }
+}
+
+fn main() {
+  let (tx, rx) = bounded::<(usize,i32)>(10);
+
+  let mut handles = Vec::new();
+  for i in 0..3 {
+    let tx = tx.clone();
+    handles.push( thread::spawn(move || producer(i, tx)) );
+  }
+  for i in 0..2 {
+    let rx = rx.clone();
+    handles.push(thread::spawn(move || consumer(i, rx)));
+  }
+  drop(tx);
+  for handle in handles { handle.join().unwrap(); }
+}
+\end{lstlisting}
+Un altro modello molto usato \`e quello degli \textbf{Attori}, dove quando si vogliono mandare dei messaggi questi sono depositati in una \textbf{mailbox} (ovvero una coda FIFO), che poi l'attore (ovvero un thread) periodicamente controlla questa mailbox e ogni volta che trava un messaggio compie delle azioni, Windows ad esempio fa un uso pesante del modello degli attori all'interno della gestione delle finestre di sistema e degli eventi.
+
+
+
 
 
 
