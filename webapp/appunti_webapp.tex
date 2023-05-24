@@ -544,7 +544,7 @@ return Button(props) {
 
 \newpage
 \section{Routing}
-In react we need a library to handle routing, this app can read/write the url input ad be able to load the correct react component, to install
+In react we need a library to handle routing, this app can read/write the url input ad be able to load the correct React component, to install
 \begin{lstlisting}[language=]
 npm install react-router-dom
 \end{lstlisting}
@@ -580,7 +580,7 @@ return User(props) {
   return (...);
 }
 \end{lstlisting}
-We can also pass informations when navigating
+We can also pass information when navigating
 \begin{lstlisting}[language=js]
 const navigate = useNavigation();
 navigate(url, {state: userData});
@@ -730,6 +730,24 @@ function GreetBAD(props) {
 \end{lstlisting}
 This \texttt{log} will be executed in a way that is not predictable, and could be executed more than one time (every time the component is updated). \texttt{useEffect} has a \emph{callback} (that contains the logic) and a \emph{list of dependencies} (\texttt{useEffect} will execute the callback only if a dependency has changed during the updating phase)
  
+Sometimes there may be a slow internet connection, this might give the impression to the user that everything is frozen if we don't hint him that he just have to wait and that the app is working correctly. A way to handle this is to use a state that tells the app if it's waiting for a response, and by showing an appropriate message.
+
+\subsection{Handling API Calls in React}
+Usually the state comes from the backend, which should be the \textbf{single source of truth}, the problem is that there are many clients interacting with the server, this is why we need to periodically check for updates, this state typically is globally managed. In React we also have to manage the \textbf{presentation state}, those are information that \textbf{should only be displayed to the user}, and must not be stored on a database.
+
+React defines two terms \textbf{Rehydrating} and \textbf{Dehydrating}, which translates to: \emph{getting the state from the server} (when the app mounts or periodically) and \emph{pushing the state to the server} (something when the state changes). Rehydrating is done by using \texttt{useEffect} to fetch the data from the server at mount time, and then we want rehydrate from the server to get the new changes, when should ask for data? The \textbf{better than nothing solution} is: As frequently ad possible, every time we update something we also need to check if something changed, the real solution would be for the server to communicate every change to all his clients using \textbf{WebSockets}, in fact this is not possible with HTTP.
+
+When dehydrating there could be two possible ways f handling updates, the \textbf{optimistic version} whould be to manually update the list state in the app \emph{assuming} the server updated everything correctly,
+\begin{lstlisting}[language=js]
+...
+\end{lstlisting}
+or we could use a \textbf{conservative} approach, and every time we update we wait for the server response that all went well
+\begin{lstlisting}[language=js]
+...
+\end{lstlisting}
+A good solution would be a mix of the two approaches, which would translate to: set the state with the supposed correct state and \textbf{mark} it, when the server responds with an OK status adjust the state to the according status.
+
+
 
 
 

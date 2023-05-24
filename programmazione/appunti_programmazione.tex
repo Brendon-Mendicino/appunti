@@ -1867,6 +1867,41 @@ fn main() {
 Un altro modello molto usato \`e quello degli \textbf{Attori}, dove quando si vogliono mandare dei messaggi questi sono depositati in una \textbf{mailbox} (ovvero una coda FIFO), che poi l'attore (ovvero un thread) periodicamente controlla questa mailbox e ogni volta che trava un messaggio compie delle azioni, Windows ad esempio fa un uso pesante del modello degli attori all'interno della gestione delle finestre di sistema e degli eventi.
 
 
+\section{Processi}
+I processi sono degli oggetti isolati all'interno del sistema operativo, se due processi vogliono comunicare tra di loro delle strutture dati, non \`e possibile farlo passando direttamente la struttura, i puntatori all'interno punterebbero a zone di memoria diverse da quella dell'atro processo, un  modo di farre questo \`e quello di \textbf{serializzare} (tramite json) o \textbf{marshaling}.
+
+...
+
+In Rust non si ha l'accesso diretto alla \texttt{fork} ma esiste un wrapper per poter creare direttamente un nuovo processo, la libreria ci fornisce \texttt{Command} che il implementa il pattern Builder (perch\`e hh molti parametri di input).
+
+....
+
+\begin{lstlisting}[language=rust]
+let mut child = Command::new("rev")
+  .stdin(Stdio::piped())
+  .stdout(Stdio::piped())
+  .spwan()
+  .expect("Failed to spawn a child");
+
+let mut stdio = child
+  .stdin
+  .take()
+  .expect("Failet to open stdin");
+
+thread::spawn(move|| {
+  stdin.write_all("Hello, world!".as_byte())
+    .expect("Failed to write to stdin");
+});
+
+let output = child
+  .wait_with_output()
+  .expect("Failet to read stdou");
+
+assert_eq!(String::from_utf8_lossy(&output.stdout), "!dlrow ,olleH");
+\end{lstlisting}
+In linux esistone dei problemi quando si utilizza la fork, il motivo \`e che se ad esempio si stavo scrivendo in un output, questo \`e bufferizzato, la fork fa una copy-on-write quindi se qualche buffer si trova dei dati vecchi il nuovo processo andr\`a a scrivere in modo concatenate a questi vecchi dati, per questo \`e sempre necessario \textbf{fare un flush di tutti i file aperti} (stdout, stderr inclusi).
+
+In Rust per terminare un processo e tutti i suoi thread in modo immediato \`e chiamare \texttt{std::process:exit(code: i32)}, che a differenza di \texttt{panic!} non fa contrazione dello stack.
 
 
 
