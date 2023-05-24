@@ -155,27 +155,33 @@ La page table \`e una struttura dati del kernel:
     \end{itemize}
 \end{example}
 
+\hfill
+
 \begin{wrapfigure}{R}{0.5\textwidth}
   \centering
-  \includegraphics[width=.9\linewidth]{page-table-gerarchica.png}
+  \includegraphics[width=1\linewidth]{page-table-gerarchica.png}
 \end{wrapfigure}
-La \textbf{la page table gerarchica}, la page table viene divisa in blocchi pi\`u piccoli non contigui, si usa una page table di livello superiore che porta alle page table di livello inferiore, questi blocchi devono rimanere contigui, anche se diventano molto piccoli. Il page number viene diviso in due parti, una per la tabella outer ed una per la tabella inner (pu\`o avere anche pi\`u di due livelli), quando si va su 64 bit e la outer diventa molto grande si pu\`o usare solo una parte dell'indirizzamento se l'eseguibile \`e molto piccolo.
+La \textbf{la page table gerarchica}, la page table viene divisa in blocchi pi\`u piccoli non contigui, si usa una page table di livello superiore che porta alle page table di livello inferiore, questi blocchi devono rimanere contigui, anche se diventano molto piccoli. Il page number viene diviso in due parti, una per la tabella outer ed una per la tabella inner (pu\`o avere anche pi\`u di due livelli), quando si va su 64 bit e la outer diventa molto grande si pu\`o usare solo una parte dell'indirizzamento se l'eseguibile \`e molto piccolo. In Linux la gestione della page table viene fatta con tre livelli, che vengono chimati rispettivamente: \textbf{Page Gobal Directory} (\texttt{pgd\_t}), \textbf{Page Midlle Directory} (\texttt{pmd\_t}), \textbf{Page Table Entry} (\texttt{pte\_t}).
+
+\hfill
 
 \begin{wrapfigure}{L}{0.5\textwidth}
   \centering
-  \includegraphics[width=.9\linewidth]{hashed-page-table.png}
+  \includegraphics[width=1\linewidth]{hashed-page-table.png}
 \end{wrapfigure}
-La \textbf{hashed page table} permette di creare una tabella di hash, con una funzione di hash direttamente implementata in hardware che dato $p$ in input ritorna l'hash a cui \`e associato $f$. Vanno implementate delle liste di collisione, e quindi vieni immagazzinato che $p$ che \`e la chiave di accesso e come suo valore $f$. Usando una tabella di hash si potrebbe pensare anche di usare una page table condivisa tra tutti i processi, ma a quel punto andr\`a inserito l'ID del processo all'interno della chiave primaria.
+La \textbf{hashed page table} permette di creare una tabella di hash, con una funzione di hash direttamente implementata in hardware che dato $p$ in input ritorna l'hash a cui \`e associato $f$. Vanno implementate delle liste di collisione, e quindi vieni immagazzinato che $p$ che \`e la chiave di accesso e come suo valore $f$. Usando una tabella di hash si potrebbe pensare anche di usare una page table condivisa tra tutti i processi, ma a quel punto andr\`a inserito l'ID del processo all'interno della chiave primaria, perch\'e in molti sistemi gli indirizzi virtuali dei processi possono essere sovrapposti.
 
-\begin{wrapfigure}{R}{0.4\textwidth}
+\newpage
+
+\begin{wrapfigure}{r}{0.5\textwidth}
   \centering
   \includegraphics[width=1\linewidth]{inverted-page-table.png}
 \end{wrapfigure}
-La \textbf{inverted page table} \`e una tabella condivisa tra tutti i processi, la sua grandezza viene dimensionata ripetto alla grandezza della RAM e non sulla grandezza dei singoli processi, all'interno ogni frame fisico \`e associato a una pagina. In questo caso le entry che corrispondono a un frame hanno come valore di ritorno la pagina a cui \`e associato, il problema \`e che si vuole la traduzione da pagine ad entry e non il contrario, la prima strategia che si pu\`o utilizzare \`e la scansione lineare. Per rendere l'accesso pi\`u veloce viene messa una tabella di hash prima di arrivare alla tabella invertita.
+La \textbf{inverted page table} \`e una tabella condivisa tra tutti i processi, la sua grandezza viene dimensionata rispetto alla grandezza della RAM e non sulla grandezza dei singoli processi, all'interno ogni frame fisico \`e associato a una pagina. In questo caso l'indice della tabella corrisponde all'indirizzo del frame e la entry contine il PID e la pagina, il problema \`e che si vuole la traduzione da pagine a frame e non il contrario infatti non si ha nessuna informazione su dove si trovi la entry che contiene la pagina ed il PID, la prima strategia che si pu\`o utilizzare \`e la scansione lineare, ma \`e molto inefficente, per rendere l'accesso pi\`u veloce viene messa una tabella di hash prima di arrivare alla tabella invertita (implementate in hardware solitamente), garantendo cos\'i accessi molto veloci.
 
 
 \subsection{Swapping}
-Si suppunga che a un certo punto si voglia far partire un processo e che la memoria sia piena, cosa si pu\`o fare? Una soluzione \`e lo \textbf{swapping}, ovvero la memoria associata a quel processo viene messa nel backing store (in modo temporaneo) che in linux \`e la partizione di swap, e viene caricato il nuovo processo, grazie allo swapping si possono avere processi che hanno pi\`u memoria occupata di quanto la RAM sia grande.
+Si supponga che a un certo punto si voglia far partire un processo e che la memoria sia piena, cosa si pu\`o fare? Una soluzione \`e lo \textbf{swapping}, ovvero la memoria associata a quel processo viene messa nel backing store (in modo temporaneo), che in linux \`e la partizione di swap, e viene caricato il nuovo processo al suo posto, grazie allo swapping si possono avere pi\`u processi attivi nel sistema occupando pi\`u memoria della grandezza dela RAM.
 \begin{example}{}{}
   Quanto costa il \textbf{context switch}? Memoria piena e viene fatto partire un programma, dunque deve essere portato un processo nel backing store. 100MB da fare la swap con velocit\`a di trasferimento di 50MB/sec.
   \begin{itemize}
@@ -261,32 +267,31 @@ L'IO \`e la parte pi\`u onerosa, per calcolare l'EAT:
   Il page fault \`e molto oneroso, anche con $p$ molto piccoli i tempi sono comunque molto lenti. L'approccio migliore \`e ottimizzare il tempo del service e ottimizzare $p$.
 \end{example}
 
+\subsection{Copy-On-Write}
+Il \textbf{Copy-on-write} \`e una tecnica usata per velocizzare le oparioni di clonazione, in cui i frame sono inizalmente condivisi da due processi e si genera una copia di un frame solo quando uno dei due decidono di scrivere su un frame, questo approccio viene utilizzato quando viene chiamata una \texttt{fork()}, infatti la pagine dei due processi non vengono copiate ma  sono condivise aumentando di molto le prestazioni, in Linux per realizzare il COW viene settato il bit di scrittura della pagina (\texttt{VM\_WRITE}) a falso, in questo modo quando uno dei due cerca di scrivere la TLB far\'a un page fault (perch\'e quella parte di memoria \`e stata dichiarata non scrivibile), durante l'interrupt viene capito che la pagina \`e un \textbf{cow mapping} (grazie ad un altro bit detto \texttt{VM\_MAYWRITE} che specifica se la pagina pu\`o diventare scrivibile), e poi la copia.
 
-\textbf{Copy-on-write} si genera una copia di un frame solo quando uno dei processi decidono di scrivere su un frame, questo approccio viene utilizzato quando viene chiamata una \texttt{fork()}, infatti la pagine dei due processi non vengono copiate ma  sono condivise, solo quando una dei due decide di scrivere la page viene copiata e ogni processo ha i suoi dati modificati.
+\subsection{Page Replacement}
+Che succede se non ci sono frame disponibili? Un processo che richiede una nuova pagina, \textbf{rimpiazza} (\textbf{page replacement}) una pagina non in uso che viene salvata sul disco, \`e possibile rimpiazzare una pagina dello stesso processo o anche di altri processi. Questa caratteristica va aggiunta nella funzione di gestione del page fault all'interno del sistema operativo, in questo caso deve essere aggiunto il \textbf{modify/dirty bit} per gestire se delle pagine vengono modificate, se una pagina scelta ha il modify bit settato significa che il frame ha un valore diverso rispetto a quello sul disco, in questo caso prima di rimpiazzarla deve essere copiata, altrimenti i suoi cambiamenti verranno persi. Se non esiste un frame libero si deve scegliere un \textbf{victim frame} da rimpiazzare, quindi oltre ai tempi per portare una pagina in memoria si deve anche portare una pagina su disco, questo processo viene detto \textbf{Page replacement}.
 
-\hfill
-
-Che succede se non ci sono frame disponibili? Un processo che richiede una nuova pagina, \textbf{rimpiazza} (\textbf{page replacement}) una pagina non in uso che viene salvata sul disco, \`e possibile rimpiazzare una pagina dello stesso processo o anche di altri processi. Questa caratteristica va aggiunta nella funzione di gestione del page fault all'interno del sistema operativo, in questo caso deve essere aggiunto il \textbf{modify/dirty bit} per gestire se delle pagine vengono modificate, se una pagina scelta ha il modify bit settato significa che il frame ha un valore diverso rispetto a quello sul disco, in questo caso prima di rimpiazzarla deve essere copiata, altrimenti i suoi cambiamenti verranno persi.
-
-\textbf{Page replacement}, se non esiste un frame libero, si deve scegliere un \textbf{victim frame} da rimpiazzare, quindi oltre ai tempi per portare una pagina in memoria si deve anche portare una pagina su disco.
-
-\subsection{Algoritmi di Page Replacement}:
+\subsection{Algoritmi di Page Replacement}
+(il processo per il momento ha un numero fisso di frame), per misusare le prestazioni degli algoritmi di page replacement utilizziamo una \textbf{string reference}, \`e semplicemente una sequenza di numeri di pagine che vengono richieste in sequenza da un processo. Viene definita la \textbf{page fault frequency}:
+\begin{definition}{Page Fault Frequency}{page-fault-frequency}
+  \[ f(A,m) = \sum_{\forall w}^{} p(w) \frac{F(A,m,w)}{len(w)}  \]
+  \begin{itemize}
+    \item $A$ = algoritmo;
+    \item $w$ = string reference;
+    \item $p$ = probability;
+    \item $m$ = number of availably page frames;
+    \item $F$ = number of page fault generated;
+  \end{itemize}
+\end{definition}
+Gli algoritmi proposti per il rimpiazzo sono:
 \begin{itemize}
-  \item (il processo per il momento ha un numero fisso di frame), il primo algoritmo si basa su una \textbf{string reference} che indica il numero di pagina che vengono richieste in sequenza da un processo. Viene definita la \textbf{page fault frequency}:
-    \begin{definition}{Page Fault Frequency}{page-fault-frequency}
-      \[ f(A,m) = \sum_{\forall w}^{} p(w) \frac{F(A,m,w)}{len(w)}  \]
-      \begin{itemize}
-        \item $A$ = algoritmo;
-        \item $w$ = string reference;
-        \item $p$ = probability;
-        \item $m$ = number of availably page frames;
-        \item $F$ = number of page fault generated;
-      \end{itemize}
-    \end{definition}
-  \item \textbf{FIFO}: con 3 frames, 
+  \item \textbf{FIFO}: si mantiene un lista di pagine e se quendo il processo richiede una pagina e non si trova posto si utilizza una semplice tecnica FIFO, esiste per\`o un problema descritto dalla \textbf{Anomalia di Belady} che per quanto controintuitivo dice che aumentando il numero di frame disponibili aumenta la frequenza dei page fault.
+  \item \textbf{Optimal Algorithm}: un algoritmo ottimale sarebbe quello di rimpiazzare la pagine sono usate il minor numero, per mettere in pratica questo algoritmo si dovrebbe conoscere il futuro, questo algoritmo viene solo usatato per misurare le performance di un altro algoritmo, essendo questo il caso ottimale.
   \item \textbf{Least Recently Used (LRU)}: viene ripiazzata la pagina usata per ultima. In questo caso per ogni pagina esiste un tempo associato alla pagina, questo \`e molto oneroso dal punto di vista hardware, infatti non viene adottata.
-  \item \textbf{LRU algorithm}: ogni pagina ha un contatore, per ogni page fault si deve fare una ricerca del minimo. Esiste un altra implementazione a stack di numeri di pagina.
-  \item \textbf{LRU Approximation Algorithm}: ogni riga ha un \textbf{reference bit}, inizialmente \`e zero e quendo si fa una reference alla pagina viene messo a 1, esiste un momento nel passato in cui i reference bit sono stati azzerati, la victim viene presa nel gruppo dei frame con reference bit a 0. \textbf{Second-chance algorithm}: si usa una fifo con reference bit, quando si incontra una pagina con 1 viene settato a 0, se si incontra uno 0 allora viene preso il victim.
+  \item \textbf{LRU algorithm}: ogni pagina ha un contatore (che tiene traccia del tempo), per ogni page fault si deve fare una ricerca del minimo. Esiste anche implementazione utilizzando uno stack, dove si tiene una lista doppiamente linkata dei numeri di pagina, dove ogni volta che si refernzia una pagina si mette in cima allo stack. Entrambi gli algoritmi anche con dell'hardware dedicato rimangono molto lenti.
+  \item \textbf{Second-chance algorithm} esiste poi una famiglia di algoritmi che cerca di approssimare il LRU con performance molto migliori e vengono detti \textbf{LRU Approximation Algorithm}, in questo algoritmo ogni frame ha un \textbf{reference bit}, inizialmente \`e zero e quendo si fa una reference alla pagina viene messo a 1, esiste un momento nel passato in cui i reference bit sono stati azzerati, la victim viene presa nel gruppo dei frame con reference bit a 0, si usa una fifo, quando si incontra una pagina con 1 viene settato a 0, se si incontra uno 0 allora viene preso il victim.
   \item \textbf{Enhanced Second-Chance Algorithm}: si utilizza una combinazione di reference e modify per scegliere il frame:
     \begin{itemize}
       \item (0, 0): ...
@@ -552,10 +557,10 @@ L'allocatore \`e diviso in allocatore User e allocatore Kernel.
 
 Il kernel \`e basato su mips (32 bit) quindi ha 4GB di memeria logica, \`e diviso in:
 \begin{itemize}
-  \item \texttt{kuseg}; (0x00000000, 0x80000000) [user]
-  \item \texttt{kseg0}: (0x80000000, 0xa0000000) [kernel]
-  \item \texttt{kseg1}: (0xa0000000, 0xc0000000) [kernel]
-  \item \texttt{kseg2}: (0xc0000000, 0xffffffff) [kernel]
+  \item \texttt{kuseg: (0x00000000, 0x80000000) [user]}
+  \item \texttt{kseg0: (0x80000000, 0xa0000000) [kernel]}
+  \item \texttt{kseg1: (0xa0000000, 0xc0000000) [kernel]}
+  \item \texttt{kseg2: (0xc0000000, 0xffffffff) [kernel]}
 \end{itemize}
 Dall'indirizzo si capisce se il programma \`e kernel o user, i processi user non possono vedere lo spazio del kernel mentre il kernel pu\`o vedere lo spazio user.
 \begin{figure}[H]
