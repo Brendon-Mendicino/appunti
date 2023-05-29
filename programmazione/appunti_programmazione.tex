@@ -516,6 +516,33 @@ Buffer Cache. ...
 Come si fa fare una \textbf{recovery} del sistema quando c'\`e un crash? Si pu\`o utilizzare un \textbf{logging strutturato} detto \textbf{journaling}, dove si tengono dei log per ricustruire la storia della azioni.
 
 
+\newpage
+\section{I/O Systems}
+In molti casi i dispositivi perifierici vengono pilotati attraverso dei registri, per quanto riguarda il processare tutto quello che lui deve fare \`e quello di scrivere e leggere certi indirizzi di memoria che poi venogno mappati.
+
+Ogni volta che si deve scrivere o leggere ci sono diverse modalit\`a , una di queste \`e il \textbf{polling} in cui si legge in modo busy waiting il busy bit, che indica che se il dispotivo \`e in lavoro, e continuiamo a leggerlo fin quando non \`e a zero. L'alternativa al polling sono gli \textbf{interrupt}, ..., un ciclo di IO \`e:un device driver (all'interno di una system call, soprattutto un modulo separato del kernel) fa partire un operazione di IO che ando delle istruzione all'IO controller, nel frattempo fa check e si mette in attesa che arrivi l'interrupt, nel frattempo il dispositivo di IO fa le sue operazioni e poi mando l'interrupt al, quando la CPU riceve l'interrupt capisce da quale periferico arraiva e fa partire il corrispettivo interrupt handler.
+
+Quando si fanno delle operazioni di IO nella maggior parte dei casi si tratta di prendere dei datai dalla memoria secondario e e mtterli in RAM, queste operzionei sono molto costose soprattuto se la CPU controlla le operazione , \`e per questo che sono stati inventati i DMA controller, che il suo unnnnico lavore \`e quello di prendere il controllo dei BUS ap posto della CPU  e non fa altro che legger in ciclo dalla memoria dei dati ed immagazzinarli in un buffer della RAM, infatti il DAM prende in input l'indirizzo di sorgente e d i destinazione, il numero di bytes, modalit\`a lettura o scrittura. Il DAM si dice che fa del \textbf{cycle stealing}, ovvero per finche non finisce la sua operazione prende il controllo del bus in modo ciclico per far si di lasciare un po di spazio alla CPU per fare delle operazioni col BUS, una volta che il DMA finsice poi segnala la CPU attraverso un interrupt.
+
+L'OS come vede i device?
+\begin{itemize}
+  \item stream di caratteri o blocchi
+  \item sequenziole o accesso diretto
+  \item sincrono o asincrono
+  \item condivisibile tra piu processi o no
+  \item ...
+\end{itemize}
+
+L'IO pu\`o essere blocante ovvero il processo che pilota viene bloccato fino al termine dell'operazione, mentre l'IO non bloccante non aspetta, ovvero si partire l'operazione e poi tutti casi vanno gestiti dopo, l'IO asincrono non aspetta la terminazione subito ma magari si aspetta dopo.
+
+Il kernel deve gestire lo schedulingg dei dispotivi grantendo una certa fairness, inoltre deve fornire dei buffer per por garantire certe operazioni, un'impleentazione \`e il duoble buffer, questo viene usato quando il processo user \`e molto pi\`u veloce del dispotivo, infatti una volta scritto nel buffer si deve aspettare che il dispotivo lo legga, se infatti si cerca di nuovo di scirvere si va a sovrascrivere il buffer prima che il dispotivo l'abbia letto, per questo motivo si pu\`o usere un altro buffer in cui se il primo \`e occupato si pu\`o occupare il secondo, se invece il dispotivo funziona a \textbf{burst di dati} si portrebbe implementare un coda fifo che nel mommento della lettura viene svuotata tutta.
+
+
+
+
+
+
+
 
 
 
