@@ -871,6 +871,11 @@ Esistono anche i \textbf{wait channel}, in OS161 quando un
 
 
 
+\section{File System}
+In OD161 esiste il \texttt{struct vnode} che \`e il simile ad un iNode, ma rimane pi\`u alto livello, pu\`o essere considerato come un File Control Block. In OS161 esistono i due tipi di file system, fily system emulato (\texttt{umufs}, sfrutta il file system della macchina su cui os161 gira),simple fyle sytem (\texttt{sfs})
+
+
+
 
 
 \subsection{Esame}
@@ -1934,6 +1939,233 @@ assert_eq!(String::from_utf8_lossy(&output.stdout), "!dlrow ,olleH");
 In linux esistone dei problemi quando si utilizza la fork, il motivo \`e che se ad esempio si stavo scrivendo in un output, questo \`e bufferizzato, la fork fa una copy-on-write quindi se qualche buffer si trova dei dati vecchi il nuovo processo andr\`a a scrivere in modo concatenate a questi vecchi dati, per questo \`e sempre necessario \textbf{fare un flush di tutti i file aperti} (stdout, stderr inclusi).
 
 In Rust per terminare un processo e tutti i suoi thread in modo immediato \`e chiamare \texttt{std::process:exit(code: i32)}, che a differenza di \texttt{panic!} non fa contrazione dello stack.
+
+Quando vengono scambiate delle informazioni tra processi esistono due famiglie di formati: \textbf{testuali} (XML, JSON, CSV, ...), \textbf{binari} (XDR, HDF, protobuf, ...), ovviamente la rappresentazione testuale \`e facilmente leggibile in debug e difficile fare degli errori, mentre con quella binaria si raggiunge la massima velocit\`a e compattezza.
+
+I SO mettono a dispozione delle API per far comunicare i messaggi, una di queste \`e la \textbf{Coda dei Messaggi} che permette di mettere dei messaggi in una coda, mentre permette ad un altro processo di leggere il messaggio, consumandolo, la la tecnica utilizzata \`e Single Consumer Multiple Producers. In Windows si chiamano \texttt{Mailslot} (\texttt{CreateMailslot()}), in Linux esiste \texttt{fifo} (\texttt{mkfifo()}). Un altra tecnica che si pu\`o utilizzare sono le \texttt{Pipe}, questo \`e possibile quando i processi hanno una parentela stretta, nelle \texttt{Pipe} i messaggi non sono segmentati, questo signica che si possono leggere e scrivere un numero a piacere di bytes.
+
+Le Pipe in Rust si ...
+
+Si vuole relizzare un programma che 
+\begin{lstlisting}[language=rust]
+fn start_process(sender: Sender<String>, receiver: Receiver<String>)
+\end{lstlisting}
+Orchestrare questa gestione viene fatto per evitare che il programma si blocchi quando cerca di scrivere o leggere l'input/ouput di un altro programma, per evitare questo spreco di risorse si pu\`o utilizzare la programmazione asincrona.
+
+
+\section{Programmazione Asincrona}
+RIGUARDARE LA LEZIONE
+
+I casi in cui la programmazione multi-thread non \`e ottimale sono quelli in cui la computazione richieda di ricevere informazioni da un sottosistema separato, e dove solitamente la chiamate sono bloccanti. \textbf{Si usano i thread quando si vuole elaborare in parallelo. Si usa la programmazione asincrona quando si vuole attenere in parallelo}. Il pi\`u diretto per implementatre una chiamata asincrona \`e quello di avere una syscall che prende in input le operazioni che deve fare e un callback che verr\`a chiamata quando la l'operazione \`e terminata. Ad esempio in JavaScript esiste l'\textbf{event loop}, che non fa altro che leggere la coda dei messaggi ed esguire le callback associate.
+
+Anche in Rust \`e possibile usare la programmazione asincrona, infatti il linguaggio offre un supporto alle keyword \texttt{async}/\texttt{await}, per usare la programmazione il codice per\`o va trasformato in una macchina a stati finita, dove ogni step che si fa nel codice rappresenta un stato all'interno della macchina.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{macchina-a-stati-finiti.png}
+  \caption{Macchina A Stati Finiti}
+  \label{fig:macchina-a-stati-finiti}
+\end{figure}
+Quando si usa la la programmazione asincrona, \`e possibbile realizzare una \textbf{chiusura} dove viene salvato la stato in cui ci traviamo della macchina che rappresenta i passi all'interno delle callback. Perch\'e si realizza tutto questo? Si fa questo grande sforzo per non creare un \textbf{callback hell}.
+
+Ogni volta che viene dichiarata un funzione async, il compilatore di Rust trasforma il valore di ritorno in un \texttt{Future} che ritorna il tipo originale, inoltre anche l'interno della funzione viene completamente modificato. \texttt{Future} implementa un unico metodo, \texttt{poll}
+\begin{lstlisting}[language=rust]
+pub trait Future {
+  type Output;
+
+  fn poll(self: Pin<&mut Self>, cx: &mut Context)
+    -> Poll<Self::Output>
+}
+\end{lstlisting}
+\texttt{Pin} \`e uno smart pointer che impedisce il movimento. Context incapsula un oggetto \texttt{Waker} il quale dice al metodo \texttt{poll} quando pu\`o essere richiamato. Se si vuole che avvenga qualcosa si deve chiamare almeno una volta in metodo \texttt{poll}, infatti \texttt{Future} di per se \`e \textbf{inerte}, se il metodo ritorna \texttt{Pending} si aspetta e poi si richiama \texttt{poll} finch\'e non ritorna \texttt{Ready}.
+
+Prima di tutto Rust si crea delle \texttt{struct} che rappresentano le dipendenze per ogni stato della macchina, in questo caso per la figura \ref{fig:macchina-a-stati-finiti} sono
+\begin{lstlisting}[language=rust]
+struct S0 {
+  h1: FileHandle,
+  h2: FileHandle,
+}
+
+struct S1 {
+  h2: FileHandle,
+  buffer: Vec<u8>,
+  f1: impl Future<Output=Result<usize>>,
+}
+
+struct S2 {
+  f2: impl Future<Output=Result<usize>>,
+}
+
+struct S3 {}
+\end{lstlisting}
+inlotre Rust genera anche un \texttt{enum} che racchiude tutti i possibili stati
+\begin{lstlisting}[language=rust]
+enum CopySM {
+  s0(S0),
+  s1(S1),
+  s2(S2),
+  s3(S3)
+}
+
+impl Future for CopySM {
+  type Output = std::io::Result<()>
+
+  fn poll(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Self::Output> {
+    loop {
+      match self {
+        CopySM::s0(state) => { ... },
+        CopySM::s1(state) => { ... },
+        CopySM::s2(state) => { ... },
+        CopySM::s3(state) => { ... }, 
+      } 
+    }
+  }
+}
+\end{lstlisting}
+Ogni braccio contiene il seguente codice
+\begin{lstlisting}[language=rust]
+CopySM::s0(state) => {
+  let mut buffer = vec![];
+  let f1 = state.h1.read_async(&mut buffer);
+  let state = S1 {h2: state.h2, buffer, f1 };   
+  *self = CopySM::S1(state);
+}
+
+CopySM::s1(state) => {
+  match state.f1.poll(cx) {
+    Poll::Pending => return Poll::Pending,
+    Poll::Ready(r1) => 
+      if r1.is_ok() {         
+        let f2 = state.h2.write_async(&mut state.buffer);
+        let state = S2{ f2 };
+        *self = CopySM::s2(state);
+      } else {
+        *self = CopySM::s3(S3); 
+        return Poll::Ready(r1); 
+      }
+  } 
+}
+
+CopySM::s2(state) => {
+  match state.f2.poll(cx) {
+    Poll::Pending => return Poll::Pending,
+    Poll::Ready(r2) => 
+        *self = CopySM::s3(S3);
+        return Poll::Ready(r2); 
+  } 
+}
+
+CopySM::s3(_) => {
+  panic!("poll() was invoked again after Poll::Ready has been returned");
+}
+\end{lstlisting}
+Il codice generato per la funzione originale si limita ad una semplice inizializzazione della macchina a stati
+\begin{lstlisting}[language=rust]
+fn copy(h1: FileHandle, h2: FileHandle) -> impl Future<Output = std::io::Result<()>> {
+  CopySM::s0(
+    S0 { h1, h2 }
+  ) 
+}
+\end{lstlisting}
+In modo nativo Rust non ha nessun modo di chimare il metodo \texttt{poll}, la gestione dell'esecuzione viene scelta dal programmatore scegliendo una libreria scritta appositamente, la scelta \`e qualla di associare al nostro codice un \textbf{Executor}, si possono scegliere tra tre librerie (le migliori): Tokio, smol, async-std (che fornisce una controparte asincrona per ogni funzione della libreria standard, a met\`a tra tokio e smol) (\emph{"\`E un po come l'acqua tiepida, fa schifo a tutti" .cit Malnati}).
+
+\subsection{Tokio}
+Si pu\`o usare la libreira tokio per scriver del codice asincrono in Rust
+\begin{lstlisting}[language=rust]
+#[tokio::main]
+async fn main() {
+  let task = tokio::spawn(async { println!("Hello"); });
+  task.await.unwrap();
+}
+\end{lstlisting}
+tokio fornisce anche un modo di controllore i task che venono creati, una di esse \`e la macro \texttt{join!} che premetter di prendere pi\`u \texttt{Future} e attendere che onguno di essi finisca, oppure \texttt{try\_join!} che ritorna se una dei \texttt{Future} \`e fallitto oppure \texttt{Ok()} in caso tutti terminano con successo. In alcuni casi vuole ritorna prima che tutti i task finiscano, la \texttt{select!} sblocca al primo \texttt{Future} che ritorna, che permette di fare un match su quale dei \texttt{Future} ritorna
+\begin{lstlisting}[language=rust]
+async fn do_stuff_async() {}
+async fn more_async_work() {}
+
+tokio::select! {
+  _ = do_stuff_async() => {
+    println!("do() completed first");
+  }
+  _ = more_async_work() => {
+    println!("more() completed first")
+  }
+};
+\end{lstlisting}
+\`e possibile fare un pattern matching sui valori di ritorno, il primo match che trovato viene eseguito il ramo relativo, possiamo aggiungere anche un match \texttt{else} che nel caso in cui i match falliscano viene eseguita quella condizione. Esiste anche un caso in cui si vuole fare uno sleep, questo \`e utile quando, as esempio, si fanno delle chiamate di rete e si vuole creare un timeout per la risposta (\texttt{tokio::time::sleep(d: Duration).await}/\texttt{tokio::time::timeout(d: Duration, f: F).await}). In alcuni casi esistono dei task che devono fare delle operazioni molto lunghe, che potrebbero tenere la CPU occupata per molto tempo senza mai rilasciarla, una soluzione potrebbe essere quella di mettere delle splee in giro per il programma in grado pche dare indietro il possesso della CPU, questo per\`o non \`e molto bello, per qeusto tokio offre \texttt{tokio::task::spawn\_blocking(f: FnOnce() -> R)}, che wrappa la funzione e verr\`a sospesa ongi tanto.
+
+In alcuni casi si deve condividere uno stato tra pi\`u task, tokio ci mette a disposizione delle primitivi simili a quelle dei thread oltre a fornire dei canali di comunicazione molti sofisticati.
+
+tokio implementa: \texttt{Arc/Mutex}, \texttt{Barrier}, \texttt{Notify}, \texttt{RwLock}, \texttt{Semaphore}.
+
+tokio implementa dei canali di comunicazione, uno di essi \`e \texttt{oneshot}, \`e pensato per poter permetter la comunicazione di un solo dato
+\begin{lstlisting}[language=rust]
+let (tx, rx) = oneshot::channel();
+
+tokio::spawn(async move {
+  let res = some_computation().await;
+  tx.send(res).unwrap();
+});
+
+let res = rx.await.unwrap();
+\end{lstlisting}
+i canali \texttt{mpsc} hanno bisogno di avere una dimensione, simili a quelle della libreria standard. Poi esistono i canali \texttt{broadcast} che permettono di avere pi\`u ricevitori dello stesso messaggio
+\begin{lstlisting}[language=rust]
+let (tx, mut rx1) = broadcast::channel(16);
+let mut rx2 = tx.subscribe();
+
+tokio::spawn(async move {
+  assert_eq!(rx1.recv().await.unwrap(), 10);
+  assert_eq!(rx1.recv().await.unwrap(), 20);
+});
+
+tokio::spawn(async move {
+  assert_eq!(rx2.recv().await.unwrap(), 10);
+  assert_eq!(rx2.recv().await.unwrap(), 20);
+});
+
+tx.send(10).unwrap();
+tx.send(20).unwrap();
+\end{lstlisting}
+Il receiver non \`e clonabilie perch\'e \`e il destinatario di un puntatore mandato du un trasmettitore, se lo clonassimo il trasmettitore non sarebbe in grado di capire quanti receiver hanno fatto il subscribe.
+
+Un altro canale \`e il \texttt{watch} che implementa il \textbf{pattern Observer}, (una libreria che implementa il patter Observer \`e RXJava)
+\begin{lstlisting}[language=rust]
+#[tokio::main]
+async fn main() {
+  let (tx, mut rx) = watch::channel("value 0");
+
+  for i in 0..2 {
+    let mut rx = rx.clone();
+
+    tokio::spawn(async move {
+      while rx.changed().await.is_ok() {
+        println!("received: {:?}", *rx.borrowed());
+      }
+    });
+  }
+
+  let d = Duration::from_secs(1);
+
+  tx.send("value 1").unwrap();
+  tokio::time::sleep(d).await;
+  tx.send("value 2").unwrap();
+  tokio::time::sleep(d).await;
+}
+\end{lstlisting}
+Avere questo tipo di canale \`e molto comodo per implementare un server HTTP
+\begin{lstlisting}[language=rust]
+#[tokio::main]
+async fn main() {
+  let listener = TcpListner::bind("127.0.0.1:8181").await.unwrap();
+
+  loop {
+    let (stream, _) = listner.accept().await.unwrap();
+    tokio::spawn(handle_connection(stream));
+  }
+}
+\end{lstlisting}
+
+
 
 
 

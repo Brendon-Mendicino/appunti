@@ -749,7 +749,142 @@ A good solution would be a mix of the two approaches, which would translate to: 
 
 
 
+\section{Session}
+A Session between the client and the server it's enstablished at a certain point, usually when the user needs to be authenticate to communicate with the server, it's just a data interchange and a base mechanism is the intercahnge of a \textbf{sesion ID} which is stored by the server and identifies the user who wants to send request to that server.
 
+\textbf{Cookie} are small portion of data that are automatically handled by the browsers, for example to keep the session ID, the property that a cookie have are: \texttt{name}, \texttt{value}, \texttt{secure}, \texttt{httpOnly}, etc... 
+
+When we want to login a user he generally sends a POST to a server, with username and password, and it will create a session storage data, the sessionID will be stored there and then send back to the user, after that every request the user does he send the sessionID back to the server, the server will check if it exist and then send a response back or fail if none is found.
+\begin{lstlisting}[language=js]
+function LoginForm(props) => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  doLogin = (event) => {
+    event.preventDefault();
+    if (formIsValid)
+      // make a POST request to the server
+      props.userLoginCallback(username, password);
+    else
+      // Show invalid form
+  }
+
+  // ...
+}
+\end{lstlisting}
+The server will receive the the username and password, one way to make life easier is by using the middleware \textbf{passport}, before using it in express it needs to be configured first, it's possible to choose the kind of authtentication, the data that will be stored in the DB, the hashing function, etc...
+
+In \texttt{passport} the \texttt{LocalStrategy} defines how to authenticate a user, which takes as input a \texttt{verify} callback
+\begin{lstlisting}[language=js]
+const passport = require("passport");
+const LocalStrategy = requre("possport-local");
+
+passport.user(new LocalStrateegy( function verify(
+  username, password, callback) {
+    dao.getUser(username, password).then((user) => {
+      if (!user)
+        return callback(null, false, { message: "incorrect username and/or password." });
+      return callback(null, user);
+    });
+  }
+});
+\end{lstlisting}
+\texttt{callaback} tells \texttt{passport} the authenticated user or sends an error message.
+
+When storing password in the server it's \textbf{mandatory not to store them in plaintext}, it's also mandatory to use a \textbf{salt} to be protected from dictionary attacks, when storing passwords it's a best practice to use some cryptgraphic hashing function, in order to do that we can use the built-in node module \texttt{crypto} using the \texttt{scrypt} function, an example is
+\begin{lstlisting}[language=js]
+const keyLen = 32;
+const salt = crypto.scrypt.randomBytes(16);
+crypto.scrypt(password, salt, keyLen, (err, hasedPassword) => {
+  if (!crypto.timingSafeEqual(storedPassword, hashedPassword));
+    throw Error(err);
+}
+\end{lstlisting}
+using a DB
+\begin{lstlisting}[language=js]
+exports.getUser = (email, password) => {
+  return new Promise((resolve, reject) => {
+    const sql = 'SELECT * FROM user WHERE email = ?';
+    db.get(sql, [email], (err, row) => {
+      if (err) { reject(err); }
+      else if (row === undefined) { resolve(false); }
+      else {
+        const user = {id: row.id, username: row.email};
+        const salt = row.salt;
+        crypto.scrypt(password, salt, 32, (err, hashedPassword) => {
+          if (err) reject(err);
+          if(!crypto.timingSafeEqual(Buffer.from( row.password, 'hex'), hashedPassword))
+            resolve(false);
+          else resolve(user);
+        });
+      }
+    });
+  });
+};
+\end{lstlisting}
+We can also add \texttt{express-session} which sotres the session data in memory by deafault, \textbf{which should be avoided in production}.
+\begin{lstlisting}[language=js]
+const session = require('express-session');
+// enable sessions in Express
+
+app.use(session({
+  // set up here express-session
+  secret: "a secret phrase of your choice",
+  resave: false,
+  saveUninitialized: false,
+}));
+
+// init Passport to use sessions
+app.use(passport.authenticate('session'));
+\end{lstlisting}
+After enabling the session we should decide which infromation to store inside the sessionID, by using \texttt{serializeUser} and \texttt{deserializeUser}
+\begin{lstlisting}[language=js]
+passport.serializeUser((user, cb) => {
+  cb(null, {id: user.id, email:
+    user.username, name: user.name});
+});
+
+passport.deserializeUser((user, cb) => {
+  return cb(null, user);
+});
+\end{lstlisting}
+After setting up everything we use \texttt{passport} to authenticate a user
+\begin{lstlisting}[language=js]
+app.post('/api/login', passport.authenticate('local'), (req,res) => {
+
+  // This function is called if authentication is successful.
+  // req.user contains the authenticated user.
+  res.json(req.user.username);
+});
+\end{lstlisting}
+\texttt{'local'} will look for \texttt{username} and \texttt{password} inside \texttt{req.body}.
+
+We need to modify the server for receiving authentication when using React, the reason is that the browser sends the cookies only to the same origin, the problem is that we are using cors, so we need to tell the browser to also include the cookies for the cross origin and to the server to accept the cookies from cross origin.
+\begin{lstlisting}[language=js]
+// Client
+const response = await fetch(SERVER_URL + "/api/list", {
+  credentials: "include",
+});
+
+// Server
+const corsOptions = {
+  origin: "http://localhost:5173",
+  credentials: true,
+};
+app.use(cors(corsOptions));
+\end{lstlisting}
+Some routes can only be accessed by authenticated users, we can use a middleware to make checking simpler, this is achieved by using \texttt{req.isAuthenticated()} provided by \texttt{passport}
+\begin{lstlisting}[language=js]
+const isLoggedIn = (req, res, next) => {
+  if (req.isAuthenticated())
+    return next();
+
+  return res.status(400).json({ message: "Unauthorized" });
+}
+
+app.get("/api/list", isLoggedIn, (req, res) => {});
+\end{lstlisting}
+To \textbf{logout} we use \texttt{req.logout()}.
 
 
 
