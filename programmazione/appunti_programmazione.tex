@@ -1780,7 +1780,70 @@ Esistono delle situazioni in cui si potrebbe volere un possesso condiviso ad un 
 
 
 \section{Programmazione Concorrente}
-...
+Nella programmazione concorrente il thread pricipale chiede di attivare altri thread, chiedendo aiuto al sistema operativo, che a differenza dei processi essi non sono isolati ma condividono alcune delle loro risorse, il motivo per cui si vule creare un thread e che si possono svolgere delle attivit\`a in parallelo per velocizzare la computazione. Quando il thread viene sospeso dallo scheduler il SO salva al suo interno lo stato dei registri, oltre a questo mantiene lo stato del thread (RUNNABLE, NOT RUNNABLE, ...), inoltre ha anche delle code di thread runnable e delle code di thread di not runnable, una volta che un thread cerca di fare un operazione che non si pu\`o completare immediatamente allora viene messo nella coda dei not runnable e fa partire un altro thread dalla coda dei runnable, questi vengono detti \textbf{thread nativi}, e sono specifici per SO.
+
+I SO mettono a disposizione per i thread:
+\begin{itemize}
+  \item una funzione di creazine: quando viene chiamata viene allocato uno stack per ogni thread e la sua relativa struttura dati, quando il viene creato un thread esso rilascia un \textbf{handle} che permette di interagire col thread.
+  \item una funzione di identificazione: un SO assegna un id univoco per ogni thread (\textbf{TID}).
+  \item una funzione di attesa (join): permette di aspettare che un thread finisca in modo bloccante.
+  \item una funzione di cancellazione: i SO non forniscono una funzione di cancellazione dei thread, perch\'e \`e troppo difficile gestire questa cosa.
+\end{itemize}
+Abilitando la programmazione concorrente si creano una miriade di nuovi problemi che nella programmazione sequenziale non esistono, ad esempio validit\`a della cache.
+
+Qunado un thread legge il contenuto di una cella di momoria pu\`o:
+\begin{itemize}
+  \item il valore iniziale con cui viene inizializzato il prgramma (come ad esempio la variabili statiche che vengono create in compilazione, come le strighe);
+  \item un valore che ha insertito il thread se la zone di memoria \`e in scrittura;
+  \item un valore scritto da un altro thread;
+\end{itemize}
+le cache rendono il 3 caso molto problematico,
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{modello-memoria.png}
+  \caption{Modello Memoria}
+  \label{fig:modello-memoria}
+\end{figure}
+infatti quando si acced ad un indirizzi se un altro thread scrive nella cache possiamo travare qualsiasi cosa senza garanzia della sua correttezza, questo porta ad avere dei problemi aperti: atomicit\`a, visibilit\`a, ordinamento.
+
+\textbf{Atomicit\`a}: quali operazione che effettuiamo hanno degli effetti indivisibili? Ad esmempio una delle caratteristiche dei DB, questo vuol dire che un operazione viene fatta tutta in una volta, questo problema \`e sulla variabili globali e di istanza.
+
+\textbf{Visibilit\`a}: quando un thread fa un operazione gli altri quando possono vederlo? Questo \`e un problema di cache.
+
+\textbf{Ordinamento}: in quale ordine appaiono le operazioni di pi\`u thread?
+
+Per fare affronto a queste problemi i processori offrono delle soluzioni in hardware, ad esempio in x86 esistono delle operazioni \textbf{fence} che fanno un flush della cache fino alla RAM e bloccando gli altri core e invalidando le loro cache. I processari di tipo ARM usano la tecnica della \textbf{Change Propagation List}, quendo si cerca di leggere un leggere da una cella condivisa viene creata una dipendenza di lettura, la cache viene invalidata in modo essere sicuro di leggere un valore corretto, mentre in lettura viene fatto un flush, ARM offre anche delle \textbf{barrier} che garantisce una sequenza di operazioni siano fatte in modo causale.
+
+Per sincrononizzare dei thread tra di loro si usano dei construtti appositi.
+\begin{example}{Interferenza}{interferenza}
+  Il seguente programma in c++ lancia due thread in parallelo,
+  \begin{lstlisting}[language=c++]
+int a = 0;
+
+void run() {
+  while (a >= 0) {
+    int before = a;
+    a++;
+    int after = a;
+    if (after - before) != 1)
+      std::cout << before << " -> " << after
+	<< "(" << (before-after) << ")" << std::endl;
+  }
+}
+
+int main() {
+  thread t1(run);
+  thread t2(run);
+ 
+  t1.join();
+  t2.join();
+}
+  \end{lstlisting}
+  In alcuni casi \`e possbile che un thread stampi una \textbf{differenza minore di zero}, il problema \`e l'istruzione \texttt{++} che di per se non \`e un operazione atomica, infatti sono 3 operazioni macchina: load, store, add. Se il thread viene sospeso mentre sta incrementando e nel frattempo il secondo scrive 10 volte il valore, il primo ha il valore vecchio e riporta la variabile \texttt{a} indietro. Questo tipo problema viene detto \textbf{Interferenza}.
+\end{example}
+Per far sia che il prgramma sia corretto, quando si accede ad una variabile per mutarne il valore in modo concorrente lo si fa sempre una alla volta, 
+
+In quasi tutti i linguaggi di programmazione sta all'utente gestire la sincronizzazione, in Rust questo non \`e possibile, infatti il concetto del single ownership impedisce di avere variabili mutabili condivise (\textbf{Fearless Programming}). Rust offre dei tipi di sincronizzazione nativi, come gli \texttt{Atomic} che garantiscono una lettera di un dato corretto ed una propagazione della cache fino alla RAM, i \texttt{Mutex} che forniscono due primitive: \texttt{lock} che quando viene chiamato controlla che il dato \`e libero e ne ritorna prendendone il possesso, altrimenti aspetta, e \texttt{unlock} che rilascia la risorsa. In Rust si crea un thread con \texttt{thread::spawn()}, dove il valore che gli si deve passare \`e una lambda, questa pu\`o essere una \textbf{closure}, ovvero pu\`o catturare delle variabili al suo interno, se si usa \texttt{move} le variabili che si possono catturare (prendere possesso) di tutte la variabili che implementano il tipo \texttt{Send} e tutte le reference che implementano il tratto \texttt{Sync} (la reference il lettura pu\`o essere condivisa). Quando vengono dichiarate delle nuove struct se tutti i tipi al loro interno hanno \texttt{Send} o \texttt{Sync} anche loro lo implementano di default.
 
 
 
@@ -2341,13 +2404,12 @@ impl Looper {
       self.worker_msg_sx.send(WorkerMsg::Work(msg))?;
       Ok(())
     }
-}
 
-impl Drop for Looper {
-  fn drop(&mut self) {
-    self.worker_msg_sx.send(WorkerMsg::Stop).unwrap();
-    self.handle.join().unwrap();
-  }
+    fn stop(self) -> Result<(), Box::<dyn Error>> {
+      self.worker_msg_sx.send(WorkerMsg::Stop)?;
+      self.handle.join()?;
+      Ok(())
+    }
 }
   \end{lstlisting}
   
