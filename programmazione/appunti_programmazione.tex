@@ -1068,7 +1068,7 @@ fn main() {
   s.push_str(" world!");
 }
 \end{lstlisting}
-In rust le keyword \texttt{let} e \texttt{let mut} sono delle istruzioni, mentre un blocco racchiuso tra \texttt{{ ... }} \`e un espressione e quindi ha un valore di ritorno, anche il costrutto \texttt{if} \`e un espressione, \textbf{il valore viene ritornato a patto che l'ultima istruzione del blocco non abbia un punto e virgola}. Si pu\`o asseganre un etichetta con \texttt{'<nome-etichetta>:} ad un espressione per poter specificare il ritorno:
+In rust le keyword \texttt{let} e \texttt{let mut} sono delle istruzioni, mentre un blocco racchiuso tra \verb|{ ... }| \`e un espressione e quindi ha un valore di ritorno, anche il costrutto \texttt{if} \`e un espressione, \textbf{il valore viene ritornato a patto che l'ultima istruzione del blocco non abbia un punto e virgola}. Si pu\`o asseganre un etichetta con \texttt{'<nome-etichetta>:} ad un espressione per poter specificare il ritorno:
 \begin{lstlisting}[language=rust]
 fn main() {
   'outer: loop {
@@ -1121,7 +1121,7 @@ fn main() {
   // s1 non e' piu' accessibile
 }
 \end{lstlisting}
-Il movimento \`e il comportamento standard in rust, se per\`o un tipo implementa il tratto \texttt{Copy} quando avviene un'essegnazione entrabe le variabili possono continuare ad accedere al valore, per\`o i tratti \texttt{Copy} e \texttt{Drop} sono mutuamente esclusivi. In generale i tipi copiabili sono i: numeri, booleani, le reference \texttt{\&}, ..., mentre i \texttt{\&mut} non sono copiabili. Il tratto \texttt{Copy} pu\`o essere implementato solo se il tipo implementa il tratto \texttt{Clone}, che permette di fare una clonazione dell'oggetto \textbf{in profodit\`a}, inoltre la clonazione \`e implementata dal compilatore, mentre copia e movimento sono gestite dal compilatore e veine implementata con \texttt{memcpy()}.
+Il movimento \`e il comportamento standard in rust, se per\`o un tipo implementa il tratto \texttt{Copy} quando avviene un'essegnazione entrambe le variabili possono continuare ad accedere al valore, per\`o i tratti \texttt{Copy} e \texttt{Drop} sono mutuamente esclusivi. In generale i tipi copiabili sono i: numeri, booleani, le reference \texttt{\&}, ..., mentre i \texttt{\&mut} non sono copiabili. Il tratto \texttt{Copy} pu\`o essere implementato solo se il tipo implementa il tratto \texttt{Clone}, che permette di fare una clonazione dell'oggetto \textbf{in profodit\`a}, inoltre la clonazione \`e implementata dal compilatore, mentre copia e movimento sono gestite dal compilatore e veine implementata con \texttt{memcpy()}.
 \begin{lstlisting}[language=rust]
 fn main() {
   let mut s1 = "hi".to_string();
@@ -1465,7 +1465,7 @@ impl T1 for OtherType {
   fn return_self() -> Self { OtherType }
 }
 \end{lstlisting}
-Quando si crea un tratto si pu\`o definire un \textbf{Tipo Associato}.
+Quando si crea un tratto si pu\`o definire un \textbf{Tipo Associato}, che sono identici ai \textbf{Tipi Generici}, ma in alcuni casi migliorano la laggibilit\'a.
 \begin{lstlisting}[language=rust]
 trait T2 {
   type AssociatedType;
@@ -1478,6 +1478,78 @@ impl T2 for OtherType {
   fn f(arg: Self::AssociatedType) {}
 }
 \end{lstlisting}
+\begin{example}{}{}
+  Implementiamo la struct Contains con 2 tipi generici.
+  \begin{lstlisting}[language=rust]
+struct Container(i32, i32);
+
+trait Contains<A, B> {
+  fn contains(&self, _: &A, _: &B) -> bool; // Explicitly requires `A` and `B`.
+  fn first(&self) -> i32; // Doesn't explicitly require `A` or `B`.
+  fn last(&self) -> i32;  // Doesn't explicitly require `A` or `B`.
+}
+
+impl Contains<i32, i32> for Container {
+  // True if the numbers stored are equal.
+  fn contains(&self, number_1: &i32, number_2: &i32) -> bool {
+      (&self.0 == number_1) && (&self.1 == number_2)
+  }
+
+  // Grab the first number.
+  fn first(&self) -> i32 { self.0 }
+
+  // Grab the last number.
+  fn last(&self) -> i32 { self.1 }
+}
+
+// `C` contains `A` and `B`. In light of that, having to express `A` and
+// `B` again is a nuisance.
+fn difference<A, B, C>(container: &C) -> i32 where
+  C: Contains<A, B> {
+  container.last() - container.first()
+}
+  \end{lstlisting}
+  Se addesso invece usiamo un Tipo Associato non \`e necessario specificare il tipo della struct.
+  \begin{lstlisting}[language=rust]
+struct Container(i32, i32);
+
+// A trait which checks if 2 items are stored inside of container.
+// Also retrieves first or last value.
+trait Contains {
+  // Define generic types here which methods will be able to utilize.
+  type A;
+  type B;
+
+  fn contains(&self, _: &Self::A, _: &Self::B) -> bool;
+  fn first(&self) -> i32;
+  fn last(&self) -> i32;
+}
+
+impl Contains for Container {
+  // Specify what types `A` and `B` are. If the `input` type
+  // is `Container(i32, i32)`, the `output` types are determined
+  // as `i32` and `i32`.
+  type A = i32;
+  type B = i32;
+
+  // `&Self::A` and `&Self::B` are also valid here.
+  fn contains(&self, number_1: &i32, number_2: &i32) -> bool {
+    (&self.0 == number_1) && (&self.1 == number_2)
+  }
+  // Grab the first number.
+  fn first(&self) -> i32 { self.0 }
+
+  // Grab the last number.
+  fn last(&self) -> i32 { self.1 }
+}
+
+fn difference<C: Contains>(container: &C) -> i32 {
+  container.last() - container.first()
+}
+  \end{lstlisting}
+\end{example}
+
+
 Rust permette un forma di dipendenza tra tratti e vengono detti \textbf{sub-trait} e \textbf{super-trait}:
 \begin{lstlisting}[language=rust]
 trait Super {
@@ -1533,7 +1605,7 @@ Con i tipi generici si possono aggiungere dei vincoli sui tipi generici, per far
 fn dynamic(w: &mut dyn Write) { ... }
 fn generic<T>(w: &mut T) where T: Write { ... }
   \end{lstlisting}
-  La differenza tra \texttt{dynamic} e \texttt{generic} \`e che: \texttt{dynamic} viene compilata una sola volta, ma viene passato un fat pointer e per accedere ai metodi di \texttt{w} si dovr\`a passare prima dalla v-table, mentre in \texttt{generic} viene passato solo il puntatore semplice per\`o il codice viene duplicato, causato dalla monomorfizzazione.
+  La differenza tra \texttt{dynamic} e \texttt{generic} \`e che: \texttt{dynamic} viene compilata una sola volta, ma viene passato un \textbf{fat pointer} e per accedere ai metodi di \texttt{w} si dovr\`a passare prima dalla v-table, mentre in \texttt{generic} viene passato solo il puntatore semplice per\`o il codice viene duplicato, causato dalla monomorfizzazione.
 \end{example}
 
 
@@ -2168,6 +2240,121 @@ async fn main() {
 
 
 
+\section{Esame}
+\begin{itemize}
+  \item Si definisca il concetto di SmartPointer, quindi si fornisca un esempio in Rust che ne evidenzi il ciclo di vita. Il concetto di smartPointer e' molto potente, infatti permette di poter trattare delle strutture dati come se puntatori, benche' essi non lo siano, in Rust questo e' possibile grazie ai tratti Derf e DerfMut che se implementati permettono alla struct che li implenta di poter ritornare una ref o una ref mutabile in caso venga chiamato l'operatore * su di essi, il concetto di smart pointer e' fortemente collegato a quello del pattern RAII (Resource Acquisition Is Initialization) che permette la gestione gestione automatica del liberamento delle risorse dallo heap.
+  \begin{lstlisting}[language=rust]
+struct Person {
+  name: String,
+  age: u32,
+}
+
+fn getPerson() -> Box<Person> {
+  let  p = Box::new(Person { ... });
+  return p;
+}
+
+fn main() {
+  let person = getPerson();
+  
+  // Questo stampera la persona
+  println!("{}{}", (*persona).name, (*persona).age);
+}
+  \end{lstlisting}
+  Box e' uno smart pointer in rust che permette di implementare questo pattern, infatti il valore che prende in new sara allaocato nello heap, il tempo di vita di Person inizia quando viene inizializzato e termina quando person esce di scope (in questo caso alla fine della funzione), e quando il drop verra chiamato su di esso, il puntatore interno a box che punta a Person nello heap verra' liberato. Questo garantisce sempre una corretta liberazione della variabili dallo heap.
+  \tolerance=1000
+  \item Si illustrino le differenze nel linguaggio Rust tra std::channel() e std::sync\_channel(), indicando quali tipi di sincronizzazione i due meccanismi permettono. Entrambi i offrono dei meccanimi di sincronizzazione basati su canali di comunicazione che sono Multiple Producer Single Consumer, e ritornano rispettivamente (Sender Receiver) (SenderSync REceiver), infatti i sender sono clonabili mentre i receiver no, in channel() i canali sono unbounded, voul dire che ogni volta che i sender mandano dei dati ritornano subito, i receiver sono bloccati finche' non ricevono qualcosa dal canale (se un dato e' presente lo ritornano subito), mentre con con syncchannel() e'  possibile craere dei canali bounded, voul dire che si crea un buffer e se questo viene riempito prima che il consumer possa legger leggere i dati i sender che provano a fare send vengono bloccati finche' il buffer non ha spazio, si crea un canale can grandezza 0, allora viene detto rendezvous dove per poter avvenire uno scambio di informazione sia il sender che il receiver devono essere presenti.
+  \item 
+  \begin{lstlisting}[language=rust]
+Dato ii seguente frammento di codice Rust (ogni linea e preceduta dal suo indice)
+1. struct Point {
+2. x: i16,
+3. y: i16,
+4. }
+5.
+6. enum PathCommand {
+7. Move(Point),
+8. Line(Point),
+9. Close,
+10. }
+11. let mut v = Vec::<PathCommand>::new();
+12. v.push(PathCommand::Move(Point{x:1,y:1 }));
+13. v.push(PathCommand::Line(Point{x:10, y:20}));
+14. v.push(PathCommand::C/ose);
+15. let slice = &v[..];
+Si descriva ii contenuto dello stack e dello heap al termine dell'esecuzione della riga
+15 
+  \end{lstlisting}
+  Nello heap ci saranno in modo sequenziale le strutture dati Move(Pointe{x:1,y:1}), Line(Point{x:10, y:20}), Close, dove ogni casella sara grande quanto la grandezza somma dei vari enum di PathCommand, che si compone di, un campo per il tag dell'enum, un campo e per x ed uno per y (4 byte, 2byte, 2byte, dove i 2 byte sono allineati), visto che entrambi gli enum Move e Line usano Point all'interno di una tupla, anche Close avra' la stessa grandezza benche' non ha campi, nella stack sono presenti tre valori per v, infatti v e' un double pointer nello stack che mantiene, il puntatore alla sequenza di enum, il campo size che conta quanti valori sono presenti all'interno della struttura, ed il campo di capacity che dice quanti caselle sono allocate nello heap (4 solitamente), poi sono presenti dati per slice che nello stack rappresenta un fat pointer, che continene al suo interno un compo per il puntatore al primo elemento di uno Slice (Move(...) in questo caso) ed un altro campo, size, che dice quanti elementi sono presenti nello slice, che in questo caso e' 3.
+  \item Un paradigma frequentemente usato nei sistemi reattivi e costituito dall'astrazione detta Looper.
+  Quando viene creato, un Looper crea una coda di oggetti generici di tipo Message ed un thread.
+  II thread attende - senza consumare cicli di CPU - che siano presenti messaggi nella coda, Ii
+  estrae a uno a uno nell'ordine di arrivo, e Ii elabora. II costruttore di Looper riceve due parametri,
+  entrambi di tipo (puntatore a) funzione: process(...) e cleanup(). La prim a e una funzione
+  responsabile di elaborare i singoli messaggi ricevuti attraverso la coda; tale funzione accetta un
+  unico parametro in ingresso di tipo Message e non ritorna nulla; La seconda e funzione priva di
+  argomenti e valore di ritorno e verra invocata dal thread incapsulato nel Looper quando esso
+  stara per terminare.
+  Looper offre un unico metodo pubblico, thread safe, oltre a quelli di servizio, necessari per
+  gestirne ii ciclo di vita: send(msg), che accetta come parametro un oggetto generico di tipo
+  Message che verra inserito nella coda e successivamente estratto dal thread ed inoltrato alla
+  funzione di elaborazione. Quando un oggetto Looper viene distrutto, occorre fare in modo che ii
+  thread contenuto al suo interno invochi la seconda funzione passata nel costruttore e poi termini.
+  Si implementi, utilizzando ii linguaggio Rust o C++, tale astrazione tenendo canto che i suoi metodi
+  dovranno essere thread-safe.
+  \begin{lstlisting}[language=rust]
+enum WorkerMsg {
+  Work(Message),
+  Stop,
+}
+struct Looper {
+  handle: JoinHandle<()>,
+  worker_msg_sx: Sender<WorkderMsg>,
+}
+
+impl Looper {
+    fn new<F1, F2>(process: F1, cleanup, F2) -> Self
+    where F1: FnOnce(Message) -> () + Send + 'static,
+    F1: FnOnce() -> () + Send + 'static, {
+
+      let (worker_msg_sx: Sender<_>, worker_msg_rx: Receiver<_>) = mpsc::channel();
+
+      let worker = thread::spawn(move || loop {
+        match worker_msg_rx.recv.unwrap() {
+          WorkerMsg::Stop => {
+            cleanup();
+            break;
+          }
+          WorkerMsg::Work(msg) => {
+            process(msg);
+          }
+        }
+      });
+      
+      Self {
+        handle: worker,
+        wroker_msg_sx,
+      }
+    }
+
+    fn send(&mut self, msg: Message) -> Result<()> {
+      self.worker_msg_sx.send(WorkerMsg::Work(msg))?;
+      Ok(())
+    }
+}
+
+impl Drop for Looper {
+  fn drop(&mut self) {
+    self.worker_msg_sx.send(WorkerMsg::Stop).unwrap();
+    self.handle.join().unwrap();
+  }
+}
+  \end{lstlisting}
+  
+  
+
+  
+\end{itemize}
 
 
 
