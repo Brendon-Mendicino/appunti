@@ -1642,13 +1642,13 @@ fn main() {                 // lifetimes:
 
 
 \subsection{Closures}
-Una \textbf{funzione di ordine superiore} \`e detta tale se prende in input a da in output una funzione. In rust \`e possibile assegnare ad una variabile una funzione is suo tipo sar\`a \texttt{fn(T1, T2, ..., Tn) -> U}. Quando una variabile ha un tipo \texttt{fn} questa sar\`a legata ad una funzione classica, se invece si usano le \emph{lambda} esistono altri tre tipi:
+Una \textbf{funzione di ordine superiore} \`e detta tale se prende in input a da in output una funzione. In rust \`e possibile assegnare ad una variabile una funzione definita precedentemnte, dove il suo sar\`a \texttt{fn(T1, T2, ..., Tn) -> U} e tutti i valori vengono rappresentati con una tupla. Quando una variabile ha un tipo \texttt{fn} questa sar\`a legata ad una funzione classica, se invece si usano le \emph{lambda} esistono altri tre tipi:
 \begin{itemize}
   \item \texttt{FnOnce}: struttura che pu\`o essere invocata una sola volta.
   \item \texttt{FnMut}: la struttura pu\`o essere chiamata pi\`u volte e a ogni chiamata pu\`o alterare il suo stato.
   \item \texttt{Fn}: la struttura pu\`o essere chiamata pi\`u volte ma non pu\`o mutare il suo stato.
 \end{itemize}
-Il corpo della funzione lambda pu\`o fare riferimento alla variabili locali nello scope in cui sono state create, in questo caso la lambda acquisisce uno stato e le variabili vengono dette \textbf{variabili libere}, in questo caso si dice che le viabili vengono \textbf{catturate}. La cattura pu\`o avvenire per \textbf{riferimento}, e quindi la variabile sar\`a accessibile solo nel suo tempo di vita, oppure la cattura pu\`o avvenire per \textbf{movimento}, dove la variabile viene mossa all'interno della funzione lambda e quindi ne prende il possesso.
+Il corpo della funzione lambda pu\`o fare riferimento alla variabili locali nello scope in cui sono state create, in questo caso la lambda acquisisce uno stato e le variabili all'interno del corpo delle lambda che fanno riferimento a variabili esterne, vengono \textbf{catturate} all'interno della lambda e vengono dette \textbf{variabili libere}. La cattura pu\`o avvenire per \textbf{riferimento}, e quindi la variabile sar\`a accessibile solo nel suo tempo di vita, oppure la cattura pu\`o avvenire per \textbf{movimento}, dove la variabile viene mossa all'interno della funzione lambda e quindi ne prende il possesso.
 \begin{lstlisting}[language=rust]
 let number = 10;
 let with_reference = |...| { number ... };
@@ -1663,6 +1663,17 @@ where F: impl FnMut() -> String {
     v += 1;
     format!("{}{}", base, v)
   };
+}
+\end{lstlisting}
+Quando una labmda cattura delle variabile, questa viene detta \textbf{chiusura}.
+\begin{lstlisting}[language=rust]
+fn add(x: i32) -> Box<dyn Fn(i32) -> i32> {
+  return Box::new(move |y| x + y);
+}
+
+fn main() {
+  let add_nums = add(5);
+  println!("added number: {}", add_nums(2)); // 7
 }
 \end{lstlisting}
 
@@ -1713,7 +1724,21 @@ trait Iterator {
   fn next(&mut self) -> Option(Self::Item);
 }
 \end{lstlisting}
-poi esistono 3 metodi che servono a trasformare un oggetto in un iteratore: \texttt{iter(), into\_iter(), iter\_mut()}.
+poi esistono 3 metodi che servono a trasformare un oggetto in un iteratore: \texttt{iter(), into\_iter(), iter\_mut()}. Un oggetto che ooffre la possibilit\`a di esplorare i sui dati attraverso un iteratore implementa il tratto \texttt{IntoIter}
+\begin{lstlisting}[language=rust]
+trait IntoIterator {
+  type Item;
+  type IntoIter: Iterator<Item = Self::Item>;
+
+  fn into_iter(self) -> Self::IntoIter;
+}
+\end{lstlisting}
+La differenza tra i tre metodi \`e:
+\begin{itemize}
+  \item \texttt{iter()}: si itera su riferimenti agli oggetti
+  \item \texttt{into\_iter()}: si itera sugli oggetti posseduti
+  \item \texttt{iter\_mut()}: si itera su riferimenti mutabili agli oggetti
+\end{itemize}
 
 Un \textbf{adattatore} \`e un metodo che ogni iteratore offre che permette di trasformare l'iteratore originale in uno diverso, fino ad arrivare ad un consumatore finale
 \begin{lstlisting}[language=rust]
@@ -1744,7 +1769,9 @@ animals.entry("dog")
 \texttt{BinaryHeap<T>} \`e una collezione di elementi con una priorit\`a associata, infatti \texttt{T} deve implentare il tratto \texttt{Ord}, \texttt{peek()} mi permette di vedere l'elemento pi\`u grande in tempo unitario.
 
 \section{IO}
-Nei sistemi operativi i file sono stati implementati in modo gerarchico per ragioni storiche, anche se sarebbe molto pi\`u effincente rappresentare tutto con una mappa e la rappresentazione gerarchica solo come un tag. Esiste anche il problema della compatibilit\`a tra i diversi SO e le diverse system call, Rust cerca di unificare le diverse rappresentazioni nella libreria standard, per ovviare a questo esistono \texttt{Path} e \texttt{PathBuf}, la rappresentazione interna dei nomi dei file \`e fatta con \texttt{OsString} che permette di avere compatibilit\`a tra i diversi SO. Per aprire un file si utilizza \texttt{std::fs::OpenOption} o \texttt{File}. La libreria mette a disposizione quattro tratti fondamentali che sono \texttt{Read}, \texttt{BufRead}, \texttt{Write}, \texttt{Seek}.
+Nei sistemi operativi i file sono stati implementati in modo gerarchico per ragioni storiche, anche se sarebbe molto pi\`u effincente rappresentare tutto con una mappa e la rappresentazione gerarchica solo come un tag. Esiste anche il problema della compatibilit\`a tra i diversi SO e le diverse system call. Un grande problema \`e la gestione dei path e delle stringhe, infatti Linux usa gli \texttt{/} mentre Windows usa gli \texttt{\\} come separatori tra file, Linux usa stringhe utf-8 mentre Windows una codifica a 16 bit, Rust cerca di unificare le diverse rappresentazioni nella libreria standard mettendo a disposizione, alcune struct per ovviare a questi problemi, alcune di queste sono \texttt{Path} e \texttt{PathBuf}, che rappresentano dei path di sistema, la rappresentazione interna dei nomi dei file \`e fatta con \texttt{OsStr} e \texttt{OsString} che permette di avere compatibilit\`a tra i diversi SO, dove sono relativamente le versioni non possedute e possedute. Rust offre anche delle funzioni per manipolare i file come: creare, distruggere, rinominare, muovere, ...
+
+Per aprire un file si utilizza \texttt{std::fs::OpenOption} o \texttt{File}. La libreria mette a disposizione quattro tratti fondamentali che sono \texttt{Read}, \texttt{BufRead}, \texttt{Write}, \texttt{Seek}.
 
 
 \section{Smart pointer}
@@ -1812,7 +1839,7 @@ infatti quando si acced ad un indirizzi se un altro thread scrive nella cache po
 
 \textbf{Ordinamento}: in quale ordine appaiono le operazioni di pi\`u thread?
 
-Per fare affronto a queste problemi i processori offrono delle soluzioni in hardware, ad esempio in x86 esistono delle operazioni \textbf{fence} che fanno un flush della cache fino alla RAM e bloccando gli altri core e invalidando le loro cache. I processari di tipo ARM usano la tecnica della \textbf{Change Propagation List}, quendo si cerca di leggere un leggere da una cella condivisa viene creata una dipendenza di lettura, la cache viene invalidata in modo essere sicuro di leggere un valore corretto, mentre in lettura viene fatto un flush, ARM offre anche delle \textbf{barrier} che garantisce una sequenza di operazioni siano fatte in modo causale.
+Per fare affronto a queste problemi i processori offrono delle soluzioni in hardware, ad esempio in x86 esistono delle operazioni \textbf{fence} che fanno un flush della cache fino alla RAM e bloccando gli altri core che cercano di accedere alla stessa area di memoria, questo modello viene detto \textbf{quasi sequenzialmente consistente}. I processari di tipo ARM usano la tecnica della \textbf{Change Propagation List}, e forniscono delle instruzi \textbf{barrier}, quando si cerca di leggere da una cella condivisa viene creata una dipendenza di lettura, la cache viene invalidata in modo essere sicuri di leggere un valore corretto, mentre in lettura viene fatto un flush, che garantisce una sequenza di operazioni siano fatte in modo causale (sequenziale) dopo l'istruzione.
 
 Per sincrononizzare dei thread tra di loro si usano dei construtti appositi.
 \begin{example}{Interferenza}{interferenza}
@@ -2412,10 +2439,117 @@ impl Looper {
     }
 }
   \end{lstlisting}
-  
-  
+  \item Si definiscano i concetti di Dangling Pointer, Memory Leakage e Wild Pointer, facendo esempi
+concreti, usando dello pseudocodice, che possono generare questi fenomeni. Dangling Pointer: un dangling pointer \`e un puntatore che punta ad zone di memoria che non \`e pi\`u valida, questo pu\`o avvenire ad esmpio quando si copia il riferimento ad oggetto e questo poi viene liberato, se dopo si continuano ad usare gli stessi puntatori gli accessi porteranno a valori indifiniti o addirrittura a casi di double free
+  \begin{lstlisting}[langua=rust]
+int main() {
+  int *a = malloc(sizeof(int));
+  *a = 10;
+  printf("\%d", *a);
+  int *b = a;
+  free(a);
+  // ogni accesso a b dopo questo punto porta a dei risultati non deterministici
+  *b = 5;
+  printf("\%d", *b);
+  free(b);
+}
+  \end{lstlisting}
+  Wild pointer: un wild pointer \`e un puntatore non inizianillazzato che viene utilizzato (lettura o scrittura).
+  \begin{lstlisting}[langua=rust]
+int main() {
+  int *wild;
+  for (int i = 0; i < 10; i++) {
+    printf("\%d", wild[i]);
+    wild[i] = i;
+  }
+}
+  \end{lstlisting}
+  essendo wild non inizializzato il valore dell'indirizzo che punta \`e totalmente casuale, questo pu\`o causare letture/scrittura in zone di memoria invalide, o addirittura in altre strutture dati del programma. Memory leakage: un memory leakage \`e quando dei dati inizializzati nello heap non vengono mai deallocati, questo in un programma a lungo termine puo causare addirittura la saturazione della memoria.
+  \begin{lstlisting}[langua=rust]
+int main() {
+  int sum = 0;
+  for (int i = 0; i < 10; i++) {
+    int *leak = malloc(sizeof(int));
+    sum += i;
+    leak = sum;
+    printf("\%d", *leak);
+  }
+}
+  \end{lstlisting}
+  Tutti i leak allocati non vengono mai deallocati.
+  \item In relazione al concetto di Atomic, si definisca cosa esso mira a garantire, come tale garanzia possa essere fornite a livello architetturale, e quali siano i suoi limiti. \\ Il concetto di dei dati Atomic mira a garantire l'atomicita di alcune operazioni, ovvero delle operazioni indivisibili, le operazioni Atomic solitamente vengono implementate per dati semplici come boolean (test and set) e interi (atomic increment), questo solitamente viene implementato in hardware con delle barrire di memoria (in x86), esistono delle speciale operazioni che permettono di effettuare delle operazioni atomiche che consistono nel bloccare gli altri core, invalidare le loro cache e fare flush della nostra cache (dopo l'operazione) fino all RAM, in modo da avere un dato consistente anche per gli altri thread del programma. Gli atomic falliscono nel sincronizzare pi\`u flussi di esecuzione quando le operazioni che si devono eseguire sono moltiplici su dati diversi.
+  \item
+  \begin{lstlisting}[langua=rust]
+All'interno di un programma è definita la seguente struttura dati
+struct Bucket {
+data: Vec<i32>,
+threshold: Option<i32>
+}
+Usando il debugger si è determinato che, per una istanza di Bucket, essa è memorizzata
+all'indirizzo 0x00006000014ed2c0.
+Osservando la memoria presente a tale indirizzo, viene mostrato il seguente contenuto (per
+blocchi di 32bit):
+308a6e01 00600000 03000000 00000000 03000000 00000000 01000000 0a000000
+Cosa è possibile dedurre relativamente ai valori contenuti dei vari campi della singola istanza?
+  \end{lstlisting}
+  I primi 6 blocchi appartengono a data, mentre gli ulitmi blocchi appartengono threshold,
+  I primi due blocchi di dati rappresentano il puntatore al primo valore del vettore di dati (data) in memoria, il 3 e 4 \`e un usize e rappresenta quanti valori sono presenti all'interno del vettore, il 5 e 6 \`e un usize ed la capacita del vettore, ovvero quante sono le celle di dato allocati in memoria, il 7 blocco \`e il tag dell'enum a cui viene matchato Option (che puo essere Some o None), l'ottavo blocco rappresenta il valore contenuto nella tupla di Some (i32), oppure niente in caso threashold sia None (infatti gli enum sono dei dati che rappresentano la somma dei loro dati, un po come le union).
+  \item \emph{All'interno di un programma è necessario garantire che non vengano eseguiti
+CONTEMPORANEAMENTE più di N invocazioni di operazioni potenzialmente lente.
+A questo scopo, è stata definita la struttura dati ExecutionLimiter che viene inizializzata con il
+valore N del limite. Tale struttura è thread-safe e offre solo il metodo pubblico generico execute( f
+), che accetta come unico parametro una funzione f, priva di parametri che ritorna il tipo generico
+R. Il metodo execute(...) ha, come tipo di ritorno, lo stesso tipo R restituito da f ed ha il compito di
+mantere il conteggio di quante invocazioni sono in corso. Se tale numero è già pari al valore N
+definito all'atto della costruzione della struttura dati, attende, senza provocare consumo di CPU,
+che scenda sotto soglia, dopodiché invoca la funzione f ricevuta come parametro e ne restituisce il
+valore. Poiché l'esecuzione della funzione f potrebbe fallire, in tale caso, si preveda di
+decrementare il conteggio correttamente.
+Si implementi, usando i linguaggi Rust o C++, tale struttura dati, garantendo tutte le funzionalità
+richieste.}
+  \begin{lstlisting}[langua=rust]
+struct ExecutionLimiter {
+  max: usize,
+  n: Mutex<usize>,
+  condvar: Condvar,
+}
+
+impl ExecutionLimiter {
+  fn new(N: uszie) -> Self {
+    Self {
+      max: N,
+      n: Mutex::new(0),
+      condvar: Condvar::new(),
+    }
+  }
+
+  fn execute<R>(&self, f: FnMut() -> R) -> Result<R, Box<dyn Error>> {
+    {
+      let mut count = self.n.lock()?;
+      while *count >= self.N {
+        *count = self.condvar.wait(count)?;
+      }
+
+      *count += 1;
+    }
+    
+    let reval = f();
+
+    {
+      let mut count = self.n.lock()?;
+      *count -= 1;
+      self.condvar.notify_one();
+    }
+
+    return f;
+  }
+}
+  \end{lstlisting}
 
   
+
+
+
 \end{itemize}
 
 
