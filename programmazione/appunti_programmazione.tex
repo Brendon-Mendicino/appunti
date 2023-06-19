@@ -294,36 +294,32 @@ Gli algoritmi proposti per il rimpiazzo sono:
   \item \textbf{Second-chance algorithm} esiste poi una famiglia di algoritmi che cerca di approssimare il LRU con performance molto migliori e vengono detti \textbf{LRU Approximation Algorithm}, in questo algoritmo ogni frame ha un \textbf{reference bit}, inizialmente \`e zero e quendo si fa una reference alla pagina viene messo a 1, esiste un momento nel passato in cui i reference bit sono stati azzerati, la victim viene presa nel gruppo dei frame con reference bit a 0, si usa una fifo, quando si incontra una pagina con 1 viene settato a 0, se si incontra uno 0 allora viene preso il victim.
   \item \textbf{Enhanced Second-Chance Algorithm}: si utilizza una combinazione di reference e modify per scegliere il frame:
     \begin{itemize}
-      \item (0, 0): ...
-      \item ...
-    \end{itemize}
-  \item \textbf{Counting Algorithm}: 
-    \begin{itemize}
-      \item \textbf{Least Frequently Used (LFU):}
-      \item \textbf{Most Frequently Used (MFU):}
+      \item (0, 0): pagina miglire
+      \item (0, 1): la pagina \`e dirty, quindi va scritta su disco, si va avanti
+      \item (1, 0): pagina refernziata, si setta il ref a 0 zero e si va avanti
+      \item (1, 1): pagina dirty e referenziata, molto probabile che sia utilizzata di nuovo
     \end{itemize}
 \end{itemize}
-
-Esercizi:
-\begin{example}{}{}
-    ...
-\end{example}
-
+Esistono gli algoritmi basati sul conteggio, \textbf{Counting Algorithms}:
 \begin{itemize}
-  \item \textbf{Page-Buffering Algorithm}: La vittima viene messa nel \emph{free pool}, ..., il SO potrebbe dare il controllo all'applicazione per la gestione della memoria.
-
+  \item \textbf{Least Frequently Used (LFU):} si prende come pagina quella con il minor contatore
+  \item \textbf{Most Frequently Used (MFU):} si prende la pagina con il numero pi\`u questo argomento si basa sul fatto che una pagina appena rimpiazzata ha il contatore basso
 \end{itemize}
 
+Fino ad ora abbiamo cercato di minimizzare il numero di page fault, adesso cerechiamo dei metodi per migliorare ancora le prestazioni. Un'altra tecnica importante \`e il '\textbf{Page-Buffering Algorithm}, dove si mantiene una lista di frame liberi, in questo modo dopo un fault si copia la pagina all'iterno del frame libero, si cerca sempre di mantenere la lista dei free frame sempre con delle entry allora si seglie una pagina vittima e la si rimpiazza superata una certa soglia, le pagine vittime devono essere scelte quanto pi\`u frequentemente possibile e soprattutto quando \`e possibile, cos\`i da avere un pool sempre ampio di frame liberi. Possibilimente viene anche mantenuta una \textbf{lista di pagine modificate}, e quando il bakcing store \`e idle, queste vengono salvate li sono settate a non-dirty. In alcuni casi l'applicazione deve poter avere sotto controllo la gestione della memoria, come ad esempio i DB, che permetti di baipassare buffering, locking, etc...
 
-Allocazione fissa:
+\subsection{Allocazione delle pagine}
+Per gestire l'allocazione delle pagine si possono due schemi diversi, allocazion fissa, allocazione priritaria.
+
+\textbf{Allocazione fissa}:
 \begin{itemize}
   \item si da a tutti la stessa misura (equal);
   \item si da di pi\`u a chi ha pi\`u bisogno (proporzionale): ad ogni processo si danno i frame in maniera proporzionanta.
 \end{itemize}
 
-Global vs Local allocation: un processo pu\`o scegliere una frame vittima solo tra i suoi anche tra quelli degli altri? \textbf{Locale} visto nell'esempio di sopra. \textbf{Globale}, esista una lista di free frame, si fa in modo che questa lista non arrivi mai a 0, l'idea di massima \`e che superata una soglia si iniziano a scegliere delle vittime, fino ad arrivare di nuovo ad un altra solgia, che superata permette il reinserimento dei frame.
+\textbf{Global vs Local allocation}: un processo pu\`o scegliere una frame vittima solo tra i suoi anche tra quelli degli altri? \textbf{Locale} visto nell'esempio di sopra, ogni applicazione pu\`o rimpiazzare solo le sue pagine, che crea consistenza al livello del programma ma \`e inefficente a livello di memoria, infatti rischia di essere sottoutilizzata. \textbf{Globale}, esista una lista di free frame, si fa in modo che questa lista non arrivi mai a 0, l'idea di massima \`e che superata una soglia si iniziano a scegliere delle vittime, fino ad arrivare di nuovo ad un altra solgia, che superata permette il reinserimento dei frame, questa soluzione permette un throughput molto maggiore di quella a rimpiazzo locale.
 
-... NUMA ...
+Quando si usano queste politiche bisogna tenere in conto che alcune architetture sono NUMA (Non-Uniform Memory Access), vuol dire alcune di memoria sono pi\`u vicine ad un core rispetto che agli altri, questo vuol dire che se quel core accede ad altra zona di memoria i tempi saranno pi\`u lunghi, un buffer di pagine libere doverbbe tenere in considerazione questo aspetto quando venogno assegnate le pagine.
 
 Le prestazioni migliori si ottengono quando un processo gira su un unico processore.
 
@@ -1803,7 +1799,74 @@ drop(five);
 
 assert!(weak_five.upgrade().is_none());
 \end{lstlisting}
-Esistono delle situazioni in cui si potrebbe volere un possesso condiviso ad un dato sullo stack, questo \`e un problema perch\`e un solo una variabile pu\`o possedere un dato come mutabile, Rust permette per\`o di cambiare un dato anche possedendo un refernce non mutabile, il borrow checker dice che: esiste un unico riferimento mutabile, ci sono pi\`u riferimenti, in alcuni casi questa condizione \`e troppo restrittiva, per questo motivo esiste \texttt{Cell<T>} che permette di scambiare un riferimento con un riferimento mutabile.
+
+\subsection{Rc}
+Esistono delle situazioni in cui si potrebbe volere un possesso condiviso ad un dato, questo \`e un problema perch\'e una dato pu\`o essere posseduto da un'unica variabile alla volta, questa condizione viene controllata dal borrow checker durante la compilazione, per questo motivo Rust fornisce dei tipi in grado di fare queste operazioni, che sono tipi della famiglia \texttt{Cell}, infatti in alcuni casi avere un singolo owner \`e troppo limitante. Tutte queste struct implementano il paradigma della \textbf{Interior Mutability}, ovvero \`e possibile ottere un riferimento mutabile ad un dato partendo da un rifermento semplice. Bisogna ricordare che la regola del borrow checker che, \textbf{possono esistere pi\`u rifermenti o un solo rfierimento mutabli per ogni istante di tempo} rimane sempre valido, usato l'interior mutability questi check vengono fatti a run-time (se le conidzioni falliscono il programma va in panic), causando un overhead, infatti questo pattern va usato solo quando strettamente necessario.
+
+\subsection{Cell}
+La struct \texttt{Cell<T>} peremtte di muovere dei valori dentro e fuori, non \`e possibile ottere il valore contenuto all'interno senza prima rimpiazzarlo
+\begin{lstlisting}[language=rust]
+struct SomeStruct {
+    regular_field: u8,
+    special_field: Cell<u8>,
+}
+
+let my_struct = SomeStruct {
+    regular_field: 0,
+    special_field: Cell::new(1),
+};
+
+let new_value = 100;
+
+// ERROR: `my_struct` is immutable
+// my_struct.regular_field = new_value;
+
+// WORKS: although `my_struct` is immutable, `special_field` is a `Cell`,
+// which can always be mutated
+my_struct.special_field.set(new_value);
+assert_eq!(my_struct.special_field.get(), new_value);
+\end{lstlisting}
+il metodo \texttt{get} \`e utilizzabile solo il dato implementa \texttt{Copy}.
+
+\subsection{RefCell}
+\texttt{RefCell<T>} mantine il puntatore ad un cella di memoria che pu\`o essere condivisa, questo viene fatto mantenendo al suo interno quante reference sono attive in un determinato istante, a differenza di \texttt{Cell<T>} il valore pu\`o essere ottenuto con una mutable reference (se si cerca di chiderene una mutabile mentre altre sono attive il programma va in panic), infatti \texttt{RefCell<T>} viene spesso usato insieme a \texttt{Rc<T>}
+\begin{lstlisting}[language=rust]
+let shared_map: Rc<RefCell<_>> = Rc::new(RefCell::new(HashMap::new()));
+// Create a new block to limit the scope of the dynamic borrow
+{
+    let mut map: RefMut<_> = shared_map.borrow_mut();
+    map.insert("africa", 92388);
+    map.insert("kyoto", 11837);
+    map.insert("piccadilly", 11826);
+    map.insert("marbles", 38);
+}
+
+// Note that if we had not let the previous borrow of the cache fall out
+// of scope then the subsequent borrow would cause a dynamic thread panic.
+// This is the major hazard of using `RefCell`.
+let total: i32 = shared_map.borrow().values().sum();
+println!("{total}");
+\end{lstlisting}
+
+\subsection{Cow}
+Esiste anche il tipo \texttt{Cow<T>} che implementa il pattern del \textbf{Copy On Write}, questo viene fatto usando \texttt{Cow} come un \texttt{enum}
+\begin{lstlisting}[language=rust]
+enum Cow<'a, B>
+where B: 'a + ToOwned + ?Sized, {
+  Borrowed(&'a B),
+  Owned(<B as ToOwned>::Owned),
+}
+\end{lstlisting}
+questo fa si che ogni volta che si cerca di mutare un valore e il nostro valore \`e Borrowed, viene fatta una copia di B e ci viene ritornato all'interno di Owned.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{schema-smart-pointers.png}
+  \caption{Schema Smart Pointers}
+  \label{fig:schema-smart-pointers}
+\end{figure}
+
+
 
 
 \section{Programmazione Concorrente}
@@ -2330,9 +2393,21 @@ async fn main() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+\newpage
 \section{Esame}
 \begin{itemize}
-  \item Si definisca il concetto di SmartPointer, quindi si fornisca un esempio in Rust che ne evidenzi il ciclo di vita. Il concetto di smartPointer e' molto potente, infatti permette di poter trattare delle strutture dati come se puntatori, benche' essi non lo siano, in Rust questo e' possibile grazie ai tratti Derf e DerfMut che se implementati permettono alla struct che li implenta di poter ritornare una ref o una ref mutabile in caso venga chiamato l'operatore * su di essi, il concetto di smart pointer e' fortemente collegato a quello del pattern RAII (Resource Acquisition Is Initialization) che permette la gestione gestione automatica del liberamento delle risorse dallo heap.
+  \item \textbf{Domanda}: Si definisca il concetto di SmartPointer, quindi si fornisca un esempio in Rust che ne evidenzi il ciclo di vita. \\ Il concetto di smartPointer e' molto potente, infatti permette di poter trattare delle strutture dati come se puntatori, benche' essi non lo siano, in Rust questo e' possibile grazie ai tratti Derf e DerfMut che se implementati permettono alla struct che li implenta di poter ritornare una ref o una ref mutabile in caso venga chiamato l'operatore * su di essi, il concetto di smart pointer e' fortemente collegato a quello del pattern RAII (Resource Acquisition Is Initialization) che permette la gestione gestione automatica del liberamento delle risorse dallo heap.
   \begin{lstlisting}[language=rust]
 struct Person {
   name: String,
@@ -2353,7 +2428,7 @@ fn main() {
   \end{lstlisting}
   Box e' uno smart pointer in rust che permette di implementare questo pattern, infatti il valore che prende in new sara allaocato nello heap, il tempo di vita di Person inizia quando viene inizializzato e termina quando person esce di scope (in questo caso alla fine della funzione), e quando il drop verra chiamato su di esso, il puntatore interno a box che punta a Person nello heap verra' liberato. Questo garantisce sempre una corretta liberazione della variabili dallo heap.
   \tolerance=1000
-  \item Si illustrino le differenze nel linguaggio Rust tra std::channel() e std::sync\_channel(), indicando quali tipi di sincronizzazione i due meccanismi permettono. Entrambi i offrono dei meccanimi di sincronizzazione basati su canali di comunicazione che sono Multiple Producer Single Consumer, e ritornano rispettivamente (Sender Receiver) (SenderSync REceiver), infatti i sender sono clonabili mentre i receiver no, in channel() i canali sono unbounded, voul dire che ogni volta che i sender mandano dei dati ritornano subito, i receiver sono bloccati finche' non ricevono qualcosa dal canale (se un dato e' presente lo ritornano subito), mentre con con syncchannel() e'  possibile craere dei canali bounded, voul dire che si crea un buffer e se questo viene riempito prima che il consumer possa legger leggere i dati i sender che provano a fare send vengono bloccati finche' il buffer non ha spazio, si crea un canale can grandezza 0, allora viene detto rendezvous dove per poter avvenire uno scambio di informazione sia il sender che il receiver devono essere presenti.
+  \item Si illustrino le differenze nel linguaggio Rust tra std::channel() e std::sync\_channel(), indicando quali tipi di sincronizzazione i due meccanismi permettono. \\ Entrambi i offrono dei meccanimi di sincronizzazione basati su canali di comunicazione che sono Multiple Producer Single Consumer, e ritornano rispettivamente (Sender Receiver) (SenderSync REceiver), infatti i sender sono clonabili mentre i receiver no, in channel() i canali sono unbounded, voul dire che ogni volta che i sender mandano dei dati ritornano subito, i receiver sono bloccati finche' non ricevono qualcosa dal canale (se un dato e' presente lo ritornano subito), mentre con con syncchannel() e'  possibile craere dei canali bounded, voul dire che si crea un buffer e se questo viene riempito prima che il consumer possa legger leggere i dati i sender che provano a fare send vengono bloccati finche' il buffer non ha spazio, si crea un canale can grandezza 0, allora viene detto rendezvous dove per poter avvenire uno scambio di informazione sia il sender che il receiver devono essere presenti.
   \item 
   \begin{lstlisting}[language=rust]
 Dato ii seguente frammento di codice Rust (ogni linea e preceduta dal suo indice)
@@ -2440,8 +2515,8 @@ impl Looper {
 }
   \end{lstlisting}
   \item Si definiscano i concetti di Dangling Pointer, Memory Leakage e Wild Pointer, facendo esempi
-concreti, usando dello pseudocodice, che possono generare questi fenomeni. Dangling Pointer: un dangling pointer \`e un puntatore che punta ad zone di memoria che non \`e pi\`u valida, questo pu\`o avvenire ad esmpio quando si copia il riferimento ad oggetto e questo poi viene liberato, se dopo si continuano ad usare gli stessi puntatori gli accessi porteranno a valori indifiniti o addirrittura a casi di double free
-  \begin{lstlisting}[langua=rust]
+concreti, usando dello pseudocodice, che possono generare questi fenomeni. \\ Dangling Pointer: un dangling pointer \`e un puntatore che punta ad zone di memoria che non \`e pi\`u valida, questo pu\`o avvenire ad esmpio quando si copia il riferimento ad oggetto e questo poi viene liberato, se dopo si continuano ad usare gli stessi puntatori gli accessi porteranno a valori indifiniti o addirrittura a casi di double free
+  \begin{lstlisting}[language=rust]
 int main() {
   int *a = malloc(sizeof(int));
   *a = 10;
@@ -2455,7 +2530,7 @@ int main() {
 }
   \end{lstlisting}
   Wild pointer: un wild pointer \`e un puntatore non inizianillazzato che viene utilizzato (lettura o scrittura).
-  \begin{lstlisting}[langua=rust]
+  \begin{lstlisting}[language=rust]
 int main() {
   int *wild;
   for (int i = 0; i < 10; i++) {
@@ -2465,7 +2540,7 @@ int main() {
 }
   \end{lstlisting}
   essendo wild non inizializzato il valore dell'indirizzo che punta \`e totalmente casuale, questo pu\`o causare letture/scrittura in zone di memoria invalide, o addirittura in altre strutture dati del programma. Memory leakage: un memory leakage \`e quando dei dati inizializzati nello heap non vengono mai deallocati, questo in un programma a lungo termine puo causare addirittura la saturazione della memoria.
-  \begin{lstlisting}[langua=rust]
+  \begin{lstlisting}[language=rust]
 int main() {
   int sum = 0;
   for (int i = 0; i < 10; i++) {
@@ -2479,18 +2554,18 @@ int main() {
   Tutti i leak allocati non vengono mai deallocati.
   \item In relazione al concetto di Atomic, si definisca cosa esso mira a garantire, come tale garanzia possa essere fornite a livello architetturale, e quali siano i suoi limiti. \\ Il concetto di dei dati Atomic mira a garantire l'atomicita di alcune operazioni, ovvero delle operazioni indivisibili, le operazioni Atomic solitamente vengono implementate per dati semplici come boolean (test and set) e interi (atomic increment), questo solitamente viene implementato in hardware con delle barrire di memoria (in x86), esistono delle speciale operazioni che permettono di effettuare delle operazioni atomiche che consistono nel bloccare gli altri core, invalidare le loro cache e fare flush della nostra cache (dopo l'operazione) fino all RAM, in modo da avere un dato consistente anche per gli altri thread del programma. Gli atomic falliscono nel sincronizzare pi\`u flussi di esecuzione quando le operazioni che si devono eseguire sono moltiplici su dati diversi.
   \item
-  \begin{lstlisting}[langua=rust]
-All'interno di un programma è definita la seguente struttura dati
+  \begin{lstlisting}[language=rust]
+All'interno di un programma \`e definita la seguente struttura dati
 struct Bucket {
 data: Vec<i32>,
 threshold: Option<i32>
 }
-Usando il debugger si è determinato che, per una istanza di Bucket, essa è memorizzata
+Usando il debugger si \`e determinato che, per una istanza di Bucket, essa \`e memorizzata
 all'indirizzo 0x00006000014ed2c0.
 Osservando la memoria presente a tale indirizzo, viene mostrato il seguente contenuto (per
 blocchi di 32bit):
 308a6e01 00600000 03000000 00000000 03000000 00000000 01000000 0a000000
-Cosa è possibile dedurre relativamente ai valori contenuti dei vari campi della singola istanza?
+Cosa \`e possibile dedurre relativamente ai valori contenuti dei vari campi della singola istanza?
   \end{lstlisting}
   I primi 6 blocchi appartengono a data, mentre gli ulitmi blocchi appartengono threshold,
   I primi due blocchi di dati rappresentano il puntatore al primo valore del vettore di dati (data) in memoria, il 3 e 4 \`e un usize e rappresenta quanti valori sono presenti all'interno del vettore, il 5 e 6 \`e un usize ed la capacita del vettore, ovvero quante sono le celle di dato allocati in memoria, il 7 blocco \`e il tag dell'enum a cui viene matchato Option (che puo essere Some o None), l'ottavo blocco rappresenta il valore contenuto nella tupla di Some (i32), oppure niente in caso threashold sia None (infatti gli enum sono dei dati che rappresentano la somma dei loro dati, un po come le union).
@@ -2507,33 +2582,38 @@ valore. Poiché l'esecuzione della funzione f potrebbe fallire, in tale caso, si
 decrementare il conteggio correttamente.
 Si implementi, usando i linguaggi Rust o C++, tale struttura dati, garantendo tutte le funzionalità
 richieste.}
-  \begin{lstlisting}[langua=rust]
-struct ExecutionLimiter {
+  \begin{lstlisting}[language=rust]
+struct ExecutionLimiter<R> {
   max: usize,
   n: Mutex<usize>,
   condvar: Condvar,
+  data: PhantomData<R>
 }
 
-impl ExecutionLimiter {
+impl<R> ExecutionLimiter<R>
+where R: Send {
+
   fn new(N: uszie) -> Self {
     Self {
       max: N,
       n: Mutex::new(0),
       condvar: Condvar::new(),
+      data: PhantomData,
     }
   }
 
-  fn execute<R>(&self, f: FnMut() -> R) -> Result<R, Box<dyn Error>> {
+  fn execute<F>(&self, mut f: F) -> Result<R, Box<dyn Error>>
+  where F: FnMut() -> R + Send {
     {
       let mut count = self.n.lock()?;
       while *count >= self.N {
-        *count = self.condvar.wait(count)?;
+        count = self.condvar.wait(count)?;
       }
 
       *count += 1;
     }
     
-    let reval = f();
+    let retval = f();
 
     {
       let mut count = self.n.lock()?;
@@ -2541,7 +2621,7 @@ impl ExecutionLimiter {
       self.condvar.notify_one();
     }
 
-    return f;
+    return retval;
   }
 }
   \end{lstlisting}
