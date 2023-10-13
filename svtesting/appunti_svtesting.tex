@@ -1,0 +1,106 @@
+\documentclass[12pt]{article}
+
+\usepackage{notestyle}
+
+\graphicspath{{./img/}}
+
+
+\title{Notes Security Verification and Testing}
+\author{Brendon Mendicino}
+
+
+\begin{document}
+
+\maketitle
+\newpage
+\tableofcontents
+\newpage
+
+\section{Introduction}
+... 
+
+\section{Vulnerability Assessment}
+The NIST proposed the risk management framework, which allows any company that doesn't have a cybersecurity expert to follow some steps to finalize the vulnerability assessment.
+
+FRAME 
+\textbf{begenning:} we need to decide our assets and our infrastructure with an estimation, then there is the \textbf{risk assessment} where we idenitify the threats, weaknesses, vulnerability, consequences and the output is all the possible risks.
+
+Respond
+We estimate how effective out strategies are
+
+Monitoring
+Always check for risk that where not considered
+
+NIST steps for vulnerability assessment:
+threat-oriented: start from the attackers, from that we find the sources and the king of attacks performable, we try to find 
+
+asset/impact-oriented: vulnerability scanning and build our information modles, ...
+
+When doing vulnerability assessment:
+1. we have to plan and define a scope:
+- Define the objective and the purpose
+- Black: we only see what an attacker can see
+- White: prespective of the defender
+- Grey: we know some parts of the attack but not too much (usually when we rely on a third party company)
+- Scope: it is important the define the scope of what we want to assess, this done to reduce our costs and time
+- Frequency: it is important to define the frequency of the analisys
+
+2.
+Gather as much information as possible:
+services running, open ports, OS, ... also knwoing where security monitoring are like: firewall, IPS, ...
+
+3.
+scanning, detection and assessment,
+when we talk about scanning, we are talking about \textbf{automation}, many tools are used and run one after the other.
+
+4. 
+Reporting:
+The company pays to have a report at the of the assessment, where some advice are given to solve the problems. A company needs some \textbf{penetration testing} after the automation part.
+
+
+\subsection{Lab}
+\subsection{nmap}
+The main tecqnique to scan a host are:
+- ping scan: one of the first things the firewall will filter
+- ARP scan: access to the network is required
+- TCP SYN/ACK: the port are alive and no one has performed \textbf{hardening}
+
+Port scanning:
+the answer will be: open, close, filtered, or mixuture of those
+
+Scanning approches
+SYN scan: user sends SYN, server answer SYN/ACK, when permorning a scan the client won't send back the ACK, we are only interested in checking if a server is alive
+
+TCP connect: complete the 3-way handshake, but the some logs are maintained and it is slower
+
+TCP flags scanning: we may use the other flags of TCP:
+- Null scan
+- FIN scan 
+- ...
+
+UDP scan:
+ ...
+
+
+Detect the version of the OS, this is done by looking at the response behavior
+
+TCP Sequence predictability ...,
+
+nmap also has a Lua scripting language to perform more sophisticated information, add test, additional features.
+
+\subsection{GVM}
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}
+
+%% vim: ts=2 sts=2 sw=2 et

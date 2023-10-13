@@ -1,0 +1,375 @@
+\documentclass[12pt]{article}
+
+\usepackage{notestyle}
+
+\graphicspath{{./img/}}
+
+
+\title{Notes Software Engineering}
+\author{Brendon Mendicino}
+
+
+
+
+
+\begin{document}
+
+\maketitle
+\newpage
+\tableofcontents
+
+\section{TLS}
+...
+
+Keys generated when a session is created with public key cryptography. We create a shared secred called pre-master secret wiht PKC part of the the session, to create a connection the server and client generate a random number, those secret in combination with the pre-master secret create a master secret which is part of the session, in this way can create the differnt keys of each new connection (key for MAC, key for encryption, IV fot encryption).
+
+perfect forward secrecy: the compromise of a private key compromisises only the current and future traffic.
+
+In order to implement PFS we use an ephemeral machanism, we need auth of the server and ..., the key of the server certificate is marked as signature key, during the handshake the server will create another key-pair, to prove that the key comes from the server that is signed by the server, like if the server was a certificate authority, now the client has this new key the server can compute the pre-master secret and send it encrypted to the client (with the new key-pair generated on the fly). Usaully the key-pair generated are done with DH, RSA is not suitable because is slow, so those keys may be reused due to performance issues.
+
+\subsection{TLS Handshake}
+
+\paragraph{Client hello:}
+\begin{itemize}
+  \item Contains the TLS version
+  \item 28 randon bytes
+  \item session id: == 0: new session, != 0: resume a previous session
+  \item list of cipher suites (algos wiht enc + key exchenge + integrity), supported by the client
+  \item list of compression methods supported by the client
+\end{itemize}
+
+
+
+\paragraph{Server hello:}
+\begin{itemize}
+  \item Version chosen by the server (should be strong), the server may choose to close the connection if the sercurity is too poor (old versions of TLS, old poor chipher suite), the security in TLS is server-based
+  \item 28 randon bytes
+  \item session id: new session if the client id=0, or replace the old one if the server chooses to
+  \item cipher suite chosen (should be strong): the server can refuse the connection if the cipher suite is too poor
+  \item compression method chosen
+\end{itemize}
+
+\paragraph{Cipher suite:}
+List of strings containing the various algorithms for: key exchange, symmetric encryption, hash.
+
+\paragraph{Certificate (server):}
+If this is a new session the server is sending a X.509 certificate, with the whole chain of certifactes except for the root CA, in the subject/subectAltName the certificate must contain the name of the server. This can be used for signing or for encryption, some fields may depend on the kind of key.
+
+\paragraph{Certificate request (optional): }
+The server request to the client his certificate, along with a list of supported CAs.
+
+\paragraph{Server key exchange:}
+This message is only sent in case of explicit response to the challange, this can only happen when the server pubkey is eligible for signing, the next step is to use ephemeral DH (or ephemeral RSA) by signing the public parameters sent to the user (it is also possible to use anonymous DH whitout signing it, but it is subject to man in the middle attack), thus creating the pre-master secret
+
+\paragraph{Certificate (client):}
+Sends client certificate to the server, the certificate must be from a root CAs previously sent by the server.
+
+\paragraph{Client key exchange:}
+The client generates symmetric keys (pre-master secret) and sends them to the server, the pre-master is sent to the server encrypted with:
+\begin{itemize}
+  \item RSA public key (ephemeral or from X.509)
+  \item DH public key (ephemeral or anonymous)
+\end{itemize}
+During this phase the server is authenticated, in fact when creating the ephemeral DH keys we need to verify the signature that it came along, or if no ephemeral machanism is used the X.509 pubkey is used for encryption thus only allowing the owner of the private key to decrypt the message.
+
+\paragraph{Certificate verify:}
+Explicit response of the challange. The hash computed over all the handshake messages before this one, used only with client authentication.
+
+\paragraph{Change cipher spec:}
+Change from the next message to unprotected to protected (outside of the handshake).
+
+\paragraph{Finished:}
+First message protected with negotiated algorithms. Important to authenticate the whole handshake chain (exluding the change chipher spec), using the master secret.
+
+Both "change cipher spec" and "finished" are sent first from the client and then from the server.
+
+
+\subsection{Data exchange and link teardown}
+When a client wants to close the connection it sends an "alert close notify" along side a MAC, otherwise an attacker could send the same message, without being authenticated and thus closing the connection.
+
+The TLS setup time is given by: TCP handshake + TLS handshake, typycally 1 RTT for TCP and 2 RTT for TLS.
+
+
+\subsection{Heartbleed}
+It's exploting a TLS extension \textit{headtbeat} that used to send a message after a timer to avoid closing the connetion due to out of time. The OpenSSL implementation contained a bug by not replying the correct data lenght, thus leaking informations on the server RAM like usernames, passwords, cookies, ...
+
+\subsection{Bleichnbacher}
+There is a problem in which RSA encryption is performed, the attacker can perform an RSA private key operation and send about a million messages well-crafted and by looking at the differences in error codes received the server private key can be found. 
+
+Even if the attacker does not know the server private key, by sending a million message to it's possible to leak some information on the server private key, by doing this is possible also with a laptop the retrieve it.
+
+\subsection{CRIME}
+By injecting some plaintext in the TLS message is possible to retreive some information already present in the other messages, the reason is that if TLS is used with compression and we inject a plaintext that already exist we will see a reduction in the message lenght, thus infoming us of the presence of the same plaintext.
+
+\subsection{BEAST}
+The server is using the last block of the previous channel as an IV for the next CBC chipher, a MITM may decrypt the HTTP request with a chosen plaintext attack and decrypt some informations like cookies. 
+
+\subsection{POODLE}
+It is a MITM attack that exploits SSL-3 fallback to decrypt data, a 2014 version also works on TLS-1.0 / TLS-1.2, this is one the reasons the \texttt{change cipher spec} was removed in TLS-1.3
+
+\subsection{FREAK}
+Downgrade attack were we trick the server into using a EXPORT cipher, and the attacker can just brute force the key. The MITM must be an active attacker in order to be able to perform this exploit.
+
+To be able to see what our server vulnerabilities could be there is a website that tests all the possbile attacks \url{https://www.ssllabs.com/ssltest}.
+
+\subsection{TLS False Start}
+The client can send application data along the ChangeCipherSpec and Finished message (this need to be fast is being pushed by Google), thus reducing latency to 1-RTT. If we want to enable this extension our browser need ALPN + forward secrecy and be configured to prefer the cipher suites with forwared secrecy.
+
+\subsection{Session Tickets}
+The server is required to keep a session id for later connection, but this could become very heavy on very high-traffic server, thus a TLS session ticket is an extension to replace the session id, allowing to send the session id to the client encrypted with the server secret key, and when the client wants to have a new connection it send the ticket to the server, in this way the cache is move from the server to the client. We cannot rely on this because the browser still needs to support this extension, in load balancing environemnt the different server need to share all the secret keys among themselves.
+
+
+
+\subsection{TLS-1.3}
+- It was chosen to reduce the latency
+- Encrypt as much as possible of the handshake
+- remove a lot legacy features
+- imporoving reseliancy to cross-platforms attacks
+
+
+static RSA and DH key exchange are removed, the preferred mechanism is DHE but only certain public parameters are permitted. The protocol whatching previous pitfalls does not allow anymore: CBC and authenticate-then-encrypt, ...
+
+RSA signature of ephemeral keys, handshake authenticate with MAC and not a signature,
+
+RSA signatures are preformed with RSA-PSS, the whole handshake is signed, only modern chiper suites are allowed,
+
+TLS-1.3 only uses 5 ciphersuites, compared with the ...
+
+...
+
+\subsection{TLS-1.3 Handshake}
+For backward campatibility, TLS-1.2 are still sent if the device is too old to support TLS-1.3, the RTT has been reduced to 1, and it can be reduced to 0 if we are resuming a previous session (or using Pre Shared Key). 
+
+notation:
+{ data } = protected by keys derived from handshake
+[ data ] = protected by keys derived from application
+
+Client hello
+- key-share = client (EC)DHE share
+- signature-algorithm: list of supported alogos
+- psk-
+
+Server hello
+(rand, slected version, cihpersuite)
+key exchange
+- key-share server (EC)DHE
+- pre-shared-key: selected PSK 
+server param:
+- { EncryptedExtensions }: respone to non-crypto cline ext
+- { CertificateRequest }: req for client cert
+serv auth:
+- { Certificate }: X.509 cert (or raw key)
+- { CertificateVerify }: signature over the entire handshake
+- { Finished }: MAC over the entire handshake
+may send
+- [ ApplicatinData ]
+
+Cient finish
+- { Certificate }: X.509 cert (or raw key)
+- { CertificateVerify }: signature over the entire handshake
+- { Finished }: MAC over the entire handshake
+may send:
+- [ ApplicatinData ]
+
+
+Pre Shared Keys, replaces session id and session ticket,
+... 
+
+0-RTT connections
+When using a PSK, client can send "early data", along with its first message, early is protected with a specific key, this is risky because it's not possible to use PFS and replay attacks could be possible. 
+
+
+TLS and PKI 
+X.509 is needed to authenticate the server as a minimun for the server, when a peer sends it's certificate with the whole chain the server needs to check for the certificate status, the list (CRL) can be queite long most of the time, OCSP is very fast for TLS but it can generate privacy problems, in fact the OCSP will know what server the client visited, other that that the client will need to create more network connections to validate the certificates, OCSP connections requires 1s on average.
+
+Certificate Status
+If the CRL or OCSP are unreachable the causes could be:
+- firewall
+- server error
+- network error
+the possible approaches are:
+- hard fail: page not displayed
+- soft fail: the certficate is assumed corroctly and the page is displayed 
+
+Pushed CRL 
+It's possible to store some certificate directly inside the browser, thus allowing to not contanct the CRL server some times, and if someone is blocking the connection with CRL server having this cache allows to still check the certificate.
+
+OCSP staplin
+pushed CRL contains only some certificates, the browser vary how they handle this, the browser sends the OCSP answare, thus allowing client privacy (the client does not make the request to OCSP server). This is an extension and must be specified in the TLS handshake, the TLS server pre-fetches the OCSP response and save 1 more connection to the client. The downside is the freshness of the OCSP response, which might be cached for a period of time decided by the server. The client may support this extension and the server may support it as well, in order to function both must have it.
+
+Must Staple
+is anther extension where X.509 informs the client that it must receive a valid OCSP response as part of the TLS handshake otherwise it should reject the server certificate, this could fail if the client doesent check the X.509 must staple.
+
+- The CA must include the extension into the certifcates
+- OCSP must be always available
+- TLS client ....
+- TLS server must upport stapling, must provide OCSP response, must handle errors with OCSP connections
+- TLS admin has to configure server for certificate, and request a certificate with OCSP Must Staple extension
+
+
+
+\section{SSH}
+Architured in 3 layer:
+Transport lyaer Protocol provides;
+- initial connection
+- server authentication
+- confidentiality and integrity with perect foware secrecy
+- key re-exchange
+
+User authentication protocol:
+authenticate the clineet to the server
+
+Connection protocol:
+supports multiple connection (sessions) over a single secure channel (implemented with transport layer protocol), you can serveral multiple connections
+
+TLP:
+server listens on port 22 (by default) and the client initiates the connection
+
+Binary Packet Protocol:
+- 4 packet-lenght
+- 1 paggin-length
+- payload (may be copresed)
+- 4-255 padding (random): must be multiple of 8 or cipher block size
+- MAC (not enc): compute over the plaintext with an implicit sequence number (DoS attack)
+
+DH key agreement 
+includes server authentication
+[C] gen rand number x   $ e = g^x \mod{p} $
+[C->S] e
+[S] gen rand number y 
+[S] computes
+...
+
+Key derivation
+we derive the initial IV = keyed digest of h(K || H || "A" || session-id)
+encryption key ..
+inegrity key ..
+rekeying is perfermed by keeping the session-id and renegotiaging the keys
+
+all packets sent in one stream direction
+
+Server authentication
+\verb|~/.ssh/known_hosts| stores the public key of servers we connect to, this could be stored the first time we access (TOFU: trust on first use) or we can manually install them
+if the keys in that file should be protected with authentication and inegrity, with a periodic review.
+
+Client authentication:
+- encrypted but we need to provide username and password which could get enumerato by on online attacks,
+
+- asymmetric challange-response, there is a file \verb|/home/<user>/.ssh/authorizer_keys|, which locally stores the public key of the clients tthat wants to connect
+
+
+SSH portforwarding / tunneling
+it can be used to secure POP3, SMTP, HTTP, ...
+local forwarding: outgoing tunnel
+remote forwaring: external machine creates a tunnel with use
+buth use a connection protocol to encapsualte a tcp channel inside a ssh one
+
+Local PF
+the traffic from a local port is sent to another machine
+\begin{lstlisting}
+ssh -L 1234:mail_server:25 user@ssh_server
+     |
+     V
+     local port forwarding
+\end{lstlisting}
+the ssh server must be install on the same amchine in order to don't leave the traffic unencrypted
+
+Remote PF
+\begin{lstlisting}
+ssh -R 8000:127.0.0.1:80 user@ssh_server
+     |
+     V
+     local port forwarding
+\end{lstlisting}
+
+
+Insecurities in SSH
+direct trust in public keys (OpenSSH has SSH-certificates which means they solved this problem)
+users ingnore wraning in accepting new server public key
+any connection to local forwarded port from other server iin the local area will be tunneled, to avoid other node to use the port we can restric the acces only to us
+\begin{lstlisting}
+ssh -L 127.0.0.1:1234:mail_server:25 user@ssh_server
+\end{lstlisting}
+
+
+BothanSpy
+probably a CIA tool (part of Vault 7), targets Xshell (SSH client), injects a malicious DLL into Xshell to steal: user and password, private key file,
+Designed for use with ShellTerm which can inject code.
+
+Gyrfalcon
+OpenSSH, pre-load a malicious DLL to intercept plaintext traffic before enc and after enc
+
+
+Protection for linux
+\verb|pam_tally2, pam_faillock|,
+tcpwappers
+IPTables
+deny root access
+change port 22
+...
+
+
+\section{X.509 and PKI}
+X.509 is one implementation of PKC (Public Key Certificate), that binds a PK to some attributes, typycally used to digitally sign, the reason why this works is done by trusting the authority that issues it. It is important to achieve non repudiation of a digital signature.
+
+We need to generate a key-pair (SK + PK), whe need o protect the private key, both when used and stored, which is generally used inside an application, if we don't trust the software we can use dedicated hardware (like a smart-card).
+
+After creating the keys we need an architecture to manage them:
+- CA: generate and revoke PKC
+- Registration Authority: support element helping the CA verifying the claimed identity, can also authorize like a CA
+- Validation Authority: when present manages CRL store and OCSP responses
+- Revocation Authority: this role might be taken CA or the RA, ..., this is an unofficial term
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.95\textwidth]{./img/certificate-generation.png}
+  \end{center}
+  \caption{Certificate generation}\label{fig:certificate-generation}
+\end{figure}
+The Figure~\ref{fig:certificate-generation} is only one method of generation, maybe the RA generated the key-pair, obtains the PKC, and distribute them on a secure device (e.g. smart-cart), typycal for large companies.
+
+\subsection{X.509}
+It is a standard, which was part of the X.500 (for directory services), where to identify a leaf of a tree, we use the chain of nodes which is called \textbf{Distinguish Name} (DN).
+
+The X.509 has some kind of problems related to how to identify an entity:
+CP:
+CPS:
+CP is specification that may be followed by a CA, but thy might implement differnt CPS.
+
+The standard was completed in 1996, used for internet application, and a document with all the extensions was released. 
+Public extension: defined into the standard 
+Private extension: the company or a community may put in the certificate additional infomation, the problem is that this is not standardized.
+Certificate profile: set of extensions for a specific purposes
+
+Pub:
+- info about the key 
+- attributes to identify issures and subject
+- CRL distribution point 
+
+Key and policy info:
+- authority key identifier (AKI): specify a PK -> digest of the PK, issuer name and his serial number
+- subjec key identifier: 
+- key usage (KU): identifies the application domain for wich the public key can by used 
+  - digitalSig
+  - nonRepudiation 
+  - dataEnchiperment
+  - keyEnchiperment
+  - keyAgreement
+  - keyCertSign
+  - CRL Sign
+- private key usage period: with more time an attacker can break the private key
+- certificate policies: list of policies which explains the purpose the certificate trought a: text, URI, ODI,
+- policy mapping: common policies among certificates
+
+
+
+
+
+
+
+
+
+
+
+\end{document}
+
+%% vim: ts=2 sts=2 sw=2 et

@@ -1,0 +1,151 @@
+\documentclass[12pt]{article}
+
+\usepackage{notestyle}
+
+\graphicspath{{./img/}}
+
+
+\title{Notes Optimization}
+\author{Brendon Mendicino}
+
+
+\begin{document}
+
+\maketitle
+\newpage
+\tableofcontents
+\newpage
+
+\section{Linear Programming Model}
+It is a way to represent a problem as linear model, to create this model we need:
+\begin{itemize}
+  \item variables: used to describe the problem
+  \item objective function: find the maximum or minimun of given function
+  \item constraints: limit the variable in a range
+\end{itemize}
+In order to create a linear model objective functions and constraints must be \textbf{linear}. If we can describe the problem as linear system, there is a method to find the optimal solution, which is called \textbf{simplex methdo}.
+\begin{align*}
+  & \text{real life problem} \longrightarrow_{\text{modeling}} \\
+  & \text{LP Problem} \longrightarrow_{\text{simplex}} \\
+  & \text{linear solution} \longrightarrow_{\text{decoding}} \\
+  & \text{real life solution}
+\end{align*} 
+
+\newpage
+\section{Modeling}
+The steps of modeling are:
+\begin{itemize}
+  \item idenitfy variables
+  \item write objective function
+  \item write constraints
+\end{itemize}
+The variables are a set of entities that describes the solution of the problem, given those:
+\begin{itemize}
+  \item it is immediate the get the objective function 
+  \item it is immediate to check if the solution respects the constraints
+\end{itemize}
+
+\begin{example}{The Knapsak Problem}{}
+  \textit{A bunch of friends is organizing an excursion and decies to put everithing in a single knapsack with capacity 10Kg.}
+  \\ \\
+  The knapsack may be filled with:
+  \begin{itemize}
+    \item chocolate (500g)
+    \item fruit juice (1l)
+    \item beer (0.33l)
+    \item snadwiches (100g)
+    \item mineral water (1l)
+    \item cookies (500g)
+  \end{itemize}
+  Each product is given a score:
+  \begin{itemize}
+    \item chocolate (10)
+    \item fruit juice (10)
+    \item beer (6)
+    \item snadwiches (3)
+    \item mineral water (20)
+    \item cookies (8)
+  \end{itemize}
+  It was decided to garantee a minimun amount of each product:
+  \begin{itemize}
+    \item chocolate (2)
+    \item fruit juice (2)
+    \item beer (6)
+    \item snadwiches (10)
+    \item mineral water (1)
+    \item cookies (2)
+  \end{itemize}
+\end{example}
+
+
+Given the full model, we insert it into the simplex and it returns back the best optimal solution
+
+Example:
+The steel plant
+
+Example:
+From chicken farm to fast food.
+
+The varaibles are the quantity of chicken going from every farm to each single shop. We can represent this a matrix with columns the farms and as for rows the quantities of chicken
+
+
+Minimize and absolute value, we want to minimize the difference between the target and the value
+\begin{align*}
+  & \min{z} = |v - t| \\
+  & \min{z} = |a| \\
+  & |a| = \max{\{a, -a\}} \\
+  & \min{z} = \max{\{a, -a\}} 
+\end{align*}
+we introduce an auxiliary variable $Y$
+\begin{align*}
+  & \min{z} = \min{Y} = \max{\{X_1, X_2\}} \\
+  & Y >= X_1 \\
+  & Y >= X_2 \\
+  \\
+  & \min{Y} \\
+  & Y >= a \\
+  & Y >= -a
+\end{align*}
+
+Example: 
+...
+We can express binary variables, $if X_1 > 0 then X_2 = 0$ and $if X_2 > 0 then X_1 = 0$. We can express them with binary variable $Y_1 = 0, 1$ $Y_2 = 0, 1$
+
+BIG M, where M is constant, big fixed number. We want to express
+\begin{align*}
+  & Y_1 = 0, 1 \\
+  & Y_2 = 0, 1 \\ 
+  & Y_1 + Y_2 <= 1 \\ 
+  & X_1 <= M_1 Y_1 \\ 
+  & X_2 <= M_2 Y_2 
+\end{align*}
+If $Y_1$ is 0 $X_1$ is bount to 0, if $Y_1 = 1$ $X_1$ is virtually unbounded, the same for $X_2$ and $Y_2$. $M_1$ and $M_2$ are large constants. During a software simulation it reasonable to choose the varaibles in a range that won't be reachable.
+
+
+\subsection{Fixed Values}
+Problems where we have only a fixed amount of resources. We manage them by using several logical variable for every variable that is fixed.
+\begin{align*}
+  Y_1 + \dots + Y_k = 1 \\
+  X = p_1 Y_1 + \dots + p_k Y_k
+\end{align*}
+The first equation imposes that only of the $Y$ can be one. The second equation imposes that $X_j$ can only have one of the quantities $p1, p2, \dots, p_k$.
+
+
+Example 6:
+
+
+A1, ..., A5
+B1, ..., B5
+C1, ..., C5
+D1, ..., D5
+we remove the years we cannot invest in.
+
+we derive the first constraints starting from the first year. Wich is the sum of investments less than the total money.
+
+
+
+
+
+\end{document}
+
+%% vim: ts=2 sts=2 sw=2 et

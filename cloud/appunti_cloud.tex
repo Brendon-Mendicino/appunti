@@ -1,0 +1,57 @@
+\documentclass[12pt]{article}
+
+\usepackage{notestyle}
+
+\graphicspath{{./img/}}
+
+
+\title{Notes Cloud}
+\author{Brendon Mendicino}
+
+
+\begin{document}
+
+\maketitle
+\newpage
+\tableofcontents
+
+\section{Int}
+One application per server: isolation, right dependencies on different libraries or differt OSs.
+
+To solve this problem virtual machines were invented, garanteeing the right amount of power, memory amount for a specific application and have the right OS and libraries.
+
+This was also possible due to the CPUs shipping whit more than one core, thus allowing multiple virtual machines running in parallel on a single computer.
+
+To allow virtualization some primitive instruction of the CPU were needed, this is why during the 70-80s it was not possible to virtualize on intel CPUs (not with high performance at least), virtulization was invented in the 60's by IBM and then it came back to fruition in the 90's.
+
+Advantages of virtualization:
+- isolation
+- consolidation: running more virtual machine on the same hardware
+- flexibility and agility: agility means the possibility to have more power just by a simple request on the new servers, flexibility means that new piece of hardware can be managed just like a simple resource to take from this is done just by twiking some parameters of the vritual machines
+
+The virualization comes with the overhead given by the hypervisor + the os inside VM, and it is more difficult to manage heterogeneous hardware, which is possible but 
+
+\begin{definition}
+  Virtual Machine: software emulation of a physical machine that executes OS + Apps such as being in a physical one
+
+  Host OS: it can be a vanilla os (linux + kvm) or to build a reduced version of an os (deleting all the unnecessary components and by adding the required primitives) like VMWare solution, 
+\end{definition}
+
+...
+
+\subsection{Sensitive instruction}
+In the Intel processors we have some non-priviliged instructions that are able to leak informations about the underneath hardware. Some of the sulutions:
+\begin{itemize}
+  \item make all sensitive instructions priviliged (KVM, VMWare, ...), this approach requires to change the CPU
+  \item parse the instruction stream and detect all sensitive instructions dynamically, which means that only the code that will be execuded will be analyzed and then translated if needed
+  \item change the operating system, this is called paravirtualization and it is done by modifying the OS
+\end{itemize}
+To speedup the execution of virtual we use \textbf{hardware-assisted virtualization}:
+...
+
+
+
+
+\end{document}
+
+%% vim: ts=2 sts=2 sw=2 et
