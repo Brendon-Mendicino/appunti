@@ -47,46 +47,69 @@ The variables are a set of entities that describes the solution of the problem, 
 
 \begin{example}{The Knapsak Problem}{}
   \textit{A bunch of friends is organizing an excursion and decies to put everithing in a single knapsack with capacity 10Kg.}
-  \\ \\
-  The knapsack may be filled with:
-  \begin{itemize}
-    \item chocolate (500g)
-    \item fruit juice (1l)
-    \item beer (0.33l)
-    \item snadwiches (100g)
-    \item mineral water (1l)
-    \item cookies (500g)
-  \end{itemize}
-  Each product is given a score:
-  \begin{itemize}
-    \item chocolate (10)
-    \item fruit juice (10)
-    \item beer (6)
-    \item snadwiches (3)
-    \item mineral water (20)
-    \item cookies (8)
-  \end{itemize}
-  It was decided to garantee a minimun amount of each product:
-  \begin{itemize}
-    \item chocolate (2)
-    \item fruit juice (2)
-    \item beer (6)
-    \item snadwiches (10)
-    \item mineral water (1)
-    \item cookies (2)
-  \end{itemize}
 \end{example}
 
+\begin{table}[h]
+  \caption{}\label{tab:}
+  \begin{center}
+    \begin{tabular}{l l l l}
+      \hline
+      Food & weight & score & min qty \\
+      \hline
+      chocolate & 500g & 10 & 2 \\
+      fruit juice & 1l & 10 & 2 \\
+      beer & 0.33l & 6 & 6 \\
+      snadwiches & 100g & 3 & 10 \\
+      mineral water & 1l & 20 & 1 \\
+      cookies & 500g & 8 & 2 \\
+      \hline
+    \end{tabular}
+  \end{center}
+\end{table}
 
-Given the full model, we insert it into the simplex and it returns back the best optimal solution
+
+We can asign a letter to each an item, this will represent the quantity of each of it, given all those variable the objective function is each item times his score, which we have to maximase
+\[
+  f = \max{( 10 A + 30 B + 6 C + 3 D + 20 E + 8 F)}
+\]
+then create our constrints
+\[
+  1/2A + B + 1/3C + 1/10D + E + 1/2F <= 10
+\]
+\[
+  A >= 2 \land B >= 2 \land C >= 6 \land D >= 10 \land E >= 1 \land F >= 2
+\]
+  
 
 Example:
 The steel plant
 
 Example:
-From chicken farm to fast food.
+\begin{example}{from chicken farm to fast food}{}
+  \textit{A company has 4 fast food shops (PH1, PH2, PH3, PH4) that require weekly
+10.000, 15.000, 5.000 and 7.500 chicken
+The company has 3 chicken farms (F1, F2, F3) that can supply respectively
+12.500, 18.000 and 7.000 chicken per week.}
+
+  \textit{It is known that the shipping costs are 0.1 €/Km (per chicken).
+The distances between chicken farm and fast food are
+  \begin{\begin{itemize}
+    \item 20, 25, 15, 5 Km. respectively for the first farm,
+    \item 12, 14, 18, 30 Km. respectively for the second farm,
+    \item 19, 11, 40, 12 Km. respectively for the third farm.
+  \end{itemize}}}
+
+  \textit{Formulate a Linear Programming model of this problem minimizing the total cost.}
+\end{example}
 
 The varaibles are the quantity of chicken going from every farm to each single shop. We can represent this a matrix with columns the farms and as for rows the quantities of chicken
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.95\textwidth]{./img/chichen-farm-variables.png}
+  \end{center}
+  \caption{}\label{fig:}
+\end{figure}
 
 
 Minimize and absolute value, we want to minimize the difference between the target and the value

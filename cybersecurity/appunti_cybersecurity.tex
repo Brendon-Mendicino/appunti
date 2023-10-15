@@ -18,16 +18,27 @@
 \newpage
 \tableofcontents
 
+\newpage
 \section{TLS}
-...
+TLS (Transport Layer Security) is a message encrption protocol that is used to protect application level messages. TLS is the successor of SSL, which is now deprecated and should not be used, the TLS versions that are recomended are the lates TLS-1.2 and TLS-1.3. TLS as a protocol guarantees:
+\begin{itemize}
+  \item \textbf{Peer Authentication}: during a TLS session the server needs to compulsory authenticate himself, while for the client is not required, this is done using a challange-response which can \textbf{implicit} or \textbf{explicit}
+  \item \textbf{Message Confidentiality}: each record can be \textbf{optionally} encrypted during the transmission
+  \item \textbf{Message Authentication and Integrity}: every record sent in TLS \textbf{must} be authenticated and integrity needs to be guaranteed, this is done via a MAC
+  \item \textbf{Replay and Filter Protection}: TLS uses an implicit sequence number which is included in the MAC
+\end{itemize}
+TLS is structured in two layers, the first one is \textbf{record protocol}, which manages the record exchange, the second one is composed on many ones:
+\begin{itemize}
+  \item \textbf{Handshake Protocol}: creates the TLS session
+  \item \textbf{Change Cipher Spec}: change the encryption cipher suite 
+  \item \textbf{Alert Protocol}: to signal the end a connection 
+  \item \textbf{Application Data}: data coming from an application
+\end{itemize}
+In TLS all the keys for a connection are generated when a \textbf{session} is created with public key cryptography. The tow peers create a shared secred called \textbf{premaster secret} wiht PKC and by using some random numbers created by both the \textbf{master secreted} is created wich identifies a session, when a session is crated the peers can create multiple \textbf{connections} whose keys are generated using the master secret (key for MAC, key for encryption, IV for encryption), the reason why we have connection is done to reduce the overhead cause by the handshake. But using PKC to generated a session subject to attacks, in fact if someone stores all the messages and, in future, is able to find the private key is able the decrypt all the messages in the handshake, find the master secrect and decrypt all the exchanges messages, this is why \textbf{Perfect Foward Secrecy} was created, the key concept is: \textit{the compromise of a private key compromisises only the current and future traffic.}
 
-Keys generated when a session is created with public key cryptography. We create a shared secred called pre-master secret wiht PKC part of the the session, to create a connection the server and client generate a random number, those secret in combination with the pre-master secret create a master secret which is part of the session, in this way can create the differnt keys of each new connection (key for MAC, key for encryption, IV fot encryption).
+In order to implement PFS we use an \textbf{ephemeral machanism}, we need auth of the server vie his certificate, the key of the server certificate must be marked as signature key, during the handshake the server will create another key-pair, to prove that the key comes from the server that is signed by the server, like if the server was a certificate authority, now the client has this new key the server can compute the premaster secret and send it encrypted to the client (with the new key-pair generated on the fly). Usaully the key-pair generated are done with DH, on the other hand RSA is not suitable because it is slow, so those keys may be reused due to performance issues, which can lead to attacks.
 
-perfect forward secrecy: the compromise of a private key compromisises only the current and future traffic.
-
-In order to implement PFS we use an ephemeral machanism, we need auth of the server and ..., the key of the server certificate is marked as signature key, during the handshake the server will create another key-pair, to prove that the key comes from the server that is signed by the server, like if the server was a certificate authority, now the client has this new key the server can compute the pre-master secret and send it encrypted to the client (with the new key-pair generated on the fly). Usaully the key-pair generated are done with DH, RSA is not suitable because is slow, so those keys may be reused due to performance issues.
-
-\subsection{TLS Handshake}
+\subsection{TLS-1.2 Handshake}
 
 \paragraph{Client hello:}
 \begin{itemize}
@@ -42,35 +53,30 @@ In order to implement PFS we use an ephemeral machanism, we need auth of the ser
 
 \paragraph{Server hello:}
 \begin{itemize}
-  \item Version chosen by the server (should be strong), the server may choose to close the connection if the sercurity is too poor (old versions of TLS, old poor chipher suite), the security in TLS is server-based
+  \item Version chosen by the server (should be strong), the server may choose to close the connection if the sercurity is too poor (old versions of TLS, old poor chipher suite), in TLS the security is chosen by the server, he decides wheter the algorithms are good enough
   \item 28 randon bytes
-  \item session id: new session if the client id=0, or replace the old one if the server chooses to
+  \item session id: new session if the client id=0, or replace the old one if the server chooses to, this could be due to load balancing, in this scenario sharing the master secret could lead to overloading or vulnerabilities
   \item cipher suite chosen (should be strong): the server can refuse the connection if the cipher suite is too poor
   \item compression method chosen
 \end{itemize}
 
 \paragraph{Cipher suite:}
-List of strings containing the various algorithms for: key exchange, symmetric encryption, hash.
+List of strings containing the various algorithms for: key exchange, symmetric encryption, hash, it is maintained by the IANA and the list arrives up to 200 items.
 
 \paragraph{Certificate (server):}
-If this is a new session the server is sending a X.509 certificate, with the whole chain of certifactes except for the root CA, in the subject/subectAltName the certificate must contain the name of the server. This can be used for signing or for encryption, some fields may depend on the kind of key.
+If this is a new session the server is sending a X.509 certificate, with the whole chain of certifactes except for the root CA (that should be owned by the user), in the subject/subectAltName the certificate must contain the name of the server. This can be used for signing or for encryption, if the key is used for signature the \textit{Server Key Exchange} phase is required.
 
-\paragraph{Certificate request (optional): }
+\paragraph{Certificate request (server): }
 The server request to the client his certificate, along with a list of supported CAs.
 
 \paragraph{Server key exchange:}
-This message is only sent in case of explicit response to the challange, this can only happen when the server pubkey is eligible for signing, the next step is to use ephemeral DH (or ephemeral RSA) by signing the public parameters sent to the user (it is also possible to use anonymous DH whitout signing it, but it is subject to man in the middle attack), thus creating the pre-master secret
+This message is only sent in case of explicit response to the challange, this can only happen when the server pubkey is eligible for signing, the next step is to use ephemeral DH (or ephemeral RSA) by signing the public parameters sent to the user (it is also possible to use anonymous DH whitout signing it, but it is subject to man in the middle attack), thus creating the premaster secret which are the parameters of the DH.
 
 \paragraph{Certificate (client):}
 Sends client certificate to the server, the certificate must be from a root CAs previously sent by the server.
 
 \paragraph{Client key exchange:}
-The client generates symmetric keys (pre-master secret) and sends them to the server, the pre-master is sent to the server encrypted with:
-\begin{itemize}
-  \item RSA public key (ephemeral or from X.509)
-  \item DH public key (ephemeral or anonymous)
-\end{itemize}
-During this phase the server is authenticated, in fact when creating the ephemeral DH keys we need to verify the signature that it came along, or if no ephemeral machanism is used the X.509 pubkey is used for encryption thus only allowing the owner of the private key to decrypt the message.
+The client generates symmetric keys (premaster secret) and sends them to the server, the premaster is sent to the server encrypted with RSA public key, or if EDH was used the client sends his public part to the server thus creating the same premaster secrect (which both will hold). During this phase the server is authenticated, in fact when creating the ephemeral DH keys we need to verify the signature that it came along with, or if no ephemeral machanism is used the X.509 pubkey is used for encryption thus only allowing the owner of the private key to decrypt the message.
 
 \paragraph{Certificate verify:}
 Explicit response of the challange. The hash computed over all the handshake messages before this one, used only with client authentication.
@@ -85,27 +91,30 @@ Both "change cipher spec" and "finished" are sent first from the client and then
 
 
 \subsection{Data exchange and link teardown}
-When a client wants to close the connection it sends an "alert close notify" along side a MAC, otherwise an attacker could send the same message, without being authenticated and thus closing the connection.
+When a client wants to close the connection it sends an "alert close notify" alongside a MAC, otherwise an attacker could send the same message, without being authenticated and thus closing the connection.
 
 The TLS setup time is given by: TCP handshake + TLS handshake, typycally 1 RTT for TCP and 2 RTT for TLS.
 
 
 \subsection{Heartbleed}
-It's exploting a TLS extension \textit{headtbeat} that used to send a message after a timer to avoid closing the connetion due to out of time. The OpenSSL implementation contained a bug by not replying the correct data lenght, thus leaking informations on the server RAM like usernames, passwords, cookies, ...
+It's exploting a TLS extension \textit{headtbeat} used to send a message after a period of time to avoid closing the connetion due to out of time. The OpenSSL implementation contained a bug by not replying the correct data lenght, thus leaking informations on the server RAM like usernames, passwords, cookies, ...
 
 \subsection{Bleichnbacher}
-There is a problem in which RSA encryption is performed, the attacker can perform an RSA private key operation and send about a million messages well-crafted and by looking at the differences in error codes received the server private key can be found. 
-
-Even if the attacker does not know the server private key, by sending a million message to it's possible to leak some information on the server private key, by doing this is possible also with a laptop the retrieve it.
+There is a problem in which RSA encryption is performed when the premaster secret is encrypted with the public key of the server, the attacker can perform an RSA private key operation and send about a million well-crafted messages and by looking at the differences in error codes received from the server the premaster secrect can be found. Recent improvements in the why the messages are sent only around a thousend messages are need allowing also a laptop to perform the attack.
 
 \subsection{CRIME}
-By injecting some plaintext in the TLS message is possible to retreive some information already present in the other messages, the reason is that if TLS is used with compression and we inject a plaintext that already exist we will see a reduction in the message lenght, thus infoming us of the presence of the same plaintext.
+By injecting some plaintext in the TLS message is possible to retrieve some information already present in the other messages, the reason is that if TLS is used with compression and we inject a plaintext that already exist we will see a reduction in the message lenght, thus infoming us of the presence of the same plaintext. 
+
+For this reason \textit{using compression in TLS is a bad idea}.
+
+\subsection{BREACH}
+Uses HTTP compression to get secrets in the HTTP server response.
 
 \subsection{BEAST}
 The server is using the last block of the previous channel as an IV for the next CBC chipher, a MITM may decrypt the HTTP request with a chosen plaintext attack and decrypt some informations like cookies. 
 
 \subsection{POODLE}
-It is a MITM attack that exploits SSL-3 fallback to decrypt data, a 2014 version also works on TLS-1.0 / TLS-1.2, this is one the reasons the \texttt{change cipher spec} was removed in TLS-1.3
+Exploits TLS-1.0-1.2 CBC errors.
 
 \subsection{FREAK}
 Downgrade attack were we trick the server into using a EXPORT cipher, and the attacker can just brute force the key. The MITM must be an active attacker in order to be able to perform this exploit.
@@ -116,63 +125,102 @@ To be able to see what our server vulnerabilities could be there is a website th
 The client can send application data along the ChangeCipherSpec and Finished message (this need to be fast is being pushed by Google), thus reducing latency to 1-RTT. If we want to enable this extension our browser need ALPN + forward secrecy and be configured to prefer the cipher suites with forwared secrecy.
 
 \subsection{Session Tickets}
-The server is required to keep a session id for later connection, but this could become very heavy on very high-traffic server, thus a TLS session ticket is an extension to replace the session id, allowing to send the session id to the client encrypted with the server secret key, and when the client wants to have a new connection it send the ticket to the server, in this way the cache is move from the server to the client. We cannot rely on this because the browser still needs to support this extension, in load balancing environemnt the different server need to share all the secret keys among themselves.
+The server is required to keep a session id for later connection, but this could become very heavy on very high-traffic servers, thus a TLS session ticket is an extension to replace the session id, allowing to send the session id to the client encrypted with the server secret key, and when the client wants to have a new connection it send the ticket to the server, in this way the cache is move from the server to the client. We cannot rely on this because the browser still needs to support this extension, in load balancing environemnt the different server need to share all the secret keys among themselves.
 
 
 
 \subsection{TLS-1.3}
-- It was chosen to reduce the latency
-- Encrypt as much as possible of the handshake
-- remove a lot legacy features
-- imporoving reseliancy to cross-platforms attacks
+TLS-1.3 improves on TLS-1.2:
+\begin{itemize}
+  \item reduce the latency
+  \item encrypt as much as possible of the handshake
+  \item remove a lot legacy features
+  \item imporoving reseliancy to cross-protocol attacks
+\end{itemize}
 
+\subsubsection{Key Exchange}
+Static RSA and DH key exchange are removed, the preferred mechanism is perfect forward secrecy like DHE, but only certain public parameters are permitted. 
 
-static RSA and DH key exchange are removed, the preferred mechanism is DHE but only certain public parameters are permitted. The protocol whatching previous pitfalls does not allow anymore: CBC and authenticate-then-encrypt, ...
+\subsubsection{Message Protection}
+The protocol whatching previous pitfalls does not allow anymore:
+\begin{itemize}
+  \item CBC and authenticate-then-encrypt created Lucky13 and POODLE
+  \item the use of RC4 
+  \item compression mechanism which lead to CRIME
+\end{itemize}
+To avoid this problems TLS-1.3 only uses \textbf{AEAD} (Authenticated Encryption with Additional Data), dropped RC4, 3DES, ..., removed the possibility to compress data.
 
-RSA signature of ephemeral keys, handshake authenticate with MAC and not a signature,
+\subsubsection{Digital Signature}
+RSA signature of ephemeral keys with PCKS1 v1.5 for handshake authentication lead to Bleichnbacher attack, and the handshake was authenticated with a MAC wich lead to FREAK attack. RSA signatures are only preformed with \textbf{RSA-PSS schema}, the whole handshake is signed, only modern chiper suites are allowed.
 
-RSA signatures are preformed with RSA-PSS, the whole handshake is signed, only modern chiper suites are allowed,
+\subsubsection{Ciphersuites}
+TLS-1.3 only uses 5 ciphersuites, compared with the 200 of TLS-1.2. 
 
-TLS-1.3 only uses 5 ciphersuites, compared with the ...
+\subsubsection{EdDSA}
+EdDSA stands for \textbf{Edwards Curve DSA} and is very similar to EC. The problem with ECDSA is that it requires a PNRG each time we sign something and if the PRNG is broken it could leak informations about the private key. EcDSA does not require a PRNG but instead uses a nonce created from the hash of the private key and the message.
 
-...
+In general on EcDSA we have \textbf{N-bit public key length} and \textbf{2N-bit signature length}
 
 \subsection{TLS-1.3 Handshake}
 For backward campatibility, TLS-1.2 are still sent if the device is too old to support TLS-1.3, the RTT has been reduced to 1, and it can be reduced to 0 if we are resuming a previous session (or using Pre Shared Key). 
 
-notation:
-{ data } = protected by keys derived from handshake
-[ data ] = protected by keys derived from application
+Notation:
+\begin{itemize}
+  \item \verb|{ data }| = protected by keys derived from handshake
+  \item \verb|[ data ]| = protected by keys derived from application
+\end{itemize}
 
-Client hello
-- key-share = client (EC)DHE share
-- signature-algorithm: list of supported alogos
-- psk-
+\paragraph{Client hello}
+The client hello contains
+\begin{itemize}
+  \item version 
+  \item ciphersuites 
+\end{itemize}
+And some extensions for key exchnage
+\begin{itemize}
+  \item \verb|key_share| client (EC)DHE share
+  \item \verb|signature_algorithm| list of supported alogorithms
+  \item \verb|psk_key_exchange| supported key exchange
+  \item \verb|pre_shared_key| list of preshared key offered
+\end{itemize}
 
-Server hello
-(rand, slected version, cihpersuite)
-key exchange
-- key-share server (EC)DHE
-- pre-shared-key: selected PSK 
-server param:
-- { EncryptedExtensions }: respone to non-crypto cline ext
-- { CertificateRequest }: req for client cert
-serv auth:
-- { Certificate }: X.509 cert (or raw key)
-- { CertificateVerify }: signature over the entire handshake
-- { Finished }: MAC over the entire handshake
+\paragraph{Server hello}
+Contains (rand, slected version, cihpersuite) \\
+Key exchange
+\begin{itemize}
+  \item \verb|key_share| server (EC)DHE share
+  \item \verb|pre_shared_key| selected PSK
+\end{itemize}
+Server param:
+\begin{itemize}
+  \item \verb|{EncryptedExtensions}| respone to non-crypto client ext
+  \item \verb|{CertificateRequest}| req for client cert
+\end{itemize}
+Server auth:
+\begin{itemize}
+  \item \verb|{Certificate}| X.509 cert (or raw key)
+  \item \verb|{CertificateVerify}| signature over the entire handshake
+  \item \verb|{Finished}| MAC over the entire handshake
+\end{itemize}
 may send
-- [ ApplicatinData ]
+\begin{itemize}
+  \item \verb|[ApplicatinData]|
+\end{itemize}
 
-Cient finish
-- { Certificate }: X.509 cert (or raw key)
-- { CertificateVerify }: signature over the entire handshake
-- { Finished }: MAC over the entire handshake
+\paragraph{Cient finish}
+\begin{itemize}
+  \item \verb|{Certificate}| X.509 cert (or raw key)
+  \item \verb|{CertificateVerify}| signature over the entire handshake
+  \item \verb|{Finished}| MAC over the entire handshake
+\end{itemize}
 may send:
-- [ ApplicatinData ]
+\begin{itemize}
+ \item \verb|[ApplicatinData]|
+\end{itemize}
 
 
-Pre Shared Keys, replaces session id and session ticket,
+\subsubsection{Preshared Keys}
+Pre Shared Keys usually replaces session id and session ticket,
 ... 
 
 0-RTT connections
