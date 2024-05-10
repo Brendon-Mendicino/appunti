@@ -426,9 +426,11 @@ If more implementations to create a single `Bean` are provided we can attach eac
 We can read the keys in the application properties file using `lateinit var` in case we need a configuration that we can change
 
 ```kotlin
-@Value("${server.port}")
-lateinit var part: Int
+@Value("\${server.port}")
+lateinit var port: String
 ```
+
+
 
 
 # Spring WebMVC
@@ -446,9 +448,82 @@ Spring supports two way to build web application (two ways of handling concurren
 
 An abstraction to be the unit of computation (a class that handles a request and produces a response). Some more specific subclasses exist (`HTTPServlet`). The approach servlet took it's the same that SpringMVC uses: one-request-per-thread.
 
+## Exposing a web resource
 
-FlavY:
-378.33
+```kotlin
+@Controller
+class MainController {
+  @GetMapping("/")
+  fun index(): String {
+    // home.html will be served to the user, under the `resource` folder
+    return "home"
+  }
+}
+```
+
+The page is served tanks to a bean called `viewResolver`. This was relevant many years ago, now has been replace mostly by a `@RestController`, where we just provide some REST mappings.
+
+All the parameter are automatically filled by Spring, like `@RequestParam`, this will be mapped the type given in the constructor of the controller method.
+
+## Showing HTML content
+
+The way we introduce variable into the HTML is by using **Thymeleaf**, which is a very prowerfull templating engine.
+
+```kotlin
+@Controller 
+class HomeController {
+  @GetMappign("/")
+  fun home(): ModelAndView = ModelAndView("home", mapOf("date" to LocalDateTime.now()))
+}
+```
+
+```html
+<!DOCTYPE html> 
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+  <h1>Home</h1>
+  <p th:text="Now is ${date}"></p>
+</body>
+</html>
+```
+
+## Processing data
+
+We can supply data to a controller using: `@RequestParam`, `@RequestBody`, `@PathVariable`. It's also possible to supply request parameters inside an object, Spring will automatically grab all the request parameters and assign them to the provided objects and the sub-objects in the function parameters.
+
+## Validation
+
+We use spring validation to validate request from the user, using `@Valid`, `@Min`, `@Max`, `@Size` on the fields of a kotlin data class, this allows for an easy validation of the user requests.
+
+```kotlin
+data class ReqDTO(
+  @field:Size(max = 255)
+  @field:NotBlank
+  val test: String,
+  @field:Valid
+  val sub: SubReqDTO,
+)
+
+data class SubReqDTO(
+  @field:Size(max = 255)
+  @field:NotBlank
+  val sub: String,
+)
+```
+
+
+# Service Layer
+
+The service layer is right below the controllers, it will accept the request and exchange data with the data layer.
+
+## DTOs (Data Transfer Objects)
+
+DTOs are the objects that the server exchanges with the client, when the DTO will enter the service layer, they will be converted to an internal model representation, which suits the DB internal entities.
+
+## Defining a service
+
+The service is defined as an interface, this allows as to provide a set of methods that each will be mapped to a requirement of our application.
+
 
 
 
