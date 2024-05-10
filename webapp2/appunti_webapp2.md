@@ -837,10 +837,76 @@ The only two public end-poitns of our applications will be the `IAM` and the `OA
 
 Still there is a problem if a browser tries to logout, the `OAuth2 Client` will delete the cookie and the token, and the browser will be redirected to the `IAM` again, but the `IAM` contain already a session, which will not be deleted, and so it will get me a new **nonce** and, immediately, redirect the browser to the `OAuth2 Client`. So we didn't really logout, to specifically do this there is a special, function we can call on the `IAM` ...
 
+## Resource Server
+
+OAuth2 Resource Server provides information, it will attach a security token to each of the user request only if the token is validated.
+
+- `issuer`: address of the IAM
+
+In the security configuration the `sessionManagement` we declare it as `STATELESS` because it will be handled by the `OAuth2 Client`.
+
+## Contact Resource Server from the Client
+
+The **client** must map application requests to the **resource server** (send authenticaed requests to the resource server), thus a **Gateway** function must be implemented. This can be done easily with the spring cloud gateway library.
+
+How do we tell the gateway (inside the client) where to send our requests?
+
+```yaml
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+          - id: service1
+            # uri of the resource server
+            uri: http://localhost:8081
+            predicates:
+              # Paths to match, only the specified paths will be
+              # forwared to the resource server
+              - Path=/api/v1/**
+            filters:
+              # How many parts of the uri needs to be stripped
+              # from the request
+              - StripPrefix=2
+              # Include in the header (which will be forwared)
+              # `authorization-beares` followed by the jwt.
+              - TokenRelay
+```
+`application.yaml` of the client
 
 
+## Accessing the principal
+
+OAuth2 client we don't want to use sessions ...
+
+Each method of a service can annotated with
+
+- `@PreAuthorize`: evaluate **SpEL**, invoke the method if the check pass
+- `@PostAuthorize`: block if the response after the method is invoked, if there is a transaction it will be rolledback, e.g. in a bank accoutn we can say after the method is invoked the balance has to be greater than zero, doing it apriori is difficoult, in this way is way easier to check
+- `@PreFilter`: evaluate **SpEL**, expression evaluated on a collection of elements
+- `@PostFilter`:
+- `@Secured`: we check that who invoked this method has a certain role
 
 
+When we disign a Single Page Application, we have a problem, because IAM login and SPA don't really works togheter. The SPA has to distinguis wether the user logged in or not.
+
+In the client application we need to identify that the user is not authenticated, 
+
+SPA authN flow:
+1. request:
+1. we try to access a resource, but are not authorized
+1. the JS will replace our URL with the of the IAM authentication
+1. When we provide the credientials to the IAM
+1. we will be redirected back to the SPA, which was completely destroyed
+1. this time we have cookie
+1. the SPA will show approprieate components
+
+When this approach is used the SPA is called **BFF** (Backend For Frontend)
+
+
+The JS comunicating with the Server using a session is convenient, this allows for some attacks, one of this is called CSRF, where another web application can send request on the server on your behalf. This can be done because we have a valid session on the browser, we can prevent this by using some counter measures, all operations that can change something on the server we attach a `csrfToken` to the request, this can be done view the `SecurityFilterChain`.
+
+When the JS will perform a request to change something on the server we attach a HTTP header `XSRF-TOKEN`, thanks to that the spring server will be able to validate the request, thus avoid someone else to perform request not performed by us.
 
 
 
