@@ -766,3 +766,81 @@ class PeopleRepository(val operator: TransactionalOperator) {
 
 
 
+
+# OpenID Connect
+
+## Json Web Token (JWT)
+
+Whenever we are logging in a OIDC IAM provider, we will get a token encoded as the standard describes in `Base64`. The JWT is divided in 3 parts
+
+- **Header**: information about the token itself in json notation
+- **Payload**: provides information about who will use this premissions and who garanted this permission
+- **Signature**: the signature of the **header** and **payload**.
+
+Payload fields:
+- `sub`: defines the subject of the JWT
+- `iss`: issuer of the JWT
+- `aud`: the address of the intended service destined for the JWT
+- `iat`: **Issued AT** (timestamp in epoch data)
+- `nbf`: **Not valid BeFore**
+- `exp`: **EXPiry**
+
+
+# Spring Security
+
+Declarative framework built aroud our application.
+
+Both `Filters` and `Aspects` are governed by set of **Security Configuration**. To include security we need to add the `spring-boot-start-security` dependency. By default this plugin renders our application unusable, because it requires a login to be used, it can be configured further. Other dependencies are `spring-boot-starter-oauth2-*`, which allows us to use **OAuth2** login methods. We can also specify some `Filters` to check what comes inside the `Controller`s and what goes out of them.
+
+Terminology:
+
+- `Principal`: user, system or device acting in the system
+- `Authentication`: who is accessing out application
+- `Credentials`: whatever is used by a `Principal` to 
+- `Authorization`: wether or not to give access to certain action to a `Principal`
+- `Secured Resource`:
+- `GrantedAuthority`: the set of actions that can be performed, any `Principal` can be assigned to a set of `GrantedAuthority` (like the authorizations on a Linux file).
+- `SecurityContext`: stores information of the authenticated user, in Spring this context is bound to a thread which it knows who is invoking that function.
+
+To configure how to the end-points should accept the various requests, we can a Spring `SecurityFilterChain`
+
+```kotlin
+@Configuration
+class SecurityConfig {
+  @Bean
+  fun securityFilterChain(httpSecurity: HttpSecurity): SecurityFilterChain {
+    return httpSecurity
+      .authorizeHttpRequest {
+        // Everybody
+        it.requestMathers("/", "/login", "/logout").permitAll()
+        // Only logged in
+        it.requestMathers("/secure").authenticated()
+        // Only not logged in
+        it.requestMathers("/anon").anonymous()
+      }
+      .formLogin {}
+      .logout {}
+      .build()
+  }
+}
+```
+
+## Authentication Providers
+
+The easiest is a `DaoAuthenticationProvider` which will use a database internally to check if the db contains that username and encrypted password, this is possible for trivial applications.
+
+Depending on which part of the OAuth2 chain we are we use two different providers: `OidcAuthorizaionCodeAuthenticationProvider`, `JwtAuthenticationProvider`
+
+## OIDC Authorization Code Flow.
+
+The only two public end-poitns of our applications will be the `IAM` and the `OAuth2 Client`, all our services will be **hidded** behind the `OAuth2 Client`. When a browser will perform a request on our services, it will redirect (`3xx`) the request to the `IAM`. Once the `IAM` has authenticated the user, it will respond with a `302` redirecting the browser to the `OAuth2 Client` with a **nonce** inside the request parameters, with that nonce the `OAuth2 Clien` can get a **token** created by the `IAM`, when this finishes the `OAuth2 Client` create a **cookie** associated with the current session (token), when the browser will make a request the `OAuth2 Client` will translate the cookie to a **token**, the `OAuth2 Resource Server` will check the token for permissions, and finally will respond to the browser with a response.
+
+Still there is a problem if a browser tries to logout, the `OAuth2 Client` will delete the cookie and the token, and the browser will be redirected to the `IAM` again, but the `IAM` contain already a session, which will not be deleted, and so it will get me a new **nonce** and, immediately, redirect the browser to the `OAuth2 Client`. So we didn't really logout, to specifically do this there is a special, function we can call on the `IAM` ...
+
+
+
+
+
+
+
+
