@@ -426,11 +426,9 @@ If more implementations to create a single `Bean` are provided we can attach eac
 We can read the keys in the application properties file using `lateinit var` in case we need a configuration that we can change
 
 ```kotlin
-@Value("\${server.port}")
-lateinit var port: String
+@Value("${server.port}")
+lateinit var part: Int
 ```
-
-
 
 
 # Spring WebMVC
@@ -448,81 +446,85 @@ Spring supports two way to build web application (two ways of handling concurren
 
 An abstraction to be the unit of computation (a class that handles a request and produces a response). Some more specific subclasses exist (`HTTPServlet`). The approach servlet took it's the same that SpringMVC uses: one-request-per-thread.
 
-## Exposing a web resource
+
+# Domain Driven Design
+
+A totally differnt way to architect the application in a different way based on how spring does it.
+
+Language is ambiguos, e.i. in an airport we have names for that domain, a departure for example is the start for their journey for travellers and the end of their job for airport workers, depending on the perspective of the person that word can have a different meaning, this is why engineers need to collaborate with domain expers. In DDD we want to create teams with Domain expert which will lead the building of the application in the right way.
+
+## Benefits
+
+A system should be split in parts and each part should have a clear separation of concern.
+
+Each part has a different role, and they are called **Domains**. They are divided in:
+- **Support Subdomain**: something that is need but is not specific to that application, e.g. many application need to store documents, there nothing inherently special in this generic operation, if a system does implement this operation it is to support other operations.
+- **Generic Subdomain**: e.g designing a good login service is very difficoult, many companies have the same problem, but it whould be stupid to recreate each time this component, when someone creates a library that is secure and reliable then the problem is solved for everyone.
+- **Core Subdomain**: it's difficult to implement highly differentiated from everybody, those components are vital for the application inner working.
+
+===
+
+***Software is worth if it brings value***, this is main idea that DDD brings.
+
+===
+
+## Bounded context
+
+Differnt departments interpret entities in a very different way, and we need to take into cosideration this differences and the overlapping similarities.
+
+Strategic vs tactival desgin:
+
+- Strategic: am I designing the right things?
+- Tactical: am I designing things righ?
+
+They are both relevant and useful.
+
+## Key Concepts
+
+- **Entity**: concepts that is represent in the database and is identifiable (unique ID), and the ID will be constant for its entire lifecycle, in DDD entities contains **methods**, in JPA entities represent table structure, in DDD an Entity is like a Service in Spring. Our system will behave with the various Entities.
+- **Value Objects**: objects are in DDD what we typycally assign as attributes in JPA entities, but we create an object out of it in DDD, because also attributes has behaviours, e.g. a price is not only a the value of money but also the currency.
+- **Aggregates**: it's a object composed of other objects, where each object refers to other objects. There is a **root aggregate** where the tree of objects originates. Aggregates always form graphs, and each aggregate can link to another aggregate, but it can only be done in a unidirectional way (tree style).
+- **Repository**: tooling for storing objects
+- **Services**: express some part of domain logic, usually used for transactionality
+- **Factories**: used to create aggregates, validates all the necessary constraints
+- **Domain Events**: letting one system informing another system that something happened
+
+
+# Spring Data in depth
+
+Repositories are interfaces used to retrieve entities. Spring supports both JPA entities and JDBC DDD.
+
+## JDBC
+
+JDBC offers native support for DDD pattern, like the automatic emission of events with `@DomainEvent` which will be able use reactive approaches. It's also possible to use `@AfterDomainEventPublication` to allow for various cleanups.
 
 ```kotlin
-@Controller
-class MainController {
-  @GetMapping("/")
-  fun index(): String {
-    // home.html will be served to the user, under the `resource` folder
-    return "home"
-  }
+data class Warehouse(@Id val id: String, val location: String) {
+    @MappedCollection
+    private val inventoryItems = mutableSetOf<InventoryItems>()
+    fun addInventoryItem(inventoryItem: InventoryItem) {
+        _domainEvents.add(InventoryItemAdded(this, inventoryItem))
+        inventoryItems.add(inventoryItem)
+    }	
+  
+    private val _domainEvents = mutableListOf<Any>()
+    @DomainEvents
+    fun domainEvents(): List<Any> = _domainEvents
+  
+    @AfterDomainEventPubblication
+    fun cleanup() {
+        _domainEvents.clear()
+    }
 }
+
+data class InventoryItem (@Id val id: String, val name: String, val count: Int)
 ```
 
-The page is served tanks to a bean called `viewResolver`. This was relevant many years ago, now has been replace mostly by a `@RestController`, where we just provide some REST mappings.
+## JPA
 
-All the parameter are automatically filled by Spring, like `@RequestParam`, this will be mapped the type given in the constructor of the controller method.
+Uses ORM (Object-to-Relational Mappings) under the hood to keep in sync objects and database tables.
 
-## Showing HTML content
-
-The way we introduce variable into the HTML is by using **Thymeleaf**, which is a very prowerfull templating engine.
-
-```kotlin
-@Controller 
-class HomeController {
-  @GetMappign("/")
-  fun home(): ModelAndView = ModelAndView("home", mapOf("date" to LocalDateTime.now()))
-}
-```
-
-```html
-<!DOCTYPE html> 
-<html xmlns:th="http://www.thymeleaf.org">
-<body>
-  <h1>Home</h1>
-  <p th:text="Now is ${date}"></p>
-</body>
-</html>
-```
-
-## Processing data
-
-We can supply data to a controller using: `@RequestParam`, `@RequestBody`, `@PathVariable`. It's also possible to supply request parameters inside an object, Spring will automatically grab all the request parameters and assign them to the provided objects and the sub-objects in the function parameters.
-
-## Validation
-
-We use spring validation to validate request from the user, using `@Valid`, `@Min`, `@Max`, `@Size` on the fields of a kotlin data class, this allows for an easy validation of the user requests.
-
-```kotlin
-data class ReqDTO(
-  @field:Size(max = 255)
-  @field:NotBlank
-  val test: String,
-  @field:Valid
-  val sub: SubReqDTO,
-)
-
-data class SubReqDTO(
-  @field:Size(max = 255)
-  @field:NotBlank
-  val sub: String,
-)
-```
-
-
-# Service Layer
-
-The service layer is right below the controllers, it will accept the request and exchange data with the data layer.
-
-## DTOs (Data Transfer Objects)
-
-DTOs are the objects that the server exchanges with the client, when the DTO will enter the service layer, they will be converted to an internal model representation, which suits the DB internal entities.
-
-## Defining a service
-
-The service is defined as an interface, this allows as to provide a set of methods that each will be mapped to a requirement of our application.
+We have a `Persistance` interface, useful when working with with multiple databases. It provides an `EntityManagerFactory` which maintains an active connection with a database, whenever in spring we create a repository, the framework will automatically inject into it an `EntityManager`, create by the factory, which manages storing entities, and keeping them in sync with the database.
 
 
 
@@ -760,6 +762,8 @@ class PeopleRepository(val operator: TransactionalOperator) {
 
 
 # Security
+
+
 
 
 
