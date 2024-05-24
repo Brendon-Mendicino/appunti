@@ -426,11 +426,9 @@ If more implementations to create a single `Bean` are provided we can attach eac
 We can read the keys in the application properties file using `lateinit var` in case we need a configuration that we can change
 
 ```kotlin
-@Value("\${server.port}")
-lateinit var port: String
+@Value("${server.port}")
+lateinit var part: Int
 ```
-
-
 
 
 # Spring WebMVC
@@ -447,35 +445,6 @@ Spring supports two way to build web application (two ways of handling concurren
 ## Servlet (Java Enterprise Edition):
 
 An abstraction to be the unit of computation (a class that handles a request and produces a response). Some more specific subclasses exist (`HTTPServlet`). The approach servlet took it's the same that SpringMVC uses: one-request-per-thread.
-
-## Exposing a web resource
-
-```kotlin
-@Controller
-class MainController {
-  @GetMapping("/")
-  fun index(): String {
-    // home.html will be served to the user, under the `resource` folder
-    return "home"
-  }
-}
-```
-
-The page is served tanks to a bean called `viewResolver`. This was relevant many years ago, now has been replace mostly by a `@RestController`, where we just provide some REST mappings.
-
-All the parameter are automatically filled by Spring, like `@RequestParam`, this will be mapped the type given in the constructor of the controller method.
-
-## Showing HTML content
-
-The way we introduce variable into the HTML is by using **Thymeleaf**, which is a very prowerfull templating engine.
-
-```kotlin
-@Controller 
-class HomeController {
-  @GetMappign("/")
-  fun home(): ModelAndView = ModelAndView("home", mapOf("date" to LocalDateTime.now()))
-}
-```
 
 ```html
 <!DOCTYPE html> 
@@ -650,10 +619,105 @@ Low level ORM access:
 
 # Domain Driven Design
 
-...
+A totally differnt way to architect the application in a different way based on how spring does it.
+
+Language is ambiguos, e.i. in an airport we have names for that domain, a departure for example is the start for their journey for travellers and the end of their job for airport workers, depending on the perspective of the person that word can have a different meaning, this is why engineers need to collaborate with domain expers. In DDD we want to create teams with Domain expert which will lead the building of the application in the right way.
+
+## Benefits
+
+A system should be split in parts and each part should have a clear separation of concern.
+
+Each part has a different role, and they are called **Domains**. They are divided in:
+- **Support Subdomain**: something that is need but is not specific to that application, e.g. many application need to store documents, there nothing inherently special in this generic operation, if a system does implement this operation it is to support other operations.
+- **Generic Subdomain**: e.g designing a good login service is very difficoult, many companies have the same problem, but it whould be stupid to recreate each time this component, when someone creates a library that is secure and reliable then the problem is solved for everyone.
+- **Core Subdomain**: it's difficult to implement highly differentiated from everybody, those components are vital for the application inner working.
+
+===
+
+***Software is worth if it brings value***, this is main idea that DDD brings.
+
+===
+
+## Bounded context
+
+Differnt departments interpret entities in a very different way, and we need to take into cosideration this differences and the overlapping similarities.
+
+Strategic vs tactival desgin:
+
+- Strategic: am I designing the right things?
+- Tactical: am I designing things righ?
+
+They are both relevant and useful.
+
+## Key Concepts
+
+- **Entity**: concepts that is represent in the database and is identifiable (unique ID), and the ID will be constant for its entire lifecycle, in DDD entities contains **methods**, in JPA entities represent table structure, in DDD an Entity is like a Service in Spring. Our system will behave with the various Entities.
+- **Value Objects**: objects are in DDD what we typycally assign as attributes in JPA entities, but we create an object out of it in DDD, because also attributes has behaviours, e.g. a price is not only a the value of money but also the currency.
+- **Aggregates**: it's a object composed of other objects, where each object refers to other objects. There is a **root aggregate** where the tree of objects originates. Aggregates always form graphs, and each aggregate can link to another aggregate, but it can only be done in a unidirectional way (tree style).
+- **Repository**: tooling for storing objects
+- **Services**: express some part of domain logic, usually used for transactionality
+- **Factories**: used to create aggregates, validates all the necessary constraints
+- **Domain Events**: letting one system informing another system that something happened
 
 
-# Async
+# Spring Data in depth
+
+Repositories are interfaces used to retrieve entities. Spring supports both JPA entities and JDBC DDD.
+
+## JDBC
+
+JDBC offers native support for DDD pattern, like the automatic emission of events with `@DomainEvent` which will be able use reactive approaches. It's also possible to use `@AfterDomainEventPublication` to allow for various cleanups.
+
+```kotlin
+data class Warehouse(@Id val id: String, val location: String) {
+    @MappedCollection
+    private val inventoryItems = mutableSetOf<InventoryItems>()
+    fun addInventoryItem(inventoryItem: InventoryItem) {
+        _domainEvents.add(InventoryItemAdded(this, inventoryItem))
+        inventoryItems.add(inventoryItem)
+    }	
+  
+    private val _domainEvents = mutableListOf<Any>()
+    @DomainEvents
+    fun domainEvents(): List<Any> = _domainEvents
+  
+    @AfterDomainEventPubblication
+    fun cleanup() {
+        _domainEvents.clear()
+    }
+}
+
+data class InventoryItem (@Id val id: String, val name: String, val count: Int)
+```
+
+## JPA
+
+Uses ORM (Object-to-Relational Mappings) under the hood to keep in sync objects and database tables.
+
+We have a `Persistance` interface, useful when working with with multiple databases. It provides an `EntityManagerFactory` which maintains an active connection with a database, whenever in spring we create a repository, the framework will automatically inject into it an `EntityManager`, create by the factory, which manages storing entities, and keeping them in sync with the database.
+
+<+>
+
+
+# Spring WebFlux
+
+There are some situations in our code were when we perform an operation we just need to wait, e.g. when we make a call tot the database and we need to wait for it to return, for IO operations, etc. 
+
+In principle it whould be way better if those blocking call whould just stay in the background and when the request comes back we execute a callback, while in the meantime we do something else, in this way we create a non-blocking request.
+
+```kotlin
+// Blocking
+val req = createRequest()
+val v = readData(req)
+process(v)
+
+// Non-blocking
+val req = createRequest()
+readDataAsync(req) { v -> process(v) }
+```
+
+How can we write `readDataAsync`? It's very complicated, it would be possible using recursion but the code becomes too much garbled.
+
 
 ## Blocking vs. Non Blocking
 
@@ -722,6 +786,47 @@ interface Subscriber<T> {
   fun onComplete()
 }
 ```
+- `Subscription`: the subscription informs the publisher the readiness to recieve new information.
+```kotlin
+interface Subscription {
+  // ready to process n callbacks
+  // performs backpressure: it means that even if the publisher is
+  // ready to publish new data, I cannot process those data
+  fun request(n: Long)
+
+  // tells the publish to cancel all the information even if
+  // it already produced them
+  fun cancel()
+}
+```
+
+- `Publisher<T>`: the one who produces the data, in a typycal flow the `Subscription` will handle how much data has to be deliverted to the `Subscriber`
+```kotlin
+interface Publisher<T> {
+  fun subscribe(s: Subscribe<in T>?)
+}
+```
+
+- `Processor<T, R>`: acts in between the pipeline, typycally implents operations such as `map()`, `filter()`, `reduce()`
+```kotlin
+interface Processor<T, R> :
+  Subscriber<T>, Publisher<R> {}
+```
+
+
+## Reactor
+
+Publisher interface in Reactor are implemented through `Flux` and `Mono`, `Flux` delivers any number of data while `Mono` delivers at most one element.
+
+```kotlin
+Flux.just("A", "B", "C")
+  .suscribe(
+    data -> log.info("onNext($data)"),
+    err -> { },
+    () -> log.info("onComplete()")
+)
+```
+
 
 
 # Coroutines and suspend functions
@@ -1121,4 +1226,68 @@ Even if we move back the files back to the `intput` folder, camel will observe t
 
 - `google-mail`: component that can access google mails, retrieve them, send emails, serach in the inbox, ect... It does an operation only once and the returns
 - `google-mail-stream`: component that is combination of a timer and a google-mail component, which periodically does checks, by default it only selects unread messages 
+
+
+# MongoDB
+
+Traditional databases with nowadays have a lot of horizontal scalability, because data can change very quickly. This broght the creation of many NoSQL databases, where the main types are Documents, Key-Value, Wide-olumn, Graph. It's also important to note that each database suffers from the CAP theorem, each DB has to choose one of the two.
+
+- CA: postrgres, mysql, ...
+- PA: cassandra, couchDB, ...
+- CP: redis, mongoDB, ...
+
+
+- Eventual consistency: in distributed DBs, we talk about **eventual consistency**, it's possible for a short period of time that the information will not be available on the other instances, when a change happens one of them. This is a major reduction of consistency for the system but a overall speed-up.
+- Session consistency:
+- Casual consistency: we read the latest writes
+- Linearizability: strongest form of consistency, all operation are executed like they were on a single machine
+
+
+***MongoDB is a scalable, high-performance, open source, schema free, document-oriented database***.
+
+<+>
+
+## Documents
+
+Documents in MongoDB are just plain json objects. Each document will contain an `_id` field. A single document is limited by 16MB it its bson format.
+
+- Capped collecitons: collections limited in size, when we reach that limit each new element added will delete the oldest ones.
+
+In mongo data can represent in a normalized way, with references to other documents, or in a non-normalized way wher we can used **embedded documents**.
+
+## CRUD operations
+
+<+>
+
+## Aggregation pipelines
+
+This is a classical multistage functional approach when acting on collections, like filtering, mapping, etc.
+
+```js
+db.orders.aggregate([
+  { $match: { state: "A" } },
+  { $group: { _id: "$cust_id", total: { $sum: "$amount" } } },
+])
+```
+
+The various aggregation operations are:
+
+- `$match`:
+- `$addFileds/set`:
+- `$group`:
+- `$limit`:
+- `$lookup`: starting from one collection where I selected a set of documents I can a set of fileds to filter other documents from onother collection
+- `$merge`: writes the documets to act on them later
+- `$project`: takes only some fields from the document and discard the others
+- `$unwind`: when a field is an array, each array is flattened and an output list is created from all of the arrays in document with the same field name
+
+## Indices
+
+We can build **indices** on the collections if we know the query we have to perform on the database in order to speedup those. Some of those are:
+- single field index: query on a single field
+- compund field index: query on multiple fields
+- multikey index: locate documents when they have lists inside them, and I want to know if a specific document is present inside of them
+- geospatial index: locate geospatial location using geometric properties
+- text index: locate text inside documents
+- hash index: locate documents when they are split into shards
 
