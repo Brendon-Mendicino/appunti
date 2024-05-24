@@ -526,10 +526,27 @@ Uses ORM (Object-to-Relational Mappings) under the hood to keep in sync objects 
 
 We have a `Persistance` interface, useful when working with with multiple databases. It provides an `EntityManagerFactory` which maintains an active connection with a database, whenever in spring we create a repository, the framework will automatically inject into it an `EntityManager`, create by the factory, which manages storing entities, and keeping them in sync with the database.
 
+<+>
 
 
+# Spring WebFlux
 
-# Async
+There are some situations in our code were when we perform an operation we just need to wait, e.g. when we make a call tot the database and we need to wait for it to return, for IO operations, etc. 
+
+In principle it whould be way better if those blocking call whould just stay in the background and when the request comes back we execute a callback, while in the meantime we do something else, in this way we create a non-blocking request.
+
+```kotlin
+// Blocking
+val req = createRequest()
+val v = readData(req)
+process(v)
+
+// Non-blocking
+val req = createRequest()
+readDataAsync(req) { v -> process(v) }
+```
+
+How can we write `readDataAsync`? It's very complicated, it would be possible using recursion but the code becomes too much garbled.
 
 ## Blocking vs. Non Blocking
 
@@ -598,6 +615,47 @@ interface Subscriber<T> {
   fun onComplete()
 }
 ```
+- `Subscription`: the subscription informs the publisher the readiness to recieve new information.
+```kotlin
+interface Subscription {
+  // ready to process n callbacks
+  // performs backpressure: it means that even if the publisher is
+  // ready to publish new data, I cannot process those data
+  fun request(n: Long)
+
+  // tells the publish to cancel all the information even if
+  // it already produced them
+  fun cancel()
+}
+```
+
+- `Publisher<T>`: the one who produces the data, in a typycal flow the `Subscription` will handle how much data has to be deliverted to the `Subscriber`
+```kotlin
+interface Publisher<T> {
+  fun subscribe(s: Subscribe<in T>?)
+}
+```
+
+- `Processor<T, R>`: acts in between the pipeline, typycally implents operations such as `map()`, `filter()`, `reduce()`
+```kotlin
+interface Processor<T, R> :
+  Subscriber<T>, Publisher<R> {}
+```
+
+
+## Reactor
+
+Publisher interface in Reactor are implemented through `Flux` and `Mono`, `Flux` delivers any number of data while `Mono` delivers at most one element.
+
+```kotlin
+Flux.just("A", "B", "C")
+  .suscribe(
+    data -> log.info("onNext($data)"),
+    err -> { },
+    () -> log.info("onComplete()")
+)
+```
+
 
 
 # Coroutines and suspend functions
