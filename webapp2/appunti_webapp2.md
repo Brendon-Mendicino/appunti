@@ -524,7 +524,133 @@ DTOs are the objects that the server exchanges with the client, when the DTO wil
 
 The service is defined as an interface, this allows as to provide a set of methods that each will be mapped to a requirement of our application.
 
+A service once an interface is defined, we can provide an implementation were the logic is store, for instance a service can be annotated as `@Transactional` this provides the methods to be marked as transactional, and to be rolled-back if an error accurs, in fact a service deals with data but it does not know where to store them, this will be the job of a repository.
 
+A service can also prevent the access to a method if unauthorized, for example it can annotated with `@PreAuthorize("hasRole('ROLE_ADMIN')")` which prevents the access to anyone that is not an admin.
+
+## Testing a service
+
+We can use **Unit Testing** to test our services, in unit testing we need to provide all the dependencies to service in order to be created and tell to the dependencies how to behave. In unit test we use **AAA** methodology, which stands for **Arrange**, **Act** and **Assert**.
+
+```kotlin
+internal class UserProfileServiceImplTest {
+    @Test
+    fun `loading an existing profile should return a valid DTO`() {
+        //Arrange
+        val repo = mockk<UserProfileRepository>();
+        every { repo.findByName("name") } answers  {
+            UserProfile(1, "name", LocalDate.of(2000,1,1))
+        }
+        val service = UserProfileServiceImpl(repo);
+
+        //Act
+        val dto = service.loadProfile("name")
+
+        //Assert
+        assertEquals(dto.id, 1L)
+        assertEquals(dto.name, "name")
+        assertEquals(dto.dateOfBirth, LocalDate.of(2000,1,1))
+    }
+}
+```
+
+## Transactionality
+
+Be default a service is **stateless**, this does not mean that the logic should be stateless, for example when calling methods of the repositories and we need to check the consistency of the data when multiple users act on the same resources, we can tell spring which methods (or classes) should be transactional using the `@Transactional` (from `org.spring.framework.transaction.annotation`), which will internally call the `PlatformTransactionManager`.
+
+### Transaction properties
+
+- **Atomicity**: the operation are either all passed, or none is applied
+- **Consistency**: at any give time the database is in a consistent state
+- **Isolation**: each transaction operate independently from one another
+- **Durability**: a db remembers our data
+
+### Isolation levels
+
+DBs still have to deal with some levels of isolation, what other transactions can from.
+
+- **Serializable**: (highest level)
+- **Repeatalbe read**: phantom-reads
+- **Read committed**: non-repeatable-reads, phantom-reads
+- **Read uncommitted**: dirty-reads, non-repeatable-reads, phantom-read
+
+With **serializable** still the following anomalies can happen: dirty-writes, read-skew, write-skew, lost-update.
+
+Anomalies:
+
+- **Lost-update**: this happens when two transactions are created at the same are being run on the same row, one updates the rows and commits, the other updates the rows can commits after the first one, only the last upadte will be stored and the other one will be **lost**, while both think that the operation was successful, we can resolve this situation with an **optimistic lock**.
+
+
+
+# Data Access Layer
+
+Services contains business login, but does not contain any state, it delegates that taks to repositoryies which will store the data to a database.
+
+Spring data framework provides a library called JPA (Java Persistance Architecuture), which is based on Hibernate which created a declarative approach to deal with SQL queries, JPA is just a rebranding of Hibernate, the positive part is JPA makes easy to switch the underlying layer for creating queries.
+
+The main class the data access layer is called a `Repository`, each `Repository` will fetch a list of `Entity`, which are the basic blocks that can retrieved from a database.
+
+## ORM
+
+ORM tries to fill the difference between the world object orient programs and the world of relational databases. The main big difference is that while it completelly fine in the world of the reletional databases to have bidirectional relations (e.g. when a table A has a foreign key pointing to another table B it's completelly legal to do `select * form A join B` and `select * from B join A`), this is problem in programming because pointers (which are used to create relationships) are not bidirectional, if A points to B, from B we cannot go back to A.
+
+ORMs are responsible to handle queries behind the curtain, while still using plain objects.
+
+
+## Docker
+
+In Spring v3.0, it's possible to use docker compose to create a connection whit a db of our choise, like Postgres, MongoDB, Redis, ... This is possible by using a `compose.yaml` file in the root folder, in this way spring will be able to spin it up on it's own and then a suitable connection with the dabase, this is very useful during development. In production though we still need to specify a db connection using Spring properties.
+
+To configure a connection we can use the following properties
+
+```yaml:application.yaml
+spring:
+  datasource:
+    url: jdbc:postgres://localhost:5432/db
+    username: test
+    password: test
+```
+
+## Schema definition
+
+We can use schema definition to specify how jps should interact with the databse
+
+- `validate`: only validate the schemas on the db with the entities present in project (option to use in *production*)
+- `create-drop`: as soon as the application start the db will be wiped and tables will be recreated
+- `update`: the db tables will be updated if they are equal to the entities
+- `none`: nothing will be done
+
+## Repository
+
+Repositories are JPA classes that allows us to exchange entities with the DB.
+
+- `Repository<T,ID>`: provides no methods
+- `CrudRepository<T,ID>`: provides basic CRUD operation on an entity
+- `PagingAndSortingRepository<T,ID>`: allows to sort and page the list of entities
+- `JpaRepository<T,ID>`: addes batching operations in order to perform massive operations
+
+Repositories will contain an `EntityManager` inside of them which will actually perform the operation on the entities.
+
+We can also add methods to the repositories, annotating the with `@Query(...)` which will create custom queries using `JPQL`. It's also possible to use natural language to define the queries, like `fun findByNameAndSurame(name: String, surname: String)`, where `name` and `surname` are fileds of the entity.
+
+## JPA Inner Logic
+
+When we use and `Entity` that entity is both an object in the language and a row in the database. When we create a new entity it will not be tracked by the database, it is in a `detached` state, when we call `.save()` from the repository, that entity will be persisted (in fact what happens in the back is that the entity will manager will call `.persist()`). At this point the entity is in `Attached` state.
+
+For this reason we only exchange DTOs with the service, if some operation are performed on a tracked entity, the changes will be forwared to the db.
+
+Low level ORM access:
+
+- `find(entityClass, primaryKey, lockModeType)`: get an entity from the database
+- `persist(entity)`: takes the entity an modify all the fields in the DB row if it exist, or create a new row if it doesn't exist
+- `refresh(entity)`: I have an entity with some modification I don't want to persist, this methods throws away the current data and refetch the actual one from the DB
+- `remove(entity)`: deletes the entity from the database
+- `detach(entity)`: the changes will no more pushed to the DB, also discarding any change
+
+
+# Domain Driven Design
+
+...
 
 
 # Async
@@ -893,6 +1019,7 @@ When we disign a Single Page Application, we have a problem, because IAM login a
 In the client application we need to identify that the user is not authenticated, 
 
 SPA authN flow:
+
 1. request:
 1. we try to access a resource, but are not authorized
 1. the JS will replace our URL with the of the IAM authentication
@@ -909,4 +1036,89 @@ The JS comunicating with the Server using a session is convenient, this allows f
 When the JS will perform a request to change something on the server we attach a HTTP header `XSRF-TOKEN`, thanks to that the spring server will be able to validate the request, thus avoid someone else to perform request not performed by us.
 
 
+To integrate a SPA from the cloud gateway, we should add `http-client.type: autodetect`, otherwise the redirect won't work.
+
+
+# System Integration
+
+Is it possible to connect various application between each other, and **System Integration** is the way of linking those applications. The main obstacles are that the application needs to provide the data. Other challenges are the compatibility issues, data integrity and security and complexity management, high cost and resource intensive.
+
+We can integrate systems at different levels:
+
+- **Data Level**: transfer data from database to database
+- **<+>**:
+
+Access level:
+
+- **point-to-point**: link a service directly with another service ($(N-1) N$ connections)
+- **hub-and-spoke**: link all the services and then properly sends data to a specific service ($N - 1$ connections)
+- **enterprise-service-bus**: move data from one end-point to other endpoints
+
+## Enterprise Integration Pattern (EIP)
+
+We need to create a channel that moves data from a system to another, the two extremese are called *end-points*, this represent how the program.
+We have many king of messages:
+
+- **Command**: on operation that will happen in the future
+- **Event**: something that happend in the past, we need to subscribe to receive this message
+- **Document**: provide a set of related informations, e.g. emails can contain text, inline images, HTML, etc.
+
+Messages flows along **Channels**, which are compose by a **producer** and a **consumer** end-points:
+
+- **Consumer**: receives data from the external world
+- **Producer**: produces some data and then sends it to a specific system
+
+They encapsulate the details of how the message is done.
+
+## Channels
+
+We can create various kind of channels
+
+- **Point-to-Point**: divided into *at-least-once semantics*, <+> store first and then mark the receival
+- **Publish-Subscribe**: those channels allow for multiple subscribers to receive the data
+- **Datatype**: all kinds of messages can flow
+- **Dead Letter**: channel used to temporary store failures
+- **Invalid Message**: store temp when for example the destination is not available
+- **Guaranteed Chanell**: provide *exactly-onece-semantics*
+
+
+## Apache Camel
+
+Designed to perfrom system integration.
+
+- **Component**: a class packaged in their starter file, exposes the capability of creating end-points, we define system by using `uri`s
+- **End-point**: object that give a set of method for creating a **Consumer** (fetch data from the end-point), or a **Producer** (sending data to the end-point)
+- **Exchange**: messages come from an endpoint are called  **Exchange**, contains on outgoing message a reply message and exception message,
+- **Consumers**: sends messages to **<+>**
+
+An apache camel project is composed of **Routes**, which is made of components:
+
+- `from`: end-point to get data from
+- `to`: send data to an end-point
+- `transform`: defines a processing step to modify the message
+- `filter`, `split`, `aggregate`: hanle the messages
+
+```kotlin
+@Component
+class MyRouteBuilder: RouteBuilder() {
+    override fun configure() {
+        // Take all the file the input directory and move them
+        // to the output directory
+        from("file:input")
+            .process { log.info("Moving file: {}", it.`in`.getHeader("CamelFileName")) }
+            .to("file:output)
+    }
+}
+```
+
+Even if we move back the files back to the `intput` folder, camel will observe the directory and move any new file that will be inserted into that directory.
+
+
+- **Channel**: connects application components
+- **Splitter**: when we have to manipulate complex data, and we want to work on smaller data
+- **Aggregator**: merge small messages into a bigger one
+- **Exchange**: implements the `Message` interface which contains: `body: Any`, `timestamp`, `messageId` to distinguish messages between them, `headers` metadata that camel provides in order to understand the message. The `Exchange` wraps an `inMessage`, even and `Exchange` contains an id `exchangeId`. An `Exchange` also contains some `properties`
+
+- `google-mail`: component that can access google mails, retrieve them, send emails, serach in the inbox, ect... It does an operation only once and the returns
+- `google-mail-stream`: component that is combination of a timer and a google-mail component, which periodically does checks, by default it only selects unread messages 
 
