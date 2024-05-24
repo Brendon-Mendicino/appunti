@@ -769,4 +769,145 @@ class PeopleRepository(val operator: TransactionalOperator) {
 
 
 
+# OpenID Connect
+
+## Json Web Token (JWT)
+
+Whenever we are logging in a OIDC IAM provider, we will get a token encoded as the standard describes in `Base64`. The JWT is divided in 3 parts
+
+- **Header**: information about the token itself in json notation
+- **Payload**: provides information about who will use this premissions and who garanted this permission
+- **Signature**: the signature of the **header** and **payload**.
+
+Payload fields:
+- `sub`: defines the subject of the JWT
+- `iss`: issuer of the JWT
+- `aud`: the address of the intended service destined for the JWT
+- `iat`: **Issued AT** (timestamp in epoch data)
+- `nbf`: **Not valid BeFore**
+- `exp`: **EXPiry**
+
+
+# Spring Security
+
+Declarative framework built aroud our application.
+
+Both `Filters` and `Aspects` are governed by set of **Security Configuration**. To include security we need to add the `spring-boot-start-security` dependency. By default this plugin renders our application unusable, because it requires a login to be used, it can be configured further. Other dependencies are `spring-boot-starter-oauth2-*`, which allows us to use **OAuth2** login methods. We can also specify some `Filters` to check what comes inside the `Controller`s and what goes out of them.
+
+Terminology:
+
+- `Principal`: user, system or device acting in the system
+- `Authentication`: who is accessing out application
+- `Credentials`: whatever is used by a `Principal` to 
+- `Authorization`: wether or not to give access to certain action to a `Principal`
+- `Secured Resource`:
+- `GrantedAuthority`: the set of actions that can be performed, any `Principal` can be assigned to a set of `GrantedAuthority` (like the authorizations on a Linux file).
+- `SecurityContext`: stores information of the authenticated user, in Spring this context is bound to a thread which it knows who is invoking that function.
+
+To configure how to the end-points should accept the various requests, we can a Spring `SecurityFilterChain`
+
+```kotlin
+@Configuration
+class SecurityConfig {
+  @Bean
+  fun securityFilterChain(httpSecurity: HttpSecurity): SecurityFilterChain {
+    return httpSecurity
+      .authorizeHttpRequest {
+        // Everybody
+        it.requestMathers("/", "/login", "/logout").permitAll()
+        // Only logged in
+        it.requestMathers("/secure").authenticated()
+        // Only not logged in
+        it.requestMathers("/anon").anonymous()
+      }
+      .formLogin {}
+      .logout {}
+      .build()
+  }
+}
+```
+
+## Authentication Providers
+
+The easiest is a `DaoAuthenticationProvider` which will use a database internally to check if the db contains that username and encrypted password, this is possible for trivial applications.
+
+Depending on which part of the OAuth2 chain we are we use two different providers: `OidcAuthorizaionCodeAuthenticationProvider`, `JwtAuthenticationProvider`
+
+## OIDC Authorization Code Flow.
+
+The only two public end-poitns of our applications will be the `IAM` and the `OAuth2 Client`, all our services will be **hidded** behind the `OAuth2 Client`. When a browser will perform a request on our services, it will redirect (`3xx`) the request to the `IAM`. Once the `IAM` has authenticated the user, it will respond with a `302` redirecting the browser to the `OAuth2 Client` with a **nonce** inside the request parameters, with that nonce the `OAuth2 Clien` can get a **token** created by the `IAM`, when this finishes the `OAuth2 Client` create a **cookie** associated with the current session (token), when the browser will make a request the `OAuth2 Client` will translate the cookie to a **token**, the `OAuth2 Resource Server` will check the token for permissions, and finally will respond to the browser with a response.
+
+Still there is a problem if a browser tries to logout, the `OAuth2 Client` will delete the cookie and the token, and the browser will be redirected to the `IAM` again, but the `IAM` contain already a session, which will not be deleted, and so it will get me a new **nonce** and, immediately, redirect the browser to the `OAuth2 Client`. So we didn't really logout, to specifically do this there is a special, function we can call on the `IAM` ...
+
+## Resource Server
+
+OAuth2 Resource Server provides information, it will attach a security token to each of the user request only if the token is validated.
+
+- `issuer`: address of the IAM
+
+In the security configuration the `sessionManagement` we declare it as `STATELESS` because it will be handled by the `OAuth2 Client`.
+
+## Contact Resource Server from the Client
+
+The **client** must map application requests to the **resource server** (send authenticaed requests to the resource server), thus a **Gateway** function must be implemented. This can be done easily with the spring cloud gateway library.
+
+How do we tell the gateway (inside the client) where to send our requests?
+
+```yaml
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+          - id: service1
+            # uri of the resource server
+            uri: http://localhost:8081
+            predicates:
+              # Paths to match, only the specified paths will be
+              # forwared to the resource server
+              - Path=/api/v1/**
+            filters:
+              # How many parts of the uri needs to be stripped
+              # from the request
+              - StripPrefix=2
+              # Include in the header (which will be forwared)
+              # `authorization-beares` followed by the jwt.
+              - TokenRelay
+```
+`application.yaml` of the client
+
+
+## Accessing the principal
+
+OAuth2 client we don't want to use sessions ...
+
+Each method of a service can annotated with
+
+- `@PreAuthorize`: evaluate **SpEL**, invoke the method if the check pass
+- `@PostAuthorize`: block if the response after the method is invoked, if there is a transaction it will be rolledback, e.g. in a bank accoutn we can say after the method is invoked the balance has to be greater than zero, doing it apriori is difficoult, in this way is way easier to check
+- `@PreFilter`: evaluate **SpEL**, expression evaluated on a collection of elements
+- `@PostFilter`:
+- `@Secured`: we check that who invoked this method has a certain role
+
+
+When we disign a Single Page Application, we have a problem, because IAM login and SPA don't really works togheter. The SPA has to distinguis wether the user logged in or not.
+
+In the client application we need to identify that the user is not authenticated, 
+
+SPA authN flow:
+1. request:
+1. we try to access a resource, but are not authorized
+1. the JS will replace our URL with the of the IAM authentication
+1. When we provide the credientials to the IAM
+1. we will be redirected back to the SPA, which was completely destroyed
+1. this time we have cookie
+1. the SPA will show approprieate components
+
+When this approach is used the SPA is called **BFF** (Backend For Frontend)
+
+
+The JS comunicating with the Server using a session is convenient, this allows for some attacks, one of this is called CSRF, where another web application can send request on the server on your behalf. This can be done because we have a valid session on the browser, we can prevent this by using some counter measures, all operations that can change something on the server we attach a `csrfToken` to the request, this can be done view the `SecurityFilterChain`.
+
+When the JS will perform a request to change something on the server we attach a HTTP header `XSRF-TOKEN`, thanks to that the spring server will be able to validate the request, thus avoid someone else to perform request not performed by us.
+
 
