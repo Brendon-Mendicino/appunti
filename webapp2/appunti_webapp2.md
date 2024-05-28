@@ -1291,3 +1291,122 @@ We can build **indices** on the collections if we know the query we have to perf
 - text index: locate text inside documents
 - hash index: locate documents when they are split into shards
 
+## Transactions
+
+MongoDB guarantees updates on a single document to accurr atomically. 
+
+MonogDB added the multi-document transaction, this is done by storing an optimistic lock togheter with the document, if an insertion fails or if somebody else performs an insertion or update, everything is rolled-back. This transactions are really slow <+>
+
+Casual consistency: in each user session, it's possible to see the new updates published by us, the others may not see them.
+
+## MongoBD in Spring
+
+Mongo dependencies are available both for servlet and webflux, it offers `MongoTemplate` and `MongoRepository<D,ID>`.
+
+```kotlin
+@Document
+data class Patient(
+  @Id
+  val id: ObjectId,
+  @Indexed
+  val name: String,
+  val description: String,
+  @Field("creation_date")
+  val creationDate: Instant,
+)
+```
+
+Each collection of documents will be stored in collections with their respective name.
+
+To refer to other documents we can use:
+- We add the type of the document we want to reference and we annotate it with `@DBRef`, spring will convert this in an object: `$db`: name of the database, `$ref`: name of the collection, `$id`: id the referenced object. We always must take into condideration that two read operations are happening and those wont be transactionals.
+- We can only store the id of the document we want to reference, but need to remember what kind of document we are referencing.
+- We can use the `@DocumentReference` to only store the id of the document, and we get a type safe retrieval. It's also possible to mark it as `lazy`, in this way we will only retrieve it if we access to it.
+
+```kotlin
+@Document
+data class Publisher(
+  @Id
+  val id: ObjectId,
+  @DocumentReference
+  val books: List<Book>
+)
+
+@Document
+data class Book(
+  @Id
+  val id: ObjectId,
+  @DocumentReference(lazy=true)
+  val publisher: Publisher
+)
+```
+
+If we switch the ownership, we can just create a `books` property wich will only trieve the `Publisher`s that reference it.
+
+```kotlin
+@Document
+data class Publisher(/* ... */) {
+  @ReadonlyProperty
+  @DocumentReference(lookup = "{'publisher':?#{'self'._id}}")
+  lateinit var books = List<Book>
+}
+```
+
+By using repositories we can use custom queries and custom aggregates.
+
+
+
+# Message Brokers
+
+In many cases it's possible that two are applications have to communicate between each others, it's in this occasion that shines **event driven architecture**. E.g. we have an application that retrieves some data from the Gmail and sends it to another service, what happens if the service goes down? The message will be just lost. It's why we use some kind pipe abstraction.
+
+Putting a channell between two services makes the living time of the two services irrelevant.
+
+There are 3 kinds of messages:
+
+- Event: an information originated by somebody describing an event happened in the past, usually an event contains a timestamp of when it happened, events are only emitted and can subscribed and unsuscribed
+- Command: need to targat a system that need to do something specific, commands are sent to a destination 
+- Document: those messages that don't represent Events nor Commands
+
+The main difference between the Command driven and Event driven approaches:
+- Command: the receiver of the command has to store an interval value which will be updated on each command received
+- Event: the receiver just record events, those have a creation timestamp, the actions can just be applied by following the chain of events, and no state has to be stored, we only store the events a logs and then reduced later.
+
+A **Message Broker** is responsible of handling queues of messages, ***is an infrastractural component responsible of validating, transforming, and routing masseges among applications***.
+
+There two
+
+- Publish/Subscribe: the broker is responsible of remembering who is interested in those messages and is responsible for routing
+- Event Streaming: the broker is just responsible of storing messages in an append-only log, the reader is responsible for reading the whole chain to reconstruct the state, the publisher simply appends messages
+- Push: brokers actively forwards messages to listeners
+- Pull: the borker provides an end-point for polling
+
+Consuming strategy:
+
+- Cooperating: everybody shared the same message
+- Point-to-Point: the faster will take the massage and hide it from the others
+
+- Commands should have only one consumer
+- Event may have 0 or more consumers
+
+
+## RabbitMQ
+
+Uses Publish/Subscribe and Push strategy
+
+- Exchange: reception point for incoming messages, publishers delivers messages to an exchange
+- Queues: an exchange delivers messages to many queues based on different conditions
+
+The broker only looks at headers to understand how it should handle the message, the body is opaque (mostly), when the message arrived at the final destination and it acknowledges rabbitMQ will delete the message from it's storage.
+
+<+>
+- Direct: one destination
+- Topic: by queue names
+- Fanout: ...
+- Heasers exchange: <+>
+
+
+## Kafka
+
+
+
