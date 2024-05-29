@@ -1,0 +1,386 @@
+\documentclass[12pt]{article}
+
+\usepackage{notestyle}
+
+\graphicspath{{./img/}}
+
+
+\title{Notes webapp2}
+\author{Brendon Mendicino}
+
+
+\begin{document}
+
+\maketitle
+\newpage
+\tableofcontents
+\newpage
+
+
+\section{Kotlin}
+\subsection{Types}
+All types are references types in Kotlin, they will be optimized later by the compiler if possible, this removes the problems that Java was carrying, like the difference between boxed and unboxed type (\texttt{int} vs \texttt{Integer}, ...).
+
+\subsection{Null Safety}
+Java is affected by Null values, they are part of the language to signal the abcence of a value, Kotlin improves on this by embedding in the language the possiblity for a type to be Null directly inside the type. Kotlin has two types of values (the third one will be discussed later), non-null-types and null-types obtained by appending a \texttt{'?'} at the end of the value. Kotlin puts the type \texttt{Any} at the top of the class hierarchy (every class inheriths Any), like \texttt{Object} in Java, while at the bottom of the hierarchy it puts \texttt{Nothing} (every class is inherited by Nothing). As we said earlier every type has it's nullable counter-part, in fact \texttt{Any?} and \texttt{Nothing?} are both types, the \texttt{null} value is the only instance of the \texttt{Nothing?} type. On the other hand \texttt{Nothing} contains no possible value, using the kind of abstraction the compiler can do assumption based on the code for optimizations or for checking, e.g. an exception as no possible value, we use the \texttt{Nothing} type to mark this return value, or if the main contains an infinite loop and that function is never supposed to return, the return value can specified to be \texttt{Nothing}. The \texttt{Noghtin} type is like the concept of 0 in math.
+
+\subsection{Using nullable types}
+\begin{itemize}
+  \item \textbf{safe-call operator} (\texttt{?.}): call the method/paramter if the object is not null
+  \item \textbf{elvis operator} (\texttt{?:}): returns the value on the right if the object on the left is null
+  \item \textbf{non-null operator} (\texttt{!!}): move the null-check at runtime
+\end{itemize}
+
+\begin{lstlisting}[language=kotlin]
+var a: String = "abc"
+var b: String? = "abc"
+b = null
+var len: Int? = b?.lenght
+\end{lstlisting}
+In Kotlin everything has a return value, \texttt{void} is replaced with \texttt{Unit}, which is a class and the only possible instance of that class. Like Rust also in Kotlin every scope has a return value, e.g. \verb|val a = if (0 == 0) \{ 1 \} else { 2 }|, in this case \texttt{a} will have value of 1.
+
+Kotlin assumes that nothing is inheritalbe unless it's explicit, this avoid many of the problem on inheritance. In Kotlin there are two kind of attributes, variables (\texttt{var}) which are values that can change, values (\texttt{val}) which means that the value is not reassignable, and not immutable.
+
+Functions types: in Kotlin the type of a function is defnied as the set of types of the paramters inside parethesis and the return value after the arrow (\verb|->|): \verb|(String, Int) -> Unit|. To declare a function we use the keyword \texttt{fun}, to assign a function to a variable we use the (\texttt{::}) before its name, \verb|val a: (String) -> Unit = ::greet|. This allows function in kotlin to be: \textbf{higher order functions} and \textbf{first class citizens}.
+
+\subsection{Classes}
+Classes have a default constructor defined with parenthesis after the name of the class, the \texttt{init} scope is run after the constructor is called, moreover secondory constructors can be defined with the \texttt{constructor} keyword, in the end they must call the primary constructor to build the object.
+
+Properties of a class can have the \texttt{set()} and \texttt{get()} methods, this are methods which allows to read and write properties of a class, also by adding additional logic, this is done to render our programs more readable.
+
+\subsection{Delegates}
+Delegates are useful to have properties provided by somebody else, it's used with the keyword \texttt{"by"}.
+\begin{itemize}
+  \item One of these properties can be Lazy, where the initialization is delegated to the class Lazy, this is useful when a property creation is very expensive and very rare in our application.
+  \item by Observable, the value can be subscribed by a third-party, invokes a listener when the property changes.
+  \item by Vetoable, can observe the change before the change is happened, we can e.g. allow or block the operation based on some conditions.
+\end{itemize}
+\begin{lstlisting}[language=kotlin, caption={Lazy example}]
+val lazyValue: String by lazy { 
+  print("computed!")
+  "Hello"
+}
+
+fun main() {
+  println(lazyValue) // -> "computed!" + "Hello"
+  prtinln(lazyValue) // -> "Hello"
+}
+\end{lstlisting}
+
+
+\subsection{Equality}
+When are two objects are the same? Equality in logic has three properties:
+\begin{itemize}
+  \item Reflexive (anything is equal to itself)
+  \item Symmetry (if a = b then b = a)
+  \item Transitivity (if a = b and b = c then a = c)
+\end{itemize}
+Kotlin by defautl will rely on the native equal (from Java) which means comparing the pointers of the object (Identy equality), and it is derived from the \texttt{Any?} class. This is difficult when dealing with subclasses, when is an object equal to another? The answer to this question is not immediate, it depends on the domain we are dealing with.
+
+In Kotlin two objects that are equal they need to have the same hasCode, the opposite is not true.
+
+
+\subsection{Comparing}
+We need to implement the \texttt{Comparable} interface for a class. Only contains a method \texttt{compareTo(other: T): Int}, if the return value is positive this is bigger than the other, if negative it's the opposite.
+
+\subsection{Singletos}
+We can declare a singleton with the object keyword, instad of class. There is only one instance.
+\begin{lstlisting}[language=kotlin]
+object MySingl {
+  private var _counter = 0
+  fun increament() { ++_counter }
+  val counter = _counter
+}
+
+MySingl.increment()
+println(MySingl.counter) // -> 1
+MySingl.increment()
+println(MySingl.counter) // -> 2
+\end{lstlisting}
+
+
+\subsection{Companion Object}
+Replaces the \texttt{static} keyword in java. This allows to have properties to be already initialized when calling an object, this will be an object that will be automatically instanciated at the program creation. Companion objects are not bound to a single instace of a class, it can accessed by globally by anyone.
+
+
+\subsection{Extension Function}
+This are special funciton that can extend the methods of a class. This is just a syntactic sugar for the programmer, in the end it will be converted to just a function with the class as the first parameter.
+
+\begin{lstlisting}
+fun <T> List<T>.second(): T? = if (this.size >= 2) this[1] else null
+
+val list = listOf("one", "two", "three")
+println(list.second()) // -> two
+\end{lstlisting}
+
+
+\subsection{Inheritance}
+Kotlin discourages the use of inhritance, in fact by default class cannot be extended. Inheritance breaks a lot of things. Other that we also need to explicetly specify the which methods can be ovverridden, using the open keyword. And in subclasses we need to use the override keyword to reimplement the method of a parent class.
+
+\begin{lstlisting}
+open class Base(val p: Int) {
+  open fun method1(): Int = p
+
+  fun method2(): String = "Cannot be overridden"
+}
+
+class Derived(p: Int) : Base(p) {
+  override fun method1(): Int = p * 2
+
+  // I can't write this.
+  // the method is interpreted as final (Java)
+  //override fun method2(): String = ...
+}
+\end{lstlisting}
+
+
+\subsection{Dataclass}
+Dataclasses are very useful, in many cases. Is a class with some restriction and some benefits.
+Restrition:
+- cannot be extended
+- cannot be abstract
+- cannot be sealed, inner
+Benefits:
+- implementation of: equals, hashCode, toString, copy (create a clone of existing object), component1(), ..., componentN()
+The componentX allows to implement a destructuring operation. "data class Point(val x: Int, val y: Int); val (x, y) = Point(1, 2)"
+
+
+\subsection{Enum}
+Enum are a way to create enumerations. It allows to limit our alternatives. Enum classes can also store properties.
+
+\begin{lstlisting}
+enum class HttpStatusCode(val value: Int) {
+  OK(200), NotFound(404), ...
+}
+\end{lstlisting}
+
+\subsection{Sealed Class}
+Like rust Enum types, it's algebreic sum type. This is possible because sealed classes can be extended only insed the same file. At compilation all possible subclasses will be known.
+
+\begin{lstlisting}
+sealed class Result
+data class Success(val data: List) : Result()
+data class Failure(val error: Throwable?) : Result()
+
+fun processResult(result: Result): List = when (result) {
+  is Success -> result.data // I can treat `result` as `Success` class
+  is Failure -> listOf()    // The same, but with `Failure`
+}
+\end{lstlisting}
+
+\begin{lstlisting}
+sealed class Option<out T>
+data class Some<out T>(val data: T) : Option<T>
+object None : Option<Nothing>
+
+...
+\end{lstlisting}
+
+\sebsection{Generics}
+Following Java, generics are implemented as type erasure. Only during compilation generics are known, they are forgetten ar run-time. Since java and kotlin have reflection, when accessing the object the will tell us it will contain a list of <*> (a list of anything).
+
+We put restrictios using the when keyword
+
+\begin{lstlisting}
+fun <T> sort(l: List<T>) where T: CharSequence, T: Comparable<T> { ... }
+\end{lstlisting}
+
+\subsection{Variance in generic}
+\begin{lstlisting}
+interface Source<out T> {
+  fn next(): T
+}
+\end{lstlisting}
+\begin{lstlisting}
+interface Sink<in T> {
+  fn put(t: T)
+}
+\end{lstlisting}
+
+\subsection{Scoped functions}
+Extension function that can operate on generic types. Heavily used in Kotlin library "let, run, apply, with, also, ..." These are also called scoped funtion with receiver.
+
+
+\subsection{Collections}
+
+
+
+\section{Project Setup}
+
+Gradle -> Build tools, set of script (originally written in Groovy) written in kotlin
+
+....
+
+
+\subsection{Annotations}
+Annotations are a special kind of class (declared with the annotation class keyword), used to define some metadata associated with a function, class, parameter, etc. Annotations give us also reflection apis (allows to inspect the class at runtime).
+
+Usage:
+- Used to declare our intentions to other programmers that will read the code (@Suppress)
+- Used to generate extra code at compile-time or at run-time
+
+Annotation classes can be annotated as well. THere are few predifined.
+@Target(vararg at: AnnotationTarget): domain to of our class were it can be applied
+@Retention(ar: AnnotationRetention): the compiler will generate code from the annotation, but it will swallow it. It can be embedded in the byte code and then swallowed later. Or it can be craeted at run-time (using regflection).
+@Repeatable: annotation can be applied multiple times.
+@MustBeDocumented: 
+
+In Kotlin to disambiguate some cases there is a special syntax
+\begin{lstlisting}
+class Person(@get:GetterAnnotation val name: String)
+class Person(@field:FieldAnnotation val name: String)
+class Person(@param:ConstructorParamAnnotation val name: String)
+\end{lstlistin}
+
+Processing Annotation at run-time via reflection.
+\begin{lstlisting}
+@Retention(RUNTIME)
+@Target(FIELD)
+annotation class RelevantField
+
+data class SampleClass(var a: Int, @field:RelevantField var b: String)
+
+fun getRelavnat(obj: Any): List<String> {
+  return obj.javaClass
+    .declaredFields
+    .filter {
+      it.isAnnotationPresent(RelevaltField::class.java)
+        && (it.canAcess(obj) || it.trySetAccessible())
+    }
+    .map { "${it.name}: ${it.get(obj)}" }
+}
+\end{lstlistin}
+
+
+
+\section{Web Applications Architecture}
+Relieable applications properties:
+- Idempotence: a given block should not duplicate the effect or messages.
+- Immutability: design our system in such a way that nothing in never overridden nor it is deleted. It we want to deleted something we add something that tells us what we want to delete (like Git versions).
+- Location Independence: the behaviour of an application should not depend on where the application is located.
+- Versioning: keep track of our application changes.
+
+To address unreliable network (API calls), implementing idempotent APIs helps us:
+- REST based architectures
+- POST associated an ID to a request
+
+
+\subsection{Architecture}
+1. Client tier (Front-End): Usually a web-browser or mobile application.
+2. Web Tier (Back-End): Is in itself split in many tiers
+  1. Public Part (Presentation Layer): exposed to the internet, handling messages (Request, Responses), forwarding them to the service layer
+  1./2. Service Layer: can contact the data access layer, delegate part of its information to another server, e.g. for back payments we forward the traffic to another server (PayPal, ...).
+  2. Private Part: where the mojority of things happen
+3. Data Tier (Back-End)
+
+Infomation exachanged:
+(Public) DTOs: Data Transfer Objects, data trensfered to the internet, encoded in such a way that it's convenient to exchange, in modern systems the majority of data is transfered as json.
+
+(Private) Domain Models: data kept internally, this is how the designer of the system interpreted how data should be handled and represented. This modularity allows for both Public and Private services to evolve separately from each other.
+
+The Web Tiers should be designed in a stateless way. All that is manipulated is ephemeral, if a state must be present it should be by means of databaseses. In this way we can create many WebTier, load balancers can create how many of them as they want to distibute the traffic in the most appropriate way.
+
+Presentation Layer
+Encodes/Decodes answers as they come.
+
+Service Layer
+Implements the application business logic, defines the contract between the user the application. Each requirement is mapped 1 to 1 to one method that can be accessed. Typically those methods are used in a transactional way. It manipulates DTOs (usually a data class with fields for the different operations)
+
+Domain Model
+it represent domain concepts, it is suitable for the data representation in our data layer.
+
+Data Access Layer 
+Consists of a single application (DMBS) which is able to execute commands.
+
+Data Tier
+Consists of one or more database. 
+
+
+
+\section{Spring Boot}
+Beans:
+Build blocks of spring.
+
+Bean Wireing:
+Some annotation tell the framework that the bean needs something. Way of build the project and putting every needed piece of code into a big jar file.
+
+Basic ideas of the Spring framework:
+Inversion of Control
+Dependency Injection
+Aspect Oriented Programming
+
+Class Coupling:
+It's when a class depends upon another, it means that dependency it's strict. 
+\begin{lstlisting}
+\end{lstlisting}
+We can use IoC to decouple classes. It abstrct the functionality of the depenging class.
+\begin{lstlisting}[language=kotlin]
+interface Quest { fun embark() }
+
+class RescueDamselQuest: Quest {
+  override fun embark() {
+    println("...")
+  }
+}
+
+class BreaveKnight(private val quest: Quest) : Knight {
+  override fun embarkOnQuest() {
+    quest.embark()
+  }
+}
+\end{lstlisting}
+In this way a knight only knows that it has a quest, but the given details are not known, in this way we abstract the logic and the usage can be generic. In this way the Quest passed to the constructor can any kind of quest.
+
+Here the Dependecy Injection comes to help inject the dependency of a class that did IoC. In spring there is an ApplicationContainer that will automatically inject the dependencies.
+
+
+The AOP is a paradigm knowing that often our code is responsible to perform behavieours not strictly related to a specific class. A set of classes have a common problem, but in the way they are used need a common way of operating. We can take a set of common concerns and factorize them in a single place (cross-cutting concerns). For example in spring we can create @Aspect which we can repeat code for other annotated pieces of code.
+\begin{lstlisting}[language=kotlin]
+@Target(AnnotationTarget.FUNCTION)
+annotation class Timed
+
+@Aspect
+@Component
+class LogAspect { 
+  @Around("@annotation(Timed)")
+  fun log(joint: ProceedingJoinPoint): Any? {
+    val start = System.nanoTime();
+    try {
+      return joint.proceed()
+    } finally {
+      val end = System.nanoTime()
+      println("Execution time: \${end-start} ns")
+    }
+  }
+}
+\end{lstlisting}
+Whenever we will use the @Timed annotation, the additional code will be automatically generated and inserted dynamically.
+\begin{lstlisting}[language=kotlin]
+@Component
+class BraveKnight(private val quest: Quest) : Knight {
+  
+  @Timed
+  override fun embarkOnQuest() {
+    quest.embark()
+  }
+}
+\end{lstlisting}
+
+
+
+\section{Spring WebMVC}
+Spring supports two way to build web application (two ways of handling concurrency).
+- MVC: create many threads to handle each request
+- WebFlux: we can use asynchronous programming, by usgin all the available thread of a system we can split the load among them, instead of creating thousends of thread that will handle each request.
+
+Servlet (Java Enterprise Edition):
+An abstraction to be the unit of computation (a class that handles a request and produces a response). Some more specific subclasses exist (HTTPServlet). The approach servlet took it's the same that SpringMVC uses: one-request-per-thread.
+
+
+
+
+
+
+\end{document}
+
+%% vim: ts=2 sts=2 sw=2 et

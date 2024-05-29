@@ -342,18 +342,23 @@ The reason why these concepts are important, is to explain some problem that it'
 It's when a class depends upon another, it means that one is thighty couplen to another, wich we cannot create those classes in a separate way, one depends upon the other.
 
 We can use **Inversion of Control** to decouple classes dependencies. It abstrct the functionality of the depenging class.
-```kotlin
-interface Quest { fun embark() }
 
-class RescueDamselQuest: Quest {
+```kotlin
+interface Quest {
+  fun embark()
+}
+interface Knight {
+  fun emarkOnQuest()
+}
+
+class RescueDamselQuest : Quest {
   override fun embark() {
-    println("...")
+    println("embark")
   }
 }
 
-class BreaveKnight(private val quest: Quest) : Knight {
-  override fun embarkOnQuest() {
-    quest.embark()
+class BraveKnight(private var quest: Quest) : Knight {
+  override fun embarOnQuest() {
   }
 }
 ```
@@ -572,7 +577,7 @@ In Spring v3.0, it's possible to use docker compose to create a connection whit 
 
 To configure a connection we can use the following properties
 
-```yaml:application.yaml
+```yaml
 spring:
   datasource:
     url: jdbc:postgres://localhost:5432/db
