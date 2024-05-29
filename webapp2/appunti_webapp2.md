@@ -151,7 +151,7 @@ sealed class Option<out T>
 data class Some<out T>(val data: T) : Option<T>
 object None : Option<Nothing>
 
-...
+//...
 ```
 
 ## Generics
@@ -775,18 +775,31 @@ Problems: there is no way of cancelling those received events, there cannot be e
 To define reactive frameworks we need to define 4 interfaces, it's a mixture between the **Observer** and **Iterator** patterns and **Functional programming**.
 
 - `Subscriber<T>`: as long as I the class not in `onError` or in `onComplete` it can keep receiving `onNext`
+
 ```kotlin
 interface Subscriber<T> {
+  // Invoked after calling     
+  // Publisher.subscribe(Subscriber)
+  // No data will start flowing until    
+  // Subscription.request(long) is invoked
   fun onSubscribe(s: Subscirption)
 
+  // Invoked by publisher if subscription is active
+  // and a request for more data has been issued
   fun onNext(t: T)
 
+  // Fail terminal state. 
+  //No more invocations will be received
   fun onErrot(t: Throwable)
 
+  // Successful terminal state. 
+  // No more invocations will be received
   fun onComplete()
 }
 ```
+
 - `Subscription`: the subscription informs the publisher the readiness to recieve new information.
+
 ```kotlin
 interface Subscription {
   // ready to process n callbacks
@@ -801,17 +814,34 @@ interface Subscription {
 ```
 
 - `Publisher<T>`: the one who produces the data, in a typycal flow the `Subscription` will handle how much data has to be deliverted to the `Subscriber`
+
 ```kotlin
 interface Publisher<T> {
+  // Request Publisher to start streaming data
+  // This can be called multiple times, 
+  // each time starting a new Subscription
+  // Each Subscription will work for only a single Subscriber
+  // A Subscriber should only subscribe once to a single   
+  // Publisher
+  // If the Publisher rejects the subscription attempt 
+  // or otherwise fails, it will signal the error via 
+  // Subscriber.onError(…)
   fun subscribe(s: Subscribe<in T>?)
 }
 ```
 
 - `Processor<T, R>`: acts in between the pipeline, typycally implents operations such as `map()`, `filter()`, `reduce()`
+
 ```kotlin
+// A Processor represents a processing stage
+// which is both a Subscriber and a Publisher
+// and obeys the contracts of both
+// T is the type of element signalled to the Subscriber
+// R is the type of element signalled by the Publisher
 interface Processor<T, R> :
   Subscriber<T>, Publisher<R> {}
 ```
+
 
 
 ## Reactor
@@ -827,6 +857,101 @@ Flux.just("A", "B", "C")
 )
 ```
 
+Once we have a producer they have a lot of extension function which allows us to create other operators.
+
+### Transforming operator
+
+We have operators on reactors which allows to tranform the flux.
+
+- `map()`: transform the incomeing operatrators
+- `index()`: addes an index
+- `timed()`: addeds a timestamp to the received object
+- `flatMap()`: a provided lambda may produce a list for each element, all those outputs for each incoming elements will be emittet one single element sequentially
+- `flatMapSequential()`: it finishd emitting the values of the list produced by the first element until it succedes, and then it procedes to emit the other list in a ordered way
+- `concatMap()`: the lists are evaluated lazily
+
+### Peeking operators
+
+- `doOnX()`: useful for debugging or triggering side effects
+- `log()`: print logs
+
+### Filtering
+
+- `filter()`: invoked on each element discarding the ones specified with a lambda
+- `ignoreElements()`: discard all elements and only check if the operation succedes
+- `take()`: only keep a number of elements, drop the others
+- `skip()`: discard the first n elements
+- `elementAt()`: nth element
+- `single()`: take only the first element
+
+### Spliting and joinnig
+
+- `concat()`: after finishing the first flux starts taking elements from another
+- `merge()`: take two fluxes and every time one of them emits a value provide it on the output
+- `zip()`: every time two flux, which emits values asynchronously, have a value at the nth element they are emitted as a pair
+- `combineLatest()`: like `zip` but every time a new element is emitted and a pair can be formed it is emitted on each emission of the flows
+- `groupBy()`: creates a flux of fluxes, very every element is gouped by a key
+- `buffer()`: collect every emitted value and return a list of elements
+- `window()`: specify how big each flux should be
+
+### Collect synchronously
+
+- `toIterable()`:
+- `toStream()`:
+- `blockFirst()`:
+
+## Hot and Cold publishers
+
+How are data produced and collected? 
+
+E.g. when creating a query and executing it on the database it will return us some elements, the database is a **cold** source, it means that it only produces requests only when a request is made to it.
+
+E.g. a mouse produces events, when we move it or click it, even if the mouse does not have any subscriber, it will still emit events, if new subscribers comes along they will not be able to see the events that the previous publishers saw, a mouse is an example of a **hot** source.
+
+We can canvert a cold publisher into a hot one by calling `publish()` on it, this will cause a buffer to be allocated and the management of the delivery of new events. `share()` is very similar to `publish()`.
+
+## Reactive I/O in Spring
+
+The interface are very similar to ones used in the SpringMVC, but in this case the methods will return `Mono` or `Flux` instead of plain objects.
+
+The big main difference is that in WebFlux we use `R2DBC` instead of `JPA`, the proble is that with this approach everything has to configured manually.
+
+```kotlin
+@Configuration
+@EnableR2dbcRepositories
+@EnableTransactionManagement
+class R2dbcConfig(
+  // Equivalent of `EntityManager`
+  private val databaseClient: DatabaseClient,
+) : InitializingBean() {
+  @Value("classpath:/schema.sql")
+  private lateinit var schemaSql = Resource
+
+  // Loading the `schema.sql` before starting the appliaction
+  override fun afterPropertiesSet() {
+    val schema = schemaSql.getContentAsString(Charset.deafultCharset())
+    databaseClient.sql(schema).then().block()
+  }
+}
+```
+
+Transaction management has to be enabled, in mvc the transaction happened on a single thread where it contains a set of local variables to manage the transaction, with webflux this is not possible because every `onNext()` called by the Flux it will be execuded on different threads, and we need to enable transaction management in order to allow transaction to be called like in MVC. If we also want to the `lastModifiedTime`, ... fields we aslo need to add the `R2dbcAuditing`
+
+Another big difference with JPA is that here entites are not managed, but they are just plain classes, here entities are just plain classes, in fact we annotate them with `@Table`
+
+```kotlin
+// It's not mandatory to add the @Table
+@Table(name="course")
+data class Course(
+  var name: String,
+) : {
+  @Id
+  var id = 0L
+    private set
+}
+```
+
+In R2DBC it's not possible to have compound primary keys, when we create *Join Tables*, we need to add an `id` even if we don't need it.
 
 
 # Coroutines and suspend functions
@@ -1146,40 +1271,45 @@ To integrate a SPA from the cloud gateway, we should add `http-client.type: auto
 
 # System Integration
 
-Is it possible to connect various application between each other, and **System Integration** is the way of linking those applications. The main obstacles are that the application needs to provide the data. Other challenges are the compatibility issues, data integrity and security and complexity management, high cost and resource intensive.
+Is it possible to connect various application between each other, and **System Integration** is the way of linking those applications together. The main obstacles are that the applications need to provide the data. Other challenges are the compatibility issues, data integrity, security and complexity management, high cost and resource intensive tasks.
 
 We can integrate systems at different levels:
 
 - **Data Level**: transfer data from database to database
-- **<+>**:
+- **Application Login Level**: exchanging informations via API calls
+- **Presentation Level**: a user interface that collects information from differt data sources and displays them in a choherent way.
 
 Access level:
 
-- **point-to-point**: link a service directly with another service ($(N-1) N$ connections)
+- **point-to-point**: link a service directly with another service ($(N-1) \cdot N$ connections)
 - **hub-and-spoke**: link all the services and then properly sends data to a specific service ($N - 1$ connections)
-- **enterprise-service-bus**: move data from one end-point to other endpoints
+- **enterprise-service-bus**: move data from one end-point to other endpoint
+
 
 ## Enterprise Integration Pattern (EIP)
 
-We need to create a channel that moves data from a system to another, the two extremese are called *end-points*, this represent how the program.
-We have many king of messages:
+We need to create a channel that moves data from a system to another, the two extremes are called *end-points*, which are the start or the end of an integration pipeline. A pipeline is the entity that moves messages between two end-points.
 
-- **Command**: on operation that will happen in the future
+We have many kind of messages that can move across pipelines:
+
+- **Command**: an operation that will happen in the future
 - **Event**: something that happend in the past, we need to subscribe to receive this message
-- **Document**: provide a set of related informations, e.g. emails can contain text, inline images, HTML, etc.
+- **Document**: provide a set of informations relative to the message, e.g. emails can contain text, inline images, HTML, etc.
 
-Messages flows along **Channels**, which are compose by a **producer** and a **consumer** end-points:
+### End-points
+
+Messages flows along **Channels**, they allows for a relieble exchange of data from one end-point to onter, the two end-points are composed by a **producer** and a **consumer** end-points:
 
 - **Consumer**: receives data from the external world
 - **Producer**: produces some data and then sends it to a specific system
 
-They encapsulate the details of how the message is done.
+End-points encapsulate the details of how the message is done, which includes: data format, protocal, data handling.
 
-## Channels
+### Channels
 
-We can create various kind of channels
+We can create various kind of channels:
 
-- **Point-to-Point**: divided into *at-least-once semantics*, <+> store first and then mark the receival
+- **Point-to-Point**: retrieve a message from one source and deliber it to a destination, they are divided into *at-least-once semantics*, <+> store first and then mark the receival
 - **Publish-Subscribe**: those channels allow for multiple subscribers to receive the data
 - **Datatype**: all kinds of messages can flow
 - **Dead Letter**: channel used to temporary store failures
@@ -1211,7 +1341,7 @@ class MyRouteBuilder: RouteBuilder() {
         // to the output directory
         from("file:input")
             .process { log.info("Moving file: {}", it.`in`.getHeader("CamelFileName")) }
-            .to("file:output)
+            .to("file:output")
     }
 }
 ```
@@ -1407,6 +1537,5 @@ The broker only looks at headers to understand how it should handle the message,
 
 
 ## Kafka
-
 
 
