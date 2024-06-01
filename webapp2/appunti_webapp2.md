@@ -1541,6 +1541,65 @@ The broker only looks at headers to understand how it should handle the message,
 - Heasers exchange: <+>
 
 
-## Kafka
+## Apache Kafka
 
+Fault tolerant, event streaming platform. Kafka is transactional, gurantees storing and retrieving with ACID properties.
+
+Topic: append-only file
+
+Producers append data to topics, Readers read the topic from the begenning to the end. Kafka can be hosted on multiple machines, we can decide to duplicate the topic on all the machines, thus allowing fault-tolerance.
+
+A Topic can have 0 or more consumers, each consumer knows the last position that it read on the topic, this can also be stored on kafka.
+
+Event publication occures in a transaction.
+
+
+Kafka provides:
+
+- storing messages in a durable manner: the level of durability can be configured
+- fault tolerance: topics can be replicated with many replicas
+- horizontal scalability: machines can all partecipate in providing events
+
+
+Kafka clusters provides a set of APIs:
+- Streams: move data from one topic to another by processing the data
+<+>
+
+Architecture:
+
+SQRES: security -> insertion/deletion are operated on the dbms, that information is then extratcted and formated in such a way to be queried, this happens when a huge number of reading are performed, and insertions are very rare, the data is sent to another db that will only be used for reding, all the insertions are redirected to the transactional database.
+
+Streams API: read from a topic, process, and produce events. ktables: inforamtions where informations are inserted and collected at the same time, it provides an observability window.
+
+### Producer and Consumers
+
+A consumer reads data in order, each consumer is identified.
+<+>
+
+### Topics
+
+
+
+### Generic consumer
+
+```kotlin
+fun createConsumer(): Consumer<String, String> {
+  val props = Properties()
+  props[ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG] = "localhost:9092"
+  // ...
+
+  return KafkaConsumer(props)
+}
+
+fun main() {
+  val consumer = createConsumer()
+  // ...
+}
+```
+
+
+development -> `PLAINTEXT_HOST://:9092`
+deployment in docker -> `...://:29092`
+
+To debug the appliaction we can use `kafka-ui`.
 
