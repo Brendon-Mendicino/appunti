@@ -1603,3 +1603,22 @@ deployment in docker -> `...://:29092`
 
 To debug the appliaction we can use `kafka-ui`.
 
+<+>
+
+
+# Microservices
+
+<+>
+
+
+# OpenAPI
+
+When project starts to get really big, the need of documenting those codebases araises. One very useful tool that helps to generate the documentation for the `RestControllers` is called **OpenAPI**. To begin using this tool in spring we need to include it as a dependency in the `build.gradle.kts`
+
+```kotlin
+implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0")
+```
+
+This by default will expose on our server on the path `/swagger-ui/index.html`, a page that contains a list of all our endpoints, by deafault all the endpoints will have a request body/parameters and a response which will be automatically inferred from the controller types. This allows to browser the documentation and also make request to the endpoint if we want.
+
+
