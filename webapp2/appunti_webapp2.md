@@ -1,3 +1,115 @@
+<!--toc:start-->
+- [Kotlin](#kotlin)
+  - [Types](#types)
+  - [Null Safety](#null-safety)
+  - [Using nullable types](#using-nullable-types)
+  - [Classes](#classes)
+  - [Delegates](#delegates)
+  - [Equality](#equality)
+  - [Comparing](#comparing)
+  - [Singletons](#singletons)
+  - [Companion Object](#companion-object)
+  - [Extension Function](#extension-function)
+  - [Inheritance](#inheritance)
+  - [Dataclass](#dataclass)
+  - [Enum](#enum)
+  - [Sealed Class](#sealed-class)
+  - [Generics](#generics)
+  - [Variance in generic](#variance-in-generic)
+  - [Scoped functions](#scoped-functions)
+  - [Annotations](#annotations)
+    - [Processing Annotation at Runtime](#processing-annotation-at-runtime)
+- [Web Applications Architecture](#web-applications-architecture)
+  - [Request Journey](#request-journey)
+  - [Distributed Systems](#distributed-systems)
+- [Spring Boot](#spring-boot)
+  - [Program structure](#program-structure)
+    - [Class Coupling:](#class-coupling)
+    - [Application Context](#application-context)
+    - [Autoconfiguration](#autoconfiguration)
+    - [Lifecycle](#lifecycle)
+    - [Autowiring by constructor](#autowiring-by-constructor)
+    - [Application Properties](#application-properties)
+- [Spring WebMVC](#spring-webmvc)
+  - [Servlet (Java Enterprise Edition):](#servlet-java-enterprise-edition)
+  - [Processing data](#processing-data)
+  - [Validation](#validation)
+- [Service Layer](#service-layer)
+  - [DTOs (Data Transfer Objects)](#dtos-data-transfer-objects)
+  - [Defining a service](#defining-a-service)
+  - [Testing a service](#testing-a-service)
+  - [Transactionality](#transactionality)
+    - [Transaction properties](#transaction-properties)
+    - [Isolation levels](#isolation-levels)
+- [Data Access Layer](#data-access-layer)
+  - [ORM](#orm)
+  - [Docker](#docker)
+  - [Schema definition](#schema-definition)
+  - [Repository](#repository)
+  - [JPA Inner Logic](#jpa-inner-logic)
+- [Domain Driven Design](#domain-driven-design)
+  - [Benefits](#benefits)
+  - [Bounded context](#bounded-context)
+  - [Key Concepts](#key-concepts)
+- [Spring Data in depth](#spring-data-in-depth)
+  - [JDBC](#jdbc)
+  - [JPA](#jpa)
+- [Spring WebFlux](#spring-webflux)
+  - [Blocking vs. Non Blocking](#blocking-vs-non-blocking)
+    - [Reactive Stack](#reactive-stack)
+    - [The Observer Pattern](#the-observer-pattern)
+    - [Publish and Subscribe (PUBS)](#publish-and-subscribe-pubs)
+  - [Reactive Frameworks](#reactive-frameworks)
+  - [Reactor](#reactor)
+    - [Transforming operator](#transforming-operator)
+    - [Peeking operators](#peeking-operators)
+    - [Filtering](#filtering)
+    - [Spliting and joinnig](#spliting-and-joinnig)
+    - [Collect synchronously](#collect-synchronously)
+  - [Hot and Cold publishers](#hot-and-cold-publishers)
+  - [Reactive I/O in Spring](#reactive-io-in-spring)
+- [Coroutines and suspend functions](#coroutines-and-suspend-functions)
+  - [Coroutines](#coroutines)
+    - [Dispatchers](#dispatchers)
+    - [Context Handling](#context-handling)
+    - [Synchronizaiton](#synchronizaiton)
+- [Flows](#flows)
+  - [`transform()`](#transform)
+  - [Spring R2DBC](#spring-r2dbc)
+- [Authenication and Authorization](#authenication-and-authorization)
+  - [IAM repsonsibilities](#iam-repsonsibilities)
+  - [OAuth 2.0 (Authorization)](#oauth-20-authorization)
+  - [Authentication Flows](#authentication-flows)
+  - [OpenID Connect](#openid-connect)
+    - [Json Web Token (JWT)](#json-web-token-jwt)
+- [Spring Security](#spring-security)
+  - [Authentication Providers](#authentication-providers)
+  - [OIDC Authorization Code Flow.](#oidc-authorization-code-flow)
+  - [Resource Server](#resource-server)
+  - [Contact Resource Server from the Client](#contact-resource-server-from-the-client)
+  - [Accessing the principal](#accessing-the-principal)
+- [System Integration](#system-integration)
+  - [Enterprise Integration Pattern (EIP)](#enterprise-integration-pattern-eip)
+    - [End-points](#end-points)
+    - [Channels](#channels)
+  - [Apache Camel](#apache-camel)
+- [MongoDB](#mongodb)
+  - [Documents](#documents)
+  - [CRUD operations](#crud-operations)
+  - [Aggregation pipelines](#aggregation-pipelines)
+  - [Indices](#indices)
+  - [Transactions](#transactions)
+  - [MongoBD in Spring](#mongobd-in-spring)
+- [Message Brokers](#message-brokers)
+  - [RabbitMQ](#rabbitmq)
+  - [Apache Kafka](#apache-kafka)
+    - [Producer and Consumers](#producer-and-consumers)
+    - [Topics](#topics)
+    - [Generic consumer](#generic-consumer)
+- [Microservices](#microservices)
+- [OpenAPI](#openapi)
+<!--toc:end-->
+
 # Kotlin
 ## Types
 All types are references types in Kotlin, they will be optimized later by the compiler if possible, this removes the problems that Java was carrying, like the difference between boxed and unboxed type`int` vs `Integer`, ...).
@@ -281,25 +393,11 @@ Infomation exachanged:
 
 The Web Tiers should be designed in a stateless way. All that is manipulated is ephemeral, if a state must be present it should be by means of databaseses. In this way we can create many WebTier, load balancers can create how many of them as they want to distibute the traffic in the most appropriate way.
 
-### Presentation Layer
-
-Encodes/Decodes answers as they come, and checks their formal validity, if it accepts it forward the data to layer below.
-
-### Service Layer
-
-Implements the application business logic, defines the contract between the user and the application. Each requirement is mapped `1 to 1` to a method that can be accessed. Typically those methods are used in a transactional way, if one operation fails then it should be rolled back. It manipulates DTOs (usually a data class with fields for the different operations), and internally it converts them to an **Entity** representation. Services should not leak the internal details of how the data layer is composed.
-
-### Domain Model
-
-It represent domain concepts, it is suitable for the data representation in our data layer. If we use *MySql* the data representation will be different from a *MongoDB* data representation.
-
-### Data Access Layer 
-
-It is responsible for persisting Entities or Documents coming from the Service Layer. Typycally it consists of a single application (DMBS) which is able to execute commands.
-
-### Data Tier
-
-Consists of one or more database, which could also have different technologies between them.
+- **Presentation Layer**: Encodes/Decodes answers as they come, and checks their formal validity, if it accepts it forward the data to layer below.
+- **Service Layer**: Implements the application business logic, defines the contract between the user and the application. Each requirement is mapped `1 to 1` to a method that can be accessed. Typically those methods are used in a transactional way, if one operation fails then it should be rolled back. It manipulates DTOs (usually a data class with fields for the different operations), and internally it converts them to an **Entity** representation. Services should not leak the internal details of how the data layer is composed.
+- **Domain Model**: It represent domain concepts, it is suitable for the data representation in our data layer. If we use *MySql* the data representation will be different from a *MongoDB* data representation.
+- **Data Access Layer**: It is responsible for persisting Entities or Documents coming from the Service Layer. Typycally it consists of a single application (DMBS) which is able to execute commands.
+- **Data Tier**: Consists of one or more database, which could also have different technologies between them.
 
 ## Request Journey
 
@@ -680,12 +778,12 @@ data class Warehouse(@Id val id: String, val location: String) {
     fun addInventoryItem(inventoryItem: InventoryItem) {
         _domainEvents.add(InventoryItemAdded(this, inventoryItem))
         inventoryItems.add(inventoryItem)
-    }	
-  
+    }
+
     private val _domainEvents = mutableListOf<Any>()
     @DomainEvents
     fun domainEvents(): List<Any> = _domainEvents
-  
+
     @AfterDomainEventPubblication
     fun cleanup() {
         _domainEvents.clear()
@@ -999,7 +1097,7 @@ In spring a `CoroutineContext` contains 4 pieces:
 
 ### Context Handling
 
-...
+<+>
 
 ### Synchronizaiton
 
@@ -1104,7 +1202,7 @@ suspend fun hell(request: ServerRequest) = ServerRespone
 
 ## Spring R2DBC
 
-....
+<+>
 
 `TransactionalOperator`: gurantees that all the coroutines finshes inside the logic block, if one of them fails, the transaction will be rooled back, if they all finish the transaction will be committed.
 
@@ -1119,32 +1217,95 @@ class PeopleRepository(val operator: TransactionalOperator) {
 }
 ```
 
+# Authenication and Authorization
 
-# Security
+When an application needs to access some remote resource, two problems arises: authentication and authorization.
 
+These two probleams are a cross-cutting concern for everyone, this lead to some stadard way of performing those two tasks by using well-tested frameworks or libraries, two of theese standard solutions are **OAuth 2.0** and **OIDC 1.0**.
 
+Other times when a user is registered to onother domain, we would like to authenticate using those other credentails, e.g. when we sign-in with Google we provide a proof of our identiy, this is called **Domain Federation**.
 
+In other cases providing a password is too weak, that's why we whould like to provide **multi-factor authentication**.
 
+Some stadard solutions exist which are compliant with the standar, they are called **Identity Access Manager** (IAM), they allow the usage of MFA, single sing-on, role-based access control, attribute-based access control. Also another important factor is that IAMs helps to comply with regulations such as the GDPR.
 
+One of the open-source solutions is **Keycloak**. Others are **Okta** (commercial cloud-based), **Auth0**, ...
 
+## IAM repsonsibilities
 
-# OpenID Connect
+- authentication: a IAM need to authenticate a user that wants to login
+- authorization: assign a user a subset of priviledges that are required to perform their job
+- user management: supports the creation, deletion and modification of users and their attributes/roles
+- access control policies: policies may depend on roles or specific attributes (like begin labeled as admin, but you have rights only in your department)
+- single sign-on: allows having a single passwords for differnt services.
+- federated identity management: enable users to access systems across different trusted organizations using their home organization's credentials
+- audit and compliance reporting: a log is created for each action performed by the users, also generated documentation to comply with privacy laws
 
-## Json Web Token (JWT)
+A IAM in exchange for a log-in returns a **token**, which there are 3 types:
+- **access token**: short lived token (minutes of life), when presented to a 3rd-party, it will be able to validate your identity. The other system will be able to generate your informations and your roles.
+- **refresh token**: much longer lifetime than access token, but it cannot be invalidated easily, thus it must be kept more securely than the access token, this must also verifiable like the access token. When an access token expires the application must use a refresh token to renew it.
+- **ID token**: carries information about the user and it is encode using the JWT standard.
+
+## OAuth 2.0 (Authorization)
+
+An IAM will emit tokens only if an application (the **Client**) requests it. The client should be preauthorized by the IAM, this are provided by the IAM which are the **clientID** (public) and a **clientSecret** (private).
+
+## Authentication Flows
+
+- OAuth 2.0 resouce owner password credential flow: less used, gives a lot of restrictions, and put the responsibility in the hands of the programmer, if we want to enable other features we need to change the application. ![OAuth 2.0 passord credentials](./img/oauth2-password-credentials.png "OAuth 2.0 passord credentials")
+- OAuth 2.0 client credential flow: used when an application has to authenticate, acting on behalf of itself, using clientId and clientSecret. ![OAuth 2.0 client credentials](./img/oauth2-credentials.png "OAuth 2.0 credentials")
+- OAuth 2.0 device flow: (WhatsApp Web) principally used for IoT devices or where it is not safe to type a password. ![OAuth 2.0 device](./img/oauth2-device.png "OAuth 2.0 device")
+- OAuth 2.0 authorization code flow: a user access the client using a browser. ![OAuth 2.0 authorization code](./img/oauth2-authorization-code.png "OAuth 2.0 authorization code")
+
+## OpenID Connect
+
+OIDC is standard built on top of oauth2, thanks to this the IAM will also provide an identidy token, which provides some inforamtion about the user, e.g. a picture, the name, the email, ...
+
+This token should be encoded in a readable format (JWT).
+
+### Json Web Token (JWT)
 
 Whenever we are logging in a OIDC IAM provider, we will get a token encoded as the standard describes in `Base64`. The JWT is divided in 3 parts
 
 - **Header**: information about the token itself in json notation
-- **Payload**: provides information about who will use this premissions and who garanted this permission
+- **Payload**/**Claims**: provides information about who will use this premissions and who garanted this permission
 - **Signature**: the signature of the **header** and **payload**.
 
+The client is able to verify that this token has been created by the IAM using the signature field, in fact by using the IAM public key it's possible to verify the signature over the the header and payload.
+
 Payload fields:
+
 - `sub`: defines the subject of the JWT
 - `iss`: issuer of the JWT
 - `aud`: the address of the intended service destined for the JWT
 - `iat`: **Issued AT** (timestamp in epoch data)
-- `nbf`: **Not valid BeFore**
-- `exp`: **EXPiry**
+- `nbf`: **Not valid BeFore**: useful for preparing tokens in advance
+- `exp`: **EXPiry**: date after which the token is no more valid
+
+JWTs are by themselves the identiy proof, this is why we need to store and transfer them carefully.
+
+When we create real applications, big systems have many server and services, and we should be able to provide access to all of those services. Other than that we still need to create some kind of protection to avoid intruders to get in.
+
+Architecting larger systems:
+
+- **business-process view**: what the company provides to it's customer
+- **application view**: details on how the requirements have been translated to the actual implementation
+- **data view**: focus on how the data is stored, accessed, represented
+- **deployment view**: where and how our app is created and accessed
+- **end-user view**: user don't care how things are implemented, they only have expectations of how things should work
+
+We also have many users with different needs:
+
+- **end users**: customers whom use the application
+- **employees**: makes the system works
+  - **devs** and **engineers**: architect the systems
+  - **sales** and **marketing**: only interact with the system
+- **partners**: do some part of the job for the company, they have some rights to write inforamtion on your data
+- **administrators**: someone who has the access to everything
+
+We saw that there are many permissions on what it's possible to do, for this reason there are audit files, which allow to check who did what on which resource.
+
+In spite of all theese complex scenarios OAuth 2.0 + OIDC allows to manage those scenarios, the standard accomodates all those things.
 
 
 # Spring Security
