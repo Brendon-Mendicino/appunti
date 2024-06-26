@@ -85,7 +85,8 @@
 - [Spring Security](#spring-security)
   - [Authentication Providers](#authentication-providers)
   - [OIDC Authorization Code Flow.](#oidc-authorization-code-flow)
-  - [Resource Server](#resource-server)
+  - [OAuth2 Client](#oauth2-client)
+  - [OAuth2 Resource Server](#oauth2-resource-server)
   - [Contact Resource Server from the Client](#contact-resource-server-from-the-client)
   - [Accessing the principal](#accessing-the-principal)
 - [System Integration](#system-integration)
@@ -1310,17 +1311,27 @@ In spite of all theese complex scenarios OAuth 2.0 + OIDC allows to manage those
 
 # Spring Security
 
-Declarative framework built aroud our application.
+Common Web App vunlerability:
 
-Both `Filters` and `Aspects` are governed by set of **Security Configuration**. To include security we need to add the `spring-boot-start-security` dependency. By default this plugin renders our application unusable, because it requires a login to be used, it can be configured further. Other dependencies are `spring-boot-starter-oauth2-*`, which allows us to use **OAuth2** login methods. We can also specify some `Filters` to check what comes inside the `Controller`s and what goes out of them.
+- **broken authentication**: password easily guessable, not renewed periodically
+- **session fixation**: steal a cookie to impersonate someone else
+- **cross-site scripting (XSS)**: js from client a site invoking js from another site
+- **cross-site request forgery (CSRF)**: making a http request from a website to another website where we already have stored cookies, e.g. amazon one-click button is just a POST request, if we are on another website we can call that endpoint and the request will be successful because the browser will already have the cookies
+- **sensitive data exposure**: committed passwords on github, sensitive information in public logs, configuration
+- **lack of method access control**: allowing code injection to be performed
+- **using dependencies with known vulnerabilities**: like `log4j` library, it's important to continously update our dependency
+
+By using the spring framework we can use **spring security**, it is a declarative framework built aroud our application. This is available both for servlet (Servlet filter) and reactor. Inspect the request bu using a method and call the next **chain** (next filter), we can also use that inspection on outgoing traffic, this is called **perimetral defence**. It's also possible aspects to wrap our service methods, and we can specify who is allowed to access those resources using `@PreAuthorize` and `@PostAuthorize`, this is what is called **volumetric defence**.
+
+Both `Filters` and `Aspects` are governed by set of **Security Configuration**. To include security we need to add the `spring-boot-starter-security` dependency. By default this plugin renders our application unusable, because it requires a login to be used, it can be configured further. Other dependencies are `spring-boot-starter-oauth2-*`, which allows us to use **OAuth2** login methods. We can also specify some `Filters` to check what comes inside the `Controller`s and what goes out of them.
 
 Terminology:
 
 - `Principal`: user, system or device acting in the system
-- `Authentication`: who is accessing out application
-- `Credentials`: whatever is used by a `Principal` to 
-- `Authorization`: wether or not to give access to certain action to a `Principal`
-- `Secured Resource`:
+- `Authentication`: contains information about the current logged user
+- `Credentials`: whatever is used by a `Principal` to proof it's identity
+- `Authorization`: wether or not to give access of a certain action or resource to a `Principal`
+- `Secured Resource`: urls that we want to protect using various kind of restrictions
 - `GrantedAuthority`: the set of actions that can be performed, any `Principal` can be assigned to a set of `GrantedAuthority` (like the authorizations on a Linux file).
 - `SecurityContext`: stores information of the authenticated user, in Spring this context is bound to a thread which it knows who is invoking that function.
 
@@ -1347,19 +1358,90 @@ class SecurityConfig {
 }
 ```
 
+In the application it's also possible to access to the `SecurityContext` wher all the security configuration is stored.
+
+```kotlin
+@GetMapping
+fun get(principal: Principal) {
+  println(principal);
+
+  val authentication = SecurityContextHolder.getContext().authenticaion
+  println(authentication)
+}
+```
+
+`SecurityFilterChains` will perform two main actions, first check wether an user is authenticated , second if the user is not authenticated try to authenticate it using the `AuthenticationManager` which uses an `AuthenticationProvider`.
+
+After the authentication we will go through the `Authorization Flow`.
+
 ## Authentication Providers
+
+How is the `SercurityContextHolder` populated? This is possible thanks to an implementation of the `AuthenticationProvider` interface.
+
+
+```kotlin
+// Indicates a class can process a specific 
+// Authentication implementation
+interface AuthenticationProvider {
+  // Performs authentication with the same contract as   
+  // AuthenticationManager.authenticate(Authentication)
+  // Throws AuthenticationException on failure
+  // Returns null if the request cannot be evaluated
+  // Returns a full Authentication on success
+  fun authenticate(authentication: Authentication): Authentication?
+
+  // Returns true if this AuthenticationProvider 
+  // supports the indicated Authentication object.
+  fun supports(authentication: Class<*>): Boolean
+}
+```
+
+The `AuthenticationProvider` will try to fetch some information about the user, this is done by providing a `UserDetail` interface.
 
 The easiest is a `DaoAuthenticationProvider` which will use a database internally to check if the db contains that username and encrypted password, this is possible for trivial applications.
 
 Depending on which part of the OAuth2 chain we are we use two different providers: `OidcAuthorizaionCodeAuthenticationProvider`, `JwtAuthenticationProvider`
 
+![](./img/auth-flow.png "Authentication flow")
+
+![](./img/authz-flow.png "Authorization flow")
+
 ## OIDC Authorization Code Flow.
 
-The only two public end-poitns of our applications will be the `IAM` and the `OAuth2 Client`, all our services will be **hidded** behind the `OAuth2 Client`. When a browser will perform a request on our services, it will redirect (`3xx`) the request to the `IAM`. Once the `IAM` has authenticated the user, it will respond with a `302` redirecting the browser to the `OAuth2 Client` with a **nonce** inside the request parameters, with that nonce the `OAuth2 Clien` can get a **token** created by the `IAM`, when this finishes the `OAuth2 Client` create a **cookie** associated with the current session (token), when the browser will make a request the `OAuth2 Client` will translate the cookie to a **token**, the `OAuth2 Resource Server` will check the token for permissions, and finally will respond to the browser with a response.
+The only two public end-poitns of our application will be the `IAM` and the `OAuth2 Client`, all our services will be **hidded** behind the `OAuth2 Client`. When a browser will perform a request on our services, it will redirect (`3xx`) the request to the `IAM`. Once the `IAM` has authenticated the user, it will respond with a `302` redirecting the browser to the `OAuth2 Client` with a **nonce** inside the request parameters, with that nonce the `OAuth2 Client` can get a **token** created by the `IAM`, then then `OAuth2 Client` create a **cookie** associated with the current session and **token** received by the `IAM`, when the browser will make a request the `OAuth2 Client` will translate the cookie to the **token** and forward the request to the `Resource Server` with **token** attached, the `OAuth2 Resource Server` will check the token for permissions with the `IAM`, and finally it will respond to the browser with a response.
 
-Still there is a problem if a browser tries to logout, the `OAuth2 Client` will delete the cookie and the token, and the browser will be redirected to the `IAM` again, but the `IAM` contain already a session, which will not be deleted, and so it will get me a new **nonce** and, immediately, redirect the browser to the `OAuth2 Client`. So we didn't really logout, to specifically do this there is a special, function we can call on the `IAM` ...
+Still there is a problem if a browser tries to logout, the `OAuth2 Client` will delete the cookie and the token, and the browser will be redirected to the `IAM` again, but the `IAM` contain already a session with the browser, which will not be deleted, and so it will get me a new **nonce** and, immediately, redirect the browser to the `OAuth2 Client`. So we didn't really logout, to specifically do this there is a special function we can call on the `IAM` to terminate our session with him
 
-## Resource Server
+```kotlin
+@Configuration
+class SecurityConfig(
+  val crr: ClienRegistrationRepository,
+) {
+  // This redirect us to the IAM and remmove our session with it,
+  // after the removal we will be redirected to the specified url
+  fun oidcLogoutSeuccessHandler() = OidcClientInitiatedLogoutSuccessHandler(crr)
+    .also { it.setPostLogoutRedirectUri("http://localhost:8080") }
+
+  @Bean
+  fun securityFilterChain(httpSecurity: HttpSecurity): SecurityFilterChain {
+    return httpSecurity
+      // Terminate session with the IAM
+      .logout { it.logoutSuccessHandler(oidcLogoutSuccessHandler()) }
+      .build()
+  }
+}
+```
+
+## OAuth2 Client
+
+A client will two impoartant end-points to perform an authorization code flow
+
+- `/oauth2/authorization/{oidc-app-client}`: initiate login and redirect to the IAM
+- `/login/oauth2/code/{oidc-app-client}`: where the IAM redirect the browser in order to provide to the client the code it created
+
+Then client will get from the IAM a **refresh token** and an **id token**.
+
+## OAuth2 Resource Server
 
 OAuth2 Resource Server provides information, it will attach a security token to each of the user request only if the token is validated.
 
