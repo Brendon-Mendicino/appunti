@@ -113,10 +113,10 @@
 
 # Kotlin
 ## Types
-All types are references types in Kotlin, they will be optimized later by the compiler if possible, this removes the problems that Java was carrying, like the difference between boxed and unboxed type`int` vs `Integer`, ...).
+All types are references types in Kotlin, they will be optimized later by the compiler if possible, this removes the problems that Java was carrying, like the difference between boxed and unboxed type`int` vs `Integer`, etc.
 
 ## Null Safety
-Java is affected by Null values, they are part of the language to signal the abcence of a value, Kotlin improves on this by embedding in the language the possiblity for a type to be Null directly inside the type. Kotlin has two types of values (the third one will be discussed later), **non-null-types** and **null-types** obtained by appending a `?` at the end of the value. Kotlin puts the type `Any` at the top of the class hierarchy (every class inheriths Any), like `Object` in Java, while at the bottom of the hierarchy it puts `Nothing` (every class is inherited by Nothing). As we said earlier every type has it's nullable counter-part, in fact `Any?` and `Nothing?` are both types, the `null` value is the only instance of the `Nothing?` type. On the other hand `Nothing` contains no possible value, using the kind of abstraction the compiler can do assumption based on the code for optimizations or for checking, e.g. an exception as no possible value, we use the `Nothing` type to mark this return value, or if the main contains an infinite loop and that function is never supposed to return, the return value can specified to be `Nothing`. The `Noghtin` type is like the concept of 0 in math.
+Java is affected by Null values, they are part of the language to signal the absence of a value, Kotlin improves on this by embedding in the language the possibility for a type to be Null directly inside the type. Kotlin has two types of values (the third one will be discussed later), **non-null-types** and **null-types** obtained by appending a `?` at the end of the value. Kotlin puts the type `Any` at the top of the class hierarchy (every class inherits Any), like `Object` in Java, while at the bottom of the hierarchy it puts `Nothing` (every class is inherited by Nothing). As we said earlier every type has its nullable counter-part, in fact `Any?` and `Nothing?` are both types, the `null` value is the only instance of the `Nothing?` type. On the other hand `Nothing` contains no possible value, using the kind of abstraction the compiler can do assumption based on the code for optimizations or for checking, e.g. an exception as no possible value, we use the `Nothing` type to mark this return value, or if the main contains an infinite loop and that function is never supposed to return, the return value can be specified to be `Nothing`. The `Noghtin` type is like the concept of 0 in math.
 
 ## Using nullable types
 - **safe-call operator** (`?.`): call the method/paramter if the object is not null
@@ -131,9 +131,9 @@ var len: Int? = b?.lenght
 ```
 In Kotlin everything has a return value, `void` is replaced with `Unit`, which is a class and the only possible instance of that class. Like Rust also in Kotlin every scope has a return value, e.g. `val a = if (0 == 0) \{ 1 \} else { 2 }`, in this case `a` will have value of 1.
 
-Kotlin assumes that nothing is inheritalbe unless it's explicit, this avoid many of the problem on inheritance. In Kotlin there are two kind of attributes, variables (`var`) which are values that can change, values (`val`) which means that the value is not reassignable, and not immutable.
+Kotlin assumes that nothing is inheritable unless it's explicit, this avoids many of the problem on inheritance. In Kotlin there are two kinds of attributes, variables (`var`) which are values that can change, values (`val`) which means that the value is not reassignable, and not immutable.
 
-Functions types: in Kotlin the type of a function is defnied as the set of types of the paramters inside parethesis and the return value after the arrow (`->`): `(String, Int) -> Unit`. To declare a function we use the keyword `fun`, to assign a function to a variable we use the (`::`) before its name, `val a: (String) -> Unit = ::greet`. This allows function in kotlin to be: **higher order functions** and **first class citizens**.
+Functions types: in Kotlin the types of a function is defined as the set of types of the parameters inside parenthesis and the return value after the arrow (`->`): `(String, Int) -> Unit`. To declare a function we use the keyword `fun`, to assign a function to a variable we use the (`::`) before its name, `val a: (String) -> Unit = ::greet`. This allows function in kotlin to be: **higher order functions** and **first class citizens**.
 
 ## Classes
 Classes have a default constructor defined with parenthesis after the name of the class, the `init` scope is run after the constructor is called, moreover secondory constructors can be defined with the `constructor` keyword, in the end they must call the primary constructor to build the object.
@@ -353,14 +353,14 @@ fun getRelavnat(obj: Any): List<String> {
 
 # Web Applications Architecture
 
-Relieable applications properties:
+Reliable applications properties:
 
 - Idempotence: a given block should not duplicate the effect or messages.
-- Immutability: design our system in such a way that nothing in never overridden nor it is deleted. It we want to deleted something we add something that tells us what we want to delete (like Git versions).
+- Immutability: design our system in such a way that nothing is overridden or deleted. If we want to deleted something we add a flag that tells us what we want to delete (like Git versions).
 - Location Independence: the behaviour of an application should not depend on where the application is located.
 - Versioning: keep track of our application changes.
 
-When building web applications there also many fallacies that are believed to be true, but they never are:
+When building web applications there also some fallacies that very often are believed to be true, but they never are:
 
 - The network is **reliable**
 - **Latency** is zero
@@ -376,28 +376,29 @@ To address unreliable network (API calls), implementing idempotent APIs helps us
 - REST based architectures
 - POST associated an ID to a request
 
-Nowadys web applications uses HTTP(S) methods to exchange data with their clients. Typycally web application are disgned in a way such that those clients can perform some business logic (The **Business Login** is how the information is managed by the application).
+Nowadays, web applications use HTTP(S) methods to exchange data with their clients. Typically web application are designed in a way such that those clients can perform some business logic (The **Business Login** is how the information is managed by the application).
 
 Usually the approach that we use is a *tier level*:
 
-1. **Client tier** (Front-End): Usually a web-browser or mobile applicationa, which does HTTP(S) requests over the internet.
+1. **Client tier** (Front-End): Usually a web-browser or mobile applications, which does HTTP(S) requests over the internet.
 1. **Web Tier** (Back-End): Is in itself split in many tiers
-  1. **Presentation Layer** (Public Part): exposed to the internet, handling messages (Request, Responses), forwarding them to the service layer. Informations exchanged are **DTO**s (Data Transfer Object), which is usually represented as a json object.
-  1. **Service Layer**: can contact the data access layer, delegate part of its information to another server, e.g. for back payments we forward the traffic to another server (PayPal, ...).
-  1. **Data Access Layer** (Private Part): where the mojority of things happen, inside the data is represented as **Domain Model**s which is how the data is represented internally, how the disgner has concieved that service.
+    1. **Presentation Layer** (Public Part): exposed to the internet, handling messages (Request, Responses), forwarding them to the service layer. Information exchanged are **DTO**s (Data Transfer Object), which is usually represented as a `json` object.
+    1. **Service Layer**: can contact the data access layer, delegate part of its information to another server, e.g. for back payments we forward the traffic to another server (PayPal, ...).
+    1. **Data Access Layer** (Private Part): where the majority of things happen, inside the data is represented as **Domain Model**s which is how the data is represented internally, how the designer has conceived that service.
 1. **Data Tier** (Back-End): is where the data is stored and where the data constraints are checked.
 
-Infomation exachanged:
-(Public) DTOs: Data Transfer Objects, data trensfered to the internet, encoded in such a way that it's convenient to exchange, in modern systems the majority of data is transfered as json.
+Information exchanged:
 
-(Private) Domain Models: data kept internally, this is how the designer of the system interpreted how data should be handled and represented. This modularity allows for both Public and Private services to evolve separately from each other.
+- (Public) DTOs: Data Transfer Objects, data transferred to the internet, encoded in such a way that it's convenient to exchange, in modern systems the majority of data gets shared as `json`.
 
-The Web Tiers should be designed in a stateless way. All that is manipulated is ephemeral, if a state must be present it should be by means of databaseses. In this way we can create many WebTier, load balancers can create how many of them as they want to distibute the traffic in the most appropriate way.
+- (Private) Domain Models: data kept internally, this is how the designer of the system interpreted how data should be handled and represented. This modularity allows for both Public and Private services to evolve separately from each other.
 
-- **Presentation Layer**: Encodes/Decodes answers as they come, and checks their formal validity, if it accepts it forward the data to layer below.
-- **Service Layer**: Implements the application business logic, defines the contract between the user and the application. Each requirement is mapped `1 to 1` to a method that can be accessed. Typically those methods are used in a transactional way, if one operation fails then it should be rolled back. It manipulates DTOs (usually a data class with fields for the different operations), and internally it converts them to an **Entity** representation. Services should not leak the internal details of how the data layer is composed.
-- **Domain Model**: It represent domain concepts, it is suitable for the data representation in our data layer. If we use *MySql* the data representation will be different from a *MongoDB* data representation.
-- **Data Access Layer**: It is responsible for persisting Entities or Documents coming from the Service Layer. Typycally it consists of a single application (DMBS) which is able to execute commands.
+The Web Tiers should be designed in a stateless way. All that is manipulated is ephemeral, if a state must be present it should be by means of databases. In this way we can create many Web Tier instances, load balancers can create how many of them as they want to distribute the traffic in the most appropriate way.
+
+- **Presentation Layer**: Encodes/Decodes answers as they come, and checks their formal validity, if it accepts the data they are forward to the layer below.
+- **Service Layer**: Implements the application business logic, defines the contract between the user and the application. Each requirement is mapped `1 to 1` to a method that can be invoked. Typically, those methods are used in a transactional way, if one operation fails then the whole chain should be rolled back. It manipulates DTOs (usually a data class with fields for the different operations), and internally it converts them to an **Entity** representation. Services should not leak the internal details of how the data layer is composed.
+- **Domain Model**: It represents domain concepts, it is suitable for the data representation in our data layer. If we use *MySql* the data representation will be different from a *MongoDB* data representation.
+- **Data Access Layer**: It is responsible for persisting Entities or Documents coming from the Service Layer. Typically, it consists of a single application (DMBS) which is able to execute commands.
 - **Data Tier**: Consists of one or more database, which could also have different technologies between them.
 
 ## Request Journey
@@ -405,42 +406,42 @@ The Web Tiers should be designed in a stateless way. All that is manipulated is 
 1. DNS request when a user contacts a URL, then I get an IP address
 1. Usually the IP address I receive is one of a **Load Balancer**, after a policy I will get to one of many web app servers.
 1. The request is analyzed by a web application
-1. The web application directly contancs a database
-1. The web application can also contact a cache for fast retreival
+1. The web application directly contacts a database
+1. The web application can also contact a cache for fast retrieval
 1. The web application can use **Job Queues**, which can be executed in a deferred later (The jobs can be deferred on a different server).
 1. It can also use **Full Text Search**, to deal with the user **Natural Queries**.
-1. After the request has been analyzed it can be forwared to a different service (like a payment service).
-1. Some request can be forwarded to a **Data Warehouse**, where some analic can extracted from them, usually data is not stored immediatly but it is stored on a queue awaiting to be analyzed.
+1. After the request has been analyzed it can be forwarded to a different service (like a payment service).
+1. Some request can be forwarded to a **Data Warehouse**, where some analytics can be extracted from them, usually data is not stored immediately, but they are stored on a queue awaiting to be analyzed.
 1. A copy of this data can also be shipped to some **Cloud Infrastructure**.
-1. Some caching can be used to reduce latancy between Server and Client using a CDN netword (Conted Delivery Network).
+1. Some caching can be used to reduce latency between Server and Client using a CDN network (Content Delivery Network).
 
 ## Distributed Systems
 
-When we deal with distributed system we also need to deal with a **Distributed State**, every process can have their own copy of the data, in those cases it's very difficoult to have strong consistency, which means that states needs to be propagated to all the service, in those cases the is said to be **eventually consistent**, but in those transition is where the problems accurr. We can also have distributed transactions which introduce locking, which also introduce the problem of not being able to scale.
+When we deal with distributed system we also need to deal with a **Distributed State**, every process can have their own copy of the data, in those cases it's very difficult to have strong consistency, which means that states needs to be propagated to all the services, in those cases we will talk about a state that will be **eventually consistent**, but in those transition is where the problems occur. We can also have distributed transactions which introduce locking, which leads to not being able to scale.
 
 
 # Spring Boot
 
-When Spring was first created, to model the set of actinos that were possible, object-oriented programming was used and a network of objects is used to solve this problem.
+When Spring was first created, to model the set of actions that were possible, object-oriented programming was used and a network of objects is used to solve this problem.
 
-The framework allows us to create multiple components, that will be interconnected between each others, the engine will do the work to connect them accordingly, this is possible because when the framework loads classes it will inspect them and check if they contain annotations. The idea of linkable classes are called `Bean`s. Each `Bean` will be loaded by a `Container` or `ApplicationContext`, which will inspect them and act accordingly. This is why `Bean`s are the basic building block of a Spring application. Spring as soon as it recognice a `Bean` it can perform an operation called `Wireing`, which means to provide objects were they are needed, without specifing how to do it (it can also be done through a user-provided one). This also allows spring to compile the project into a unique big jar file called **uber-jar**. To create a Spring application we can use [Spring initializr](https://start.spring.io).
+The framework allows us to create multiple components, that will be interconnected between each others, the engine will do the work to connect them accordingly, this is possible because when the framework loads classes it will inspect them and check if they contain annotations. The idea of linkable classes is called `Bean`s. Each `Bean` will be loaded by a `Container` or `ApplicationContext`, which will inspect them and act accordingly. This is why `Bean`s are the basic building block of a Spring application. Spring as soon as it recognises a `Bean` it can perform an operation called `Wireing`, which means to provide objects were they are needed, without specifying how to do it (it can also be done through a user-provided one). This also allows spring to compile the project into a unique big jar file called **uber-jar**. To create a Spring application we can use [Spring initializr](https://start.spring.io).
 
 ## Program structure
 
 We create a class marked with `@SpringBootApplication`, if we mark methods with `@Bean` those methods will be responsible with creating objects.
 
-One very difficoult task to do is to be able to build a complex architecture inside our program, the way spring does this is by using 3 fundamental ideas:
+One very difficult task to do is to be able to build a complex architecture inside our program, the way spring does this is by using 3 fundamental ideas:
 - **Inversion of Control**
 - **Dependency Injection**
 - **Aspect Oriented Programming**
 
-The reason why these concepts are important, is to explain some problem that it's possible to encounter when designing relationships.
+The reason why these concepts are important is to explain many problems, these problems could be encountered when designing complex relationships.
 
 ### Class Coupling:
 
-It's when a class depends upon another, it means that one is thighty couplen to another, wich we cannot create those classes in a separate way, one depends upon the other.
+It's when a class depends upon another, it means that one is tightly coupled to another, which we cannot create those classes in a separate way, one depends upon the other.
 
-We can use **Inversion of Control** to decouple classes dependencies. It abstrct the functionality of the depenging class.
+We can use **Inversion of Control** to decouple classes dependencies. It abstracts the functionality of the dependent class.
 
 ```kotlin
 interface Quest {
@@ -464,12 +465,11 @@ class BraveKnight(private var quest: Quest) : Knight {
 
 In this way a knight only knows that it has a quest, but the given details are not known, in this way we abstract the logic and the usage can be generic. In this way the `Quest` passed to the constructor can any kind of quest.
 
-Who supplies the proper class that implements the interface? Here the **Dependecy Injection** comes to help to inject the dependency of a class that did IoC. For example in Spring there is an `ApplicationContext` that will automatically inject the dependencies, it sees that the a constructor needs a class that implements the `Quest` interface it will automatically recognice and insert the `RescueDamselQuest`. In Spring if we mark a class with `@Component` annotation it will be automatcally injected as a dependency.
+Who supplies the proper class that implements the interface? Here the **Dependency Injection** comes to help to inject the dependency of a class that did IoC. For example in Spring there is an `ApplicationContext` that will automatically inject the dependencies, it will see that the constructor needs a class that implements the `Quest` interface, then it will automatically recognise and insert the `RescueDamselQuest`. In Spring if we mark a class with `@Component` annotation it will be automatically injected as a dependency.
 
-If Spring we have more than one implementation it cannot infer which one to inject, we can solve this for example by annotating one of them as `@Primary`.
+If we have more than one implementation for an interface, spring cannot infer which one to inject, we can solve this for example by annotating one of them as `@Primary`, or by using other annotations to specify the order of injection.
 
-
-The **Aspect Oriented Programming** is a paradigm based on knowing that often our code is responsible to perform behavieours not strictly related to a specific class. A set of classes have a common problem, but in the way they are used need a common way of operating. We can take a set of common concerns and factorize them in a single place (*cross-cutting concerns*). For example in spring we can create `@Advice` which we can repeat code for other annotated pieces of code. This allows to preform actions *before* the invocation or after the *invocation*, e.g. in the case of **transactions** we want to start the commit before and commit after the invocation.
+The **Aspect Oriented Programming** is a paradigm based on knowing that often our code is responsible to perform behaviors not strictly related to a specific class. A set of classes have a common problem, but in the way they are used they need a common way of operating. We can take a set of common concerns and factorize them in a single place (*cross-cutting concerns*). For example in spring we can create an `@Advice`, where we can write code that will be shared among different components. This allows to preform actions *before* the invocation or after the *invocation* of a function, e.g. in the case of **transactions** we want to start the commit before and commit after the invocation.
 
 ```kotlin
 @Target(AnnotationTarget.FUNCTION)
@@ -510,45 +510,45 @@ Where are the dependencies kept? The Main is responsible to instantiate the `App
 
 - `@Controller`/`@RestController`: Component that contains method to receive and return HTTP request/responses, every method annotated with `*Mapping("<url endpoint>")` is and endpoint of the application where the `*` is any of the HTTP methods.
 - `@Service`: Components that contains the business logic of our application.
-- `@Reposiotry`: typycally each repository correspond to each table in the database and it is the one responsible to perform operations on it.
-- `@Configuration`: Component that contains method marked `@Bean` will trigger the creation of ther `Bean`s, which can be Autowired.
+- `@Reposiotry`: typically each repository correspond to each table in the database and it is the one responsible to perform operations on it.
+- `@Configuration`: Component that contains method marked `@Bean` will trigger the creation of their `Bean`s, which can be Autowired.
 
 ### Autoconfiguration
 
-Many objects are instantiated when the program is run, for example in the default configuration there is a Tomcat server started by spring to create the server, which in spring is also a `@Component` and will be automatically created. Libraries can tell Spring to create other Components. This is possible because Spring has an `Autoconfiguration` where it will pick the default dependecy provided by the libraries, in case the user did not provide anything.
+Many objects are instantiated when the program is run, for example in the default configuration there is a Tomcat server started by spring, which in spring is also a `@Component` and will be automatically created. Libraries can tell Spring to create other Components. This is possible because Spring has an `Autoconfiguration` where it will pick the default dependecy provided by the libraries, in case the user did not provide anything.
 
 ### Lifecycle
 
-Every component has a specific lifetime, in spring we can specify how long a `Bean` should live, for example can bound a lifetime the life of the application or it can be bound to request, when the handling of request that `Bean` will be removed, we can bound the lifetime to a request from a spedcific user and it will maintain that `Bean` for 10 minutes if no new requests comes. We can specify the lifetime using the `@Scope` annotation (which if not specified is `Singleton` by default), we can also specify a method that will be called when the `Bean` is created or destroyed with `@Bean(initMethod="...", destroyMethod = "...")`.
+Every component has a specific lifetime, in spring we can specify how long a `Bean` should live, for example it's possible to bound a lifetime the life of the application, it's possible to be bound only during the handling of a request, when the handling of a request terminates the associated `Bean`s will be removed, it's possible to bound the lifetime to a request from a specific user, spring will not destroy that `Bean` for 10 minutes if no new requests come from that user. We can specify the lifetime using the `@Scope` annotation (which is not specified is `Singleton` by default), we can also specify a method that will be called when the `Bean` is created or destroyed with `@Bean(initMethod="...", destroyMethod = "...")`.
 
 ### Autowiring by constructor
 
-If more implementations to create a single `Bean` are provided we can attach each instance to a `Profile`, and in the configuration depeding on what we are doing (deployment, testing, ...), the appropriate `Bean` will be selected. We can also specify `@Qualifier("...")` on the autowired `Bean` thus allowing to inject 
+If more implementations to create a single `Bean` are provided we can attach each instance to a `Profile`, and in the configuration depending on what we are doing (deployment, testing, ...), the appropriate `Bean` will be selected. We can also specify `@Qualifier("...")` on the autowired `Bean` thus allowing to inject a class based on a qualifying string.
 
 ### Application Properties
 
 We can read the keys in the application properties file using `lateinit var` in case we need a configuration that we can change
 
 ```kotlin
+// This property will be autowired
 @Value("${server.port}")
-lateinit var part: Int
+lateinit var part: String
 ```
-
 
 # Spring WebMVC
 
-In Spring we already defined a layerd architecture, where a `Controller` is the component responsible for handling the HTTP connections, where that one will exchenge `DTO`s with a `Service`, which internally it will translate that `DTO` to suite the `DataSource` representation.
+In Spring, we already defined a layered architecture, where a `Controller` is the component responsible for handling the HTTP connections, where that one will exchange `DTO`s with a `Service`, which internally it will translate that `DTO` to suite the `DataSource` representation.
 
-How the connections typycally happens in SpringMVC is that each request is handled by a single thread, if the number of request outwheights the number of threads they remain in the socket until some thread frees and collects the request, if no request is coming we still have all the available created threads on yield, which it still comsumes memory.
+How the connections typically happens in SpringMVC is that each request is handled by a single thread, if the number of request outweighs the number of threads they remain in the socket until some thread is freed and collects the request, if no request is coming we still have all the available created threads on yield, which still consumes memory.
 
-Spring supports two way to build web application (two ways of handling concurrency).
+Spring supports two ways to build web application (two ways of handling concurrency).
 
 - **MVC**: create many threads to handle each request
-- **WebFlux**: we can use asynchronous programming, by usgin all the available thread of a system we can split the load among them, instead of creating thousends of thread that will handle each request.
+- **WebFlux**: we can use asynchronous programming, by using all the available thread of a system we can split the load among them, instead of creating thousands of threads that will handle each request.
 
 ## Servlet (Java Enterprise Edition):
 
-An abstraction to be the unit of computation (a class that handles a request and produces a response). Some more specific subclasses exist (`HTTPServlet`). The approach servlet took it's the same that SpringMVC uses: one-request-per-thread.
+A Servlet is an abstraction, it's supposed to be the minimun unit of computation (a class that handles a request and produces a response). Some more specific subclasses exist (`HTTPServlet`). The approach servlet took it's the same that SpringMVC uses: one-request-per-thread.
 
 ```html
 <!DOCTYPE html> 
@@ -566,7 +566,7 @@ We can supply data to a controller using: `@RequestParam`, `@RequestBody`, `@Pat
 
 ## Validation
 
-We use spring validation to validate request from the user, using `@Valid`, `@Min`, `@Max`, `@Size` on the fields of a kotlin data class, this allows for an easy validation of the user requests.
+We use spring validation to validate requests from the user, using `@Valid`, `@Min`, `@Max`, `@Size` on the fields of a Kotlin data class, this allows for an easy validation of the user requests.
 
 ```kotlin
 data class ReqDTO(
@@ -589,21 +589,21 @@ data class SubReqDTO(
 
 The service layer is right below the controllers, it will accept the request and exchange data with the data layer.
 
-## DTOs (Data Transfer Objects)
+## `DTO`s (Data Transfer Objects)
 
-DTOs are the objects that the server exchanges with the client, when the DTO will enter the service layer, they will be converted to an internal model representation, which suits the DB internal entities.
+`DTO`s are the objects that the server exchanges with the client, when the `DTO` will enter the service layer, they will be converted to an internal model representation, which suits the DB internal entities.
 
 ## Defining a service
 
-The service is defined as an interface, this allows as to provide a set of methods that each will be mapped to a requirement of our application.
+The service is defined as an interface, this allows the programmer to provide a set of methods that each will be mapped to a requirement of the application.
 
-A service once an interface is defined, we can provide an implementation were the logic is store, for instance a service can be annotated as `@Transactional` this provides the methods to be marked as transactional, and to be rolled-back if an error accurs, in fact a service deals with data but it does not know where to store them, this will be the job of a repository.
+A service once an interface is defined, we can provide an implementation were the logic is contained, for instance a service can be annotated as `@Transactional`, this will cause all the methods to be marked as transactional, and to be rolled-back if an error occurs, in fact a service deals with data, but it does not know where to store them, this will be the job of a [repository](#repository).
 
-A service can also prevent the access to a method if unauthorized, for example it can annotated with `@PreAuthorize("hasRole('ROLE_ADMIN')")` which prevents the access to anyone that is not an admin.
+A service can also prevent the access to a method if unauthorized, for example it can be annotated with `@PreAuthorize("hasRole('ROLE_ADMIN')")` which prevents the access to anyone that is not an admin.
 
 ## Testing a service
 
-We can use **Unit Testing** to test our services, in unit testing we need to provide all the dependencies to service in order to be created and tell to the dependencies how to behave. In unit test we use **AAA** methodology, which stands for **Arrange**, **Act** and **Assert**.
+We can use **Unit Testing** to test our services, in unit testing we need to provide all the dependencies to a service in order to be created and tell to the dependencies how to behave. In unit testing we use **AAA** methodology, which stands for **Arrange**, **Act** and **Assert**.
 
 ```kotlin
 internal class UserProfileServiceImplTest {
@@ -633,17 +633,17 @@ Be default a service is **stateless**, this does not mean that the logic should 
 
 ### Transaction properties
 
-- **Atomicity**: the operation are either all passed, or none is applied
+- **Atomicity**: the operations are either all passed, or none is applied
 - **Consistency**: at any give time the database is in a consistent state
-- **Isolation**: each transaction operate independently from one another
+- **Isolation**: each transaction operates independently of one another
 - **Durability**: a db remembers our data
 
 ### Isolation levels
 
-DBs still have to deal with some levels of isolation, what other transactions can from.
+DBs still have to deal with some levels of isolation, to avoid some phenomenon that can happen during a transaction, SQL defines 4 level of isolation:
 
 - **Serializable**: (highest level)
-- **Repeatalbe read**: phantom-reads
+- **Repeatable read**: phantom-reads
 - **Read committed**: non-repeatable-reads, phantom-reads
 - **Read uncommitted**: dirty-reads, non-repeatable-reads, phantom-read
 
@@ -651,30 +651,29 @@ With **serializable** still the following anomalies can happen: dirty-writes, re
 
 Anomalies:
 
-- **Lost-update**: this happens when two transactions are created at the same are being run on the same row, one updates the rows and commits, the other updates the rows can commits after the first one, only the last upadte will be stored and the other one will be **lost**, while both think that the operation was successful, we can resolve this situation with an **optimistic lock**.
+- **Lost-update**: this happens when two transactions are created at the same time and are being run on the same row, one updates the rows and commits, the other updates the rows can commit after the first one, only the last update will be stored, and the other one will be **lost**, while both think that the operation was successful. We can resolve this situation with an **optimistic lock**.
 
 
 
 # Data Access Layer
 
-Services contains business login, but does not contain any state, it delegates that taks to repositoryies which will store the data to a database.
+Services contains business login, but does not contain any state, it delegates that tasks to repositories which will store the data to a database.
 
-Spring data framework provides a library called JPA (Java Persistance Architecuture), which is based on Hibernate which created a declarative approach to deal with SQL queries, JPA is just a rebranding of Hibernate, the positive part is JPA makes easy to switch the underlying layer for creating queries.
+Spring data framework provides a library called JPA (Java Persistence Architecture), which is based on Hibernate which created a declarative approach to deal with SQL queries, JPA is just a rebranding of Hibernate, the positive part is JPA makes easy to switch the underlying layer for creating queries.
 
-The main class the data access layer is called a `Repository`, each `Repository` will fetch a list of `Entity`, which are the basic blocks that can retrieved from a database.
+The main class of the data access layer is called a `Repository`, each `Repository` will fetch a list of `Entity`, which are the basic blocks that it's possible to retrieved from a database.
 
-## ORM
+## ORM (Object-Relational Mapping)
 
-ORM tries to fill the difference between the world object orient programs and the world of relational databases. The main big difference is that while it completelly fine in the world of the reletional databases to have bidirectional relations (e.g. when a table A has a foreign key pointing to another table B it's completelly legal to do `select * form A join B` and `select * from B join A`), this is problem in programming because pointers (which are used to create relationships) are not bidirectional, if A points to B, from B we cannot go back to A.
+ORM tries to fill the difference between the world object orient programs and the world of relational databases. The main big difference is that while it's completely fine in the world of the relational databases to have bidirectional relations (e.g. when a table A has a foreign key pointing to another table B it's completely legal to do `select * form A join B` and `select * from B join A`), this is problem in programming because pointers (which are used to create relationships) are not bidirectional, if A points to B, from B we cannot go back to A.
 
 ORMs are responsible to handle queries behind the curtain, while still using plain objects.
 
-
 ## Docker
 
-In Spring v3.0, it's possible to use docker compose to create a connection whit a db of our choise, like Postgres, MongoDB, Redis, ... This is possible by using a `compose.yaml` file in the root folder, in this way spring will be able to spin it up on it's own and then a suitable connection with the dabase, this is very useful during development. In production though we still need to specify a db connection using Spring properties.
+In Spring v3.0, it's possible to use docker compose to create a connection with a db of our choice, like Postgres, MongoDB, Redis, ... This is possible by using a `compose.yaml` file in the root folder, in this way spring will be able to spin it up on its own and then create a suitable connection with the database, this is very useful during development. In production though we still need to specify a db connection using Spring properties.
 
-To configure a connection we can use the following properties
+To configure a connection we can use the following properties in the `application.yaml`
 
 ```yaml
 spring:
@@ -686,83 +685,78 @@ spring:
 
 ## Schema definition
 
-We can use schema definition to specify how jps should interact with the databse
+We can use schema definition to specify how JPA should interact with the database
 
 - `validate`: only validate the schemas on the db with the entities present in project (option to use in *production*)
 - `create-drop`: as soon as the application start the db will be wiped and tables will be recreated
-- `update`: the db tables will be updated if they are equal to the entities
+- `update`: the db tables will be updated if they are not equal to the entities
 - `none`: nothing will be done
 
 ## Repository
 
-Repositories are JPA classes that allows us to exchange entities with the DB.
+Repositories are JPA interfaces that allows the exchange of the entities with the DB.
 
 - `Repository<T,ID>`: provides no methods
 - `CrudRepository<T,ID>`: provides basic CRUD operation on an entity
-- `PagingAndSortingRepository<T,ID>`: allows to sort and page the list of entities
-- `JpaRepository<T,ID>`: addes batching operations in order to perform massive operations
+- `PagingAndSortingRepository<T,ID>`: allows sorting and paging the list of entities
+- `JpaRepository<T,ID>`: adds batching operations in order to perform massive operation of insertion/retrieval
 
 Repositories will contain an `EntityManager` inside of them which will actually perform the operation on the entities.
 
-We can also add methods to the repositories, annotating the with `@Query(...)` which will create custom queries using `JPQL`. It's also possible to use natural language to define the queries, like `fun findByNameAndSurame(name: String, surname: String)`, where `name` and `surname` are fileds of the entity.
+It's also possible to add methods to the repositories, annotating methods with the `@Query('select * from User')` it's possible to define custom queries using `JPQL` (a *SQL dialect* of JPA). It's also possible to use natural language to define the queries, like `fun findByNameAndSurame(name: String, surname: String)`, where `name` and `surname` are fields of the entity.
 
 ## JPA Inner Logic
 
-When we use and `Entity` that entity is both an object in the language and a row in the database. When we create a new entity it will not be tracked by the database, it is in a `detached` state, when we call `.save()` from the repository, that entity will be persisted (in fact what happens in the back is that the entity will manager will call `.persist()`). At this point the entity is in `Attached` state.
+When an `Entity` is used, that entity is both an object in the language and a row in the database. When we create a new entity it will not be tracked by the database, it is in a `detached` state, when we call `.save()` from the repository, that entity will be persisted (in fact what happens in the back is that the entity will manager will call `.persist()`). At this point the entity is in `Attached` state.
 
 For this reason we only exchange DTOs with the service, if some operation are performed on a tracked entity, the changes will be forwared to the db.
 
 Low level ORM access:
 
 - `find(entityClass, primaryKey, lockModeType)`: get an entity from the database
-- `persist(entity)`: takes the entity an modify all the fields in the DB row if it exist, or create a new row if it doesn't exist
-- `refresh(entity)`: I have an entity with some modification I don't want to persist, this methods throws away the current data and refetch the actual one from the DB
+- `persist(entity)`: takes the entity and modify all the fields in the DB row if it exists, or create a new row if it doesn't exist
+- `refresh(entity)`: I have an entity with some modification I don't want to persist, these methods throw away the current data and re-fetch the actual one from the DB
 - `remove(entity)`: deletes the entity from the database
 - `detach(entity)`: the changes will no more pushed to the DB, also discarding any change
 
 
 # Domain Driven Design
 
-A totally differnt way to architect the application in a different way based on how spring does it.
+A totally different way to design the application differently based on how spring does it.
 
-Language is ambiguos, e.i. in an airport we have names for that domain, a departure for example is the start for their journey for travellers and the end of their job for airport workers, depending on the perspective of the person that word can have a different meaning, this is why engineers need to collaborate with domain expers. In DDD we want to create teams with Domain expert which will lead the building of the application in the right way.
+Language is ambiguous, e.i. in an airport we have names for that domain, a departure for example is the start for the journey for travelers and the end of the job for airport workers, depending on the perspective of the person that word can have a different meaning, this is why engineers need to collaborate with domain experts. In DDD we want to create teams with Domain expert which will lead the building of the application in the right way.
 
 ## Benefits
 
 A system should be split in parts and each part should have a clear separation of concern.
 
 Each part has a different role, and they are called **Domains**. They are divided in:
-- **Support Subdomain**: something that is need but is not specific to that application, e.g. many application need to store documents, there nothing inherently special in this generic operation, if a system does implement this operation it is to support other operations.
-- **Generic Subdomain**: e.g designing a good login service is very difficoult, many companies have the same problem, but it whould be stupid to recreate each time this component, when someone creates a library that is secure and reliable then the problem is solved for everyone.
-- **Core Subdomain**: it's difficult to implement highly differentiated from everybody, those components are vital for the application inner working.
+- **Support Subdomain**: something that is needed but is not specific to that application, e.g. many applications need to store documents, there is nothing inherently special in this generic operation, if a system does implement this operation it is to support other operations.
+- **Generic Subdomain**: e.g. designing a good login service is very difficult, many companies have the same problem, but it would be stupid to recreate each time this component, when someone creates a library that is secure and reliable then the problem is solved for everyone.
+- **Core Subdomain**: it's difficult to implement highly differentiated logic from everybody, those components are vital for the application inner working.
 
-===
-
-***Software is worth if it brings value***, this is main idea that DDD brings.
-
-===
+> ***Software is worth if it brings value***, this is main idea that DDD brings.
 
 ## Bounded context
 
-Differnt departments interpret entities in a very different way, and we need to take into cosideration this differences and the overlapping similarities.
+Different departments interpret entities in a very different way, and we need to take into consideration this differences and the overlapping similarities.
 
-Strategic vs tactival desgin:
+Strategic vs tactical design:
 
 - Strategic: am I designing the right things?
-- Tactical: am I designing things righ?
+- Tactical: am I designing things right?
 
 They are both relevant and useful.
 
 ## Key Concepts
 
-- **Entity**: concepts that is represent in the database and is identifiable (unique ID), and the ID will be constant for its entire lifecycle, in DDD entities contains **methods**, in JPA entities represent table structure, in DDD an Entity is like a Service in Spring. Our system will behave with the various Entities.
-- **Value Objects**: objects are in DDD what we typycally assign as attributes in JPA entities, but we create an object out of it in DDD, because also attributes has behaviours, e.g. a price is not only a the value of money but also the currency.
-- **Aggregates**: it's a object composed of other objects, where each object refers to other objects. There is a **root aggregate** where the tree of objects originates. Aggregates always form graphs, and each aggregate can link to another aggregate, but it can only be done in a unidirectional way (tree style).
-- **Repository**: tooling for storing objects
-- **Services**: express some part of domain logic, usually used for transactionality
-- **Factories**: used to create aggregates, validates all the necessary constraints
-- **Domain Events**: letting one system informing another system that something happened
-
+- **Entity**: concepts that is represented in the database and is identifiable (unique ID), and the ID will be constant for its entire lifecycle, in DDD entities contains **methods**, in JPA entities represent table structure, in DDD an Entity is like a Service in Spring. Our system will behave with the various Entities.
+- **Value Objects**: objects are in DDD what we typically assign as attributes in JPA entities, but we create an object out of it in DDD, because also attributes has behaviors, e.g. a price is not only the quantity of money, but it also has a currency, this will cause the amount to vary in different countries of the world and even day by day (stocks market).
+- **Aggregates**: it's an object composed of other objects, where each object refers to other objects. There is a **root aggregate** where the tree of objects originates. Aggregates always form graphs, and each aggregate can link to another aggregate, but it can only be done in a unidirectional way (tree style, no loops).
+- **Repository**: tooling for storing objects.
+- **Services**: express some part of domain logic, usually used for transactionality.
+- **Factories**: used to create aggregates, validates all the necessary constraints.
+- **Domain Events**: letting one system informing another system that something happened.
 
 # Spring Data in depth
 
@@ -770,18 +764,21 @@ Repositories are interfaces used to retrieve entities. Spring supports both JPA 
 
 ## JDBC
 
-JDBC offers native support for DDD pattern, like the automatic emission of events with `@DomainEvent` which will be able use reactive approaches. It's also possible to use `@AfterDomainEventPublication` to allow for various cleanups.
+JDBC offers native support for DDD pattern, like the automatic emission of events with `@DomainEvent` which will enable reactive approaches. It's also possible to use `@AfterDomainEventPublication` to allow for various cleanups.
 
 ```kotlin
+// Entity
 data class Warehouse(@Id val id: String, val location: String) {
     @MappedCollection
     private val inventoryItems = mutableSetOf<InventoryItems>()
+
     fun addInventoryItem(inventoryItem: InventoryItem) {
         _domainEvents.add(InventoryItemAdded(this, inventoryItem))
         inventoryItems.add(inventoryItem)
     }
 
     private val _domainEvents = mutableListOf<Any>()
+
     @DomainEvents
     fun domainEvents(): List<Any> = _domainEvents
 
@@ -798,16 +795,16 @@ data class InventoryItem (@Id val id: String, val name: String, val count: Int)
 
 Uses ORM (Object-to-Relational Mappings) under the hood to keep in sync objects and database tables.
 
-We have a `Persistance` interface, useful when working with with multiple databases. It provides an `EntityManagerFactory` which maintains an active connection with a database, whenever in spring we create a repository, the framework will automatically inject into it an `EntityManager`, create by the factory, which manages storing entities, and keeping them in sync with the database.
+We have a `Persistance` interface, useful when working with multiple databases. It provides an `EntityManagerFactory` which maintains an active connection with a database, whenever in spring we create a repository, the framework will automatically inject into it an `EntityManager`, create by the factory, which manages storing entities, and keeping them in sync with the database.
 
 <+>
 
 
 # Spring WebFlux
 
-There are some situations in our code were when we perform an operation we just need to wait, e.g. when we make a call tot the database and we need to wait for it to return, for IO operations, etc. 
+There are some situations in the code when some operations are performed where the thread has to wait for the operation to complete, these operations are blocking calls, e.g. when we make a call to the database we need to wait for it to get all the entities and then return, for IO operations, web requests, etc. 
 
-In principle it whould be way better if those blocking call whould just stay in the background and when the request comes back we execute a callback, while in the meantime we do something else, in this way we create a non-blocking request.
+In principle, it would be way better if those blocking call would just stay in the background and when the request comes back we execute a callback, while in the meantime we do something else, in this way we create a non-blocking request.
 
 ```kotlin
 // Blocking
@@ -825,19 +822,19 @@ How can we write `readDataAsync`? It's very complicated, it would be possible us
 
 ## Blocking vs. Non Blocking
 
-All methods that for example use the database are blocking, this means that the thread will be stuck on the call site until that function completes, we can avoid this by creating a new thread, in this way it can do other things an not wait util the function completes.
+All methods that for example use the database are blocking, this means that the thread will be stuck on the call site until that function completes, we can avoid this by creating a new thread, in this way it can do other things and not wait util the function completes.
 
-We could of a simple solution, we pass a callback to the function, and when it will finish the callback will be called, thus allowing the execution to continue freely.
+We could have a simple solution, we pass a callback to the function, and when it will finish the callback will be called, thus allowing the execution to continue freely.
 
-The first to implement the concept of `async/await` was microsoft in C#. Later at Netflix the problems was that they could not handle high traffic spikes, they were able to solve the problem, they difined a reactive stack (RxJava), later ported to other languages.
+The first to implement the concept of `async/await` was Microsoft in C#. Later at Netflix the problems was that they could not handle high traffic spikes, they were able to solve the problem by defining a reactive stack (RxJava), later ported to other languages.
 
-Spring later took those concepts and created the Reactors. The use of using those reactive libraries, is very cumbersome, still better than write callbacks, but there was a way to achieve those.
+Spring later took those concepts and created the Reactors. The use of those reactive libraries, is very cumbersome, still better than writing callbacks, but there was a way to achieving the aim the asynchronous programming.
 
-At jetbrains used an old concept called **coroutines**. Coroutines help us writing asynchronous code like imperative code.
+At Jetbrains they used an old concept called **coroutines**. Coroutines help us to write asynchronous code like imperative code.
 
 ### Reactive Stack
 
-Instead of having functions that block when called we have to make them async. To do that we have to reimplement our whole stack from the ground up (sockets, ...). 
+Instead of having functions that block when called we have to make them `async`. To do that we have to reimplement our whole stack from the ground up (sockets, ...). 
 
 Spring Web Flux (based on Jetty),
 
@@ -853,38 +850,38 @@ var z = x * y
 x = 10 // z is still 6
 ```
 
-For example in excel if create a cell which created by computing a formula from the other cells, if those cells change also the result is updated accordingly, this is because the that cell only the formula is stored, and not the value, Excel has a reactive approach. A Reactive approach means to be able to respond to changes.
+For example in Excel if create a cell which created by computing a formula from the other cells, if those cells change also the result is updated accordingly, this is because the that cell only the formula is stored, and not the value, Excel has a reactive approach. A Reactive approach means to be able to respond to changes.
 
 
 ### The Observer Pattern
 
-There is some source of information, and somebody is interesed to this source of information.
+There is some source of information, and somebody is interested to this source of information.
 
-There is a `Subject` which internally keeps a list of subscribe. Other than that it has methods to `subscribe`, `unsubscirbe` and `notify`.
+There is a `Subject` which internally keeps a list of subscribers. Other than that it has methods to `subscribe`, `unsubscirbe` and `notify`.
 
-The observer pattern described in this way is very slow in a blocking way, for example if two observer comes from two different threads locking must be used. How do we notify the subscribers:
-- **Synchronously**: we invoke a method, we iterate through the observers and we call the event they provided, but if that method is slow the others will not be notified.
-- **Thread Pool**: we notify each observer using a thread per-each, if one observer is slow, it might start receiving event out of order, and they can start to overlap, maybe the ones that comes later finish first, we may cancel that event, but cancellation is different
+The observer pattern described in this way is very slow in a blocking way, for example if two observers came from two different threads locking must be used. How do we notify the subscribers:
+- **Synchronously**: we invoke a method, we iterate through the observers, and we call the event they provided, but if that method is slow the others will not be notified.
+- **Thread Pool**: we notify each observer using a thread per-each, if one observer is slow, it might start receiving event out of order, and they can start to overlap, maybe the one that came later finish first, we may cancel that event, but cancellation is different
 
 ### Publish and Subscribe (PUBS)
 
-In this new patter, the subscriber does not know the identity of the publishers, but it contacts a middle channel called `Event Channel` which act as an aggregator, which means that a subscriber can receive a notification from many publishers. 
+In this new pattern, the subscriber does not know the identity of the publishers, but it contacts a middle channel called `Event Channel` which act as an aggregator, which means that a subscriber can receive a notification from many publishers. 
 
-Spring provides this by default, we can annotate a class with `@EventListener` where we can specify a set of topics, in my application is creating shuch events my class will receive that event.
+Spring provides this by default, we can annotate a class with `@EventListener` where we can specify a set of topics, in my application is creating such events my class will receive that event.
 
-Problems: there is no way of cancelling those received events, there cannot be error recovery (the publisher does not know anything abount the subscriber), when the load increase the event channel may be significantly stressed.
+Problems: there is no way of cancelling those received events, there cannot be error recovery (the publisher does not know anything about the subscriber), when the load increases the event channel may be significantly stressed.
 
 ## Reactive Frameworks
 
 To define reactive frameworks we need to define 4 interfaces, it's a mixture between the **Observer** and **Iterator** patterns and **Functional programming**.
 
-- `Subscriber<T>`: as long as I the class not in `onError` or in `onComplete` it can keep receiving `onNext`
+- `Subscriber<T>`: as long the methods `onError` or `onComplete` are not called the subscriber can keep receiving data with `onNext`
 
 ```kotlin
-interface Subscriber<T> {
-  // Invoked after calling     
+interface Subscriber<in T> {
+  // Invoked after calling
   // Publisher.subscribe(Subscriber)
-  // No data will start flowing until    
+  // No data will start flowing until
   // Subscription.request(long) is invoked
   fun onSubscribe(s: Subscirption)
 
@@ -893,7 +890,7 @@ interface Subscriber<T> {
   fun onNext(t: T)
 
   // Fail terminal state. 
-  //No more invocations will be received
+  // No more invocations will be received
   fun onErrot(t: Throwable)
 
   // Successful terminal state. 
@@ -902,22 +899,23 @@ interface Subscriber<T> {
 }
 ```
 
-- `Subscription`: the subscription informs the publisher the readiness to recieve new information.
+- `Subscription`: the subscription informs the publisher the readiness of the subscriber to receive information
 
 ```kotlin
 interface Subscription {
-  // ready to process n callbacks
+  // Ready to process n callbacks
   // performs backpressure: it means that even if the publisher is
-  // ready to publish new data, I cannot process those data
+  // ready to publish new data, the subscriber
+  // cannot process those data
   fun request(n: Long)
 
-  // tells the publish to cancel all the information even if
+  // Tells the publisher to cancel all the information even if
   // it already produced them
   fun cancel()
 }
 ```
 
-- `Publisher<T>`: the one who produces the data, in a typycal flow the `Subscription` will handle how much data has to be deliverted to the `Subscriber`
+- `Publisher<T>`: the one who produces the data. In a typical flow the `Subscription` will handle how much data has to be delivered to the `Subscriber`
 
 ```kotlin
 interface Publisher<T> {
@@ -930,7 +928,7 @@ interface Publisher<T> {
   // If the Publisher rejects the subscription attempt 
   // or otherwise fails, it will signal the error via 
   // Subscriber.onError(…)
-  fun subscribe(s: Subscribe<in T>?)
+  fun subscribe(s: Subscriber<in T>?)
 }
 ```
 
@@ -945,8 +943,6 @@ interface Publisher<T> {
 interface Processor<T, R> :
   Subscriber<T>, Publisher<R> {}
 ```
-
-
 
 ## Reactor
 
@@ -967,11 +963,11 @@ Once we have a producer they have a lot of extension function which allows us to
 
 We have operators on reactors which allows to tranform the flux.
 
-- `map()`: transform the incomeing operatrators
-- `index()`: addes an index
-- `timed()`: addeds a timestamp to the received object
-- `flatMap()`: a provided lambda may produce a list for each element, all those outputs for each incoming elements will be emittet one single element sequentially
-- `flatMapSequential()`: it finishd emitting the values of the list produced by the first element until it succedes, and then it procedes to emit the other list in a ordered way
+- `map()`: transform the incoming operators
+- `index()`: adds an index
+- `timed()`: adds a timestamp to the received object
+- `flatMap()`: a provided lambda may produce a list for each element, all those outputs for all incoming elements will be emitted one single element sequentially
+- `flatMapSequential()`: it finished emitting the values of the list produced by the first element until it succeeds, and then it proceeds to emit the other list in an ordered way
 - `concatMap()`: the lists are evaluated lazily
 
 ### Peeking operators
@@ -982,19 +978,19 @@ We have operators on reactors which allows to tranform the flux.
 ### Filtering
 
 - `filter()`: invoked on each element discarding the ones specified with a lambda
-- `ignoreElements()`: discard all elements and only check if the operation succedes
+- `ignoreElements()`: discard all elements and only check if the operation succeeds
 - `take()`: only keep a number of elements, drop the others
 - `skip()`: discard the first n elements
 - `elementAt()`: nth element
 - `single()`: take only the first element
 
-### Spliting and joinnig
+### Splitting and joining
 
 - `concat()`: after finishing the first flux starts taking elements from another
 - `merge()`: take two fluxes and every time one of them emits a value provide it on the output
 - `zip()`: every time two flux, which emits values asynchronously, have a value at the nth element they are emitted as a pair
-- `combineLatest()`: like `zip` but every time a new element is emitted and a pair can be formed it is emitted on each emission of the flows
-- `groupBy()`: creates a flux of fluxes, very every element is gouped by a key
+- `combineLatest()`: like `zip` but every time a new element is emitted a pair can be formed, and it is emitted on each emission of the flows
+- `groupBy()`: creates a flux of fluxes, very every element is grouped by a key
 - `buffer()`: collect every emitted value and return a list of elements
 - `window()`: specify how big each flux should be
 
@@ -1008,17 +1004,17 @@ We have operators on reactors which allows to tranform the flux.
 
 How are data produced and collected? 
 
-E.g. when creating a query and executing it on the database it will return us some elements, the database is a **cold** source, it means that it only produces requests only when a request is made to it.
+E.g. when creating a query and executing it on the database it will return us some elements, the database is a **cold** source, it means that it produces responses only when a request is made to it.
 
 E.g. a mouse produces events, when we move it or click it, even if the mouse does not have any subscriber, it will still emit events, if new subscribers comes along they will not be able to see the events that the previous publishers saw, a mouse is an example of a **hot** source.
 
-We can canvert a cold publisher into a hot one by calling `publish()` on it, this will cause a buffer to be allocated and the management of the delivery of new events. `share()` is very similar to `publish()`.
+We can convert a cold publisher into a hot one by calling `publish()` on it, this will cause a buffer to be allocated and the management of the delivery of new events. `share()` is very similar to `publish()`.
 
 ## Reactive I/O in Spring
 
-The interface are very similar to ones used in the SpringMVC, but in this case the methods will return `Mono` or `Flux` instead of plain objects.
+The interface used in WebFlux are very similar to ones used in the SpringMVC, but in this case the methods will return `Mono` or `Flux` instead of plain objects.
 
-The big main difference is that in WebFlux we use `R2DBC` instead of `JPA`, the proble is that with this approach everything has to configured manually.
+The big main difference is that in WebFlux we use `R2DBC` instead of `JPA`, the problem is that with this approach everything has to configured manually.
 
 ```kotlin
 @Configuration
@@ -1039,9 +1035,9 @@ class R2dbcConfig(
 }
 ```
 
-Transaction management has to be enabled, in mvc the transaction happened on a single thread where it contains a set of local variables to manage the transaction, with webflux this is not possible because every `onNext()` called by the Flux it will be execuded on different threads, and we need to enable transaction management in order to allow transaction to be called like in MVC. If we also want to the `lastModifiedTime`, ... fields we aslo need to add the `R2dbcAuditing`
+Transaction management has to be enabled, in mvc the transaction happened on a single thread where it contains a set of local variables to manage the transaction, with webflux this is not possible because every `onNext()` called by the Flux will be executed on different threads, and we need to enable transaction management in order to allow transactions to be called like in MVC. If we also want to the `lastModifiedTime`, ... fields we aslo need to add the `R2dbcAuditing`
 
-Another big difference with JPA is that here entites are not managed, but they are just plain classes, here entities are just plain classes, in fact we annotate them with `@Table`
+Another big difference with JPA is that here entities are not managed, but they are just plain classes, in fact we annotate them with `@Table`
 
 ```kotlin
 // It's not mandatory to add the @Table
@@ -1064,24 +1060,24 @@ In R2DBC it's not possible to have compound primary keys, when we create *Join T
 
 Abstraction on top of persistent threading, allows us to schedule tasks on threads without needing to deal with threads creation. A `suspend fun` has the capability to be suspended at a certain point, and then restart when it finishes, it mean that when it reaches that poiont the thread can do other tasks while such suspending operation has completed.
 
-A function expresses the fact that it can suspend. With coroutines we can express operations in a sequential way, while in reality those operation can be suspened to do something else and then start again from where the execution stopped. Coroutines also allow **composability** and **cancellability**.
+A function expresses the fact that it can suspend. With coroutines we can express operations sequentially, while in reality those operations can be suspended to do something else and then start again from where the execution stopped. Coroutines also allow **composability** and **cancellability**.
 
 - Composability: we can execute coroutines in parallel, the awaiting that generated those coroutines will continue when all of the subqueries finishes.
 - Cancellable: it's the possibility to make the coroutine fail under some conditions, like a timeout for a web request.
 
 Killing a running thread is very difficoult, the thread does not have any information on it's creator, this is why they must syncronize.
 
-A coroutine before suspending sets up a way to resume, when that event will trigger that function will be marked as **resumable** and the scheduler will schedule it. A coroutine can be **Suspended**, **Resumable**, **Running**, when a **Running** coroutines reaches a suspension point, the scheduler can take a **Resumable** coroutine and put it on the os thread.
+A coroutine before suspending sets up a way to resume, when that event will be triggered the suspending function will be marked as **resumable**, the scheduler will move the function to the ready queue, and it will be executed as soon as possible. A coroutine can be **Suspended**, **Resumable**, **Running**. When a **Running** coroutine reaches a suspension point, the scheduler can take a **Resumable** coroutine and put it on the OS thread.
 
-The limitation of suspending function is that it can only be called from another suspend function, for that reason kotlin provides some objects called `CoroutineScope` which provide a way of calling coroutines, and it will associate a **context** to each coroutine, this is done because in some cases it can only be called specific threads or to associate parents and childs of such coroutine. The scope will live as long as the coroutine does.
+The limitation of a suspending function is that it can only be called from another suspend function, for that reason kotlin provides some objects called `CoroutineScope` which provide a way of calling coroutines, and it will associate a **context** to each coroutine, this is done because in some cases it can only be called specific threads or to associate parents and childs of such coroutine. The scope will live as long as the coroutine does.
 
 Each coroutine has an associated `Dispatcher`, which will take care of running that coroutine.
 
 `CoroutineScope` has 3 instances:
 
-- `launch()`: craetes a new coroutine and run as soon as possible, is bound to the caller via `Job` object where we can wait for the termination, cancel that coroutine, ...
-- `async()`: returns a `Deferred` object where we can can `await` fot the termination of that coroutine and get the value of the computation.
-- `runBlocking()`: this blocks the thread until all the coroutines created inside terminate, this is usually done in tests.
+- `launch()`: creates a new coroutine and run as soon as possible, is bound to the caller via `Job` object where we can wait for the termination, cancel that coroutine, ...
+- `async()`: returns a `Deferred` object where we can `await` for the termination of that coroutine and get the value of the computation.
+- `runBlocking()`: this blocks the thread until all the coroutines created inside is terminated, this is usually done in tests.
 
 In spring a `CoroutineContext` contains 4 pieces:
 - `CoroutineDispatcher`: which set of threads can run the coroutine
@@ -1176,7 +1172,7 @@ flow {
   emit("Emitted in ${Thread.currentThread().name}")
 }
 .flowOn(Disptather.IO)
-.map{ it -> "$it\nProcessed in ${Thread.currentThread().name}"}
+.map{ it -> "$it\nProcessed in ${Thread.currentThread().name}" }
 .collect{ println(it) }
 
 // Emitted in DefaultDispatcher-worker-1
@@ -1186,7 +1182,7 @@ flow {
 When using Spring we can convert Flows and suspend function to Flux and Mono, ....
 
 
-This capability of returning items one a at a time in a reactive way, allows the communication between microservices much more conveniant. For example when we have a geteway that has to retrieve and combine objects from two different microservices, flows can help us get both flows by combining them, and return the complete object.
+This capability of returning items one at a time in a reactive way, allows the communication between microservices much more convenient. For example when we have a gateway that has to retrieve and combine objects from two different microservices, flows can help us get both flows by combining them, and return the complete object.
 
 WebFlux allow to map request to specific methods.
 
@@ -1205,7 +1201,7 @@ suspend fun hell(request: ServerRequest) = ServerRespone
 
 <+>
 
-`TransactionalOperator`: gurantees that all the coroutines finshes inside the logic block, if one of them fails, the transaction will be rooled back, if they all finish the transaction will be committed.
+`TransactionalOperator`: guarantees that all the coroutines finishes inside the logic block, if one of them fails, the transaction will be rolled back, if they all finish the transaction will be committed.
 
 ```kotlin
 class PeopleRepository(val operator: TransactionalOperator) {
@@ -1234,18 +1230,19 @@ One of the open-source solutions is **Keycloak**. Others are **Okta** (commercia
 
 ## IAM repsonsibilities
 
-- authentication: a IAM need to authenticate a user that wants to login
-- authorization: assign a user a subset of priviledges that are required to perform their job
-- user management: supports the creation, deletion and modification of users and their attributes/roles
-- access control policies: policies may depend on roles or specific attributes (like begin labeled as admin, but you have rights only in your department)
-- single sign-on: allows having a single passwords for differnt services.
-- federated identity management: enable users to access systems across different trusted organizations using their home organization's credentials
-- audit and compliance reporting: a log is created for each action performed by the users, also generated documentation to comply with privacy laws
+- **Authentication**: a IAM need to authenticate a user that wants to log in
+- **authorization**: assign a user a subset of priviledges that are required to perform their job
+- **User management**: supports the creation, deletion and modification of users and their attributes/roles
+- **access control policies**: policies may depend on roles or specific attributes (like begin labeled as admin, but you have rights only in your department)
+- **Single sign-on**: allows having a single passwords for differnt services.
+- **Federated identity management**: enable users to access systems across different trusted organizations using their home organization's credentials
+- **Audit and compliance reporting**: a log is created for each action performed by the users, also generated documentation to comply with privacy laws
 
 A IAM in exchange for a log-in returns a **token**, which there are 3 types:
-- **access token**: short lived token (minutes of life), when presented to a 3rd-party, it will be able to validate your identity. The other system will be able to generate your informations and your roles.
-- **refresh token**: much longer lifetime than access token, but it cannot be invalidated easily, thus it must be kept more securely than the access token, this must also verifiable like the access token. When an access token expires the application must use a refresh token to renew it.
-- **ID token**: carries information about the user and it is encode using the JWT standard.
+
+- **Access token**: short-lived token (minutes of life), when presented to a 3rd-party, it will be able to validate your identity. The other system will be able to generate your information and your roles.
+- **Refresh token**: much longer lifetime than access token, but it cannot be invalidated easily, thus it must be kept more securely than the access token, this must also verifiable like the access token. When an access token expires the application must use a refresh token to renew it.
+- **ID token**: carries information about the user, and it is encoded using the JWT standard.
 
 ## OAuth 2.0 (Authorization)
 
