@@ -35,14 +35,14 @@
   - [Processing data](#processing-data)
   - [Validation](#validation)
 - [Service Layer](#service-layer)
-  - [DTOs (Data Transfer Objects)](#dtos-data-transfer-objects)
+  - [`DTO`s (Data Transfer Objects)](#dtos-data-transfer-objects)
   - [Defining a service](#defining-a-service)
   - [Testing a service](#testing-a-service)
   - [Transactionality](#transactionality)
     - [Transaction properties](#transaction-properties)
     - [Isolation levels](#isolation-levels)
 - [Data Access Layer](#data-access-layer)
-  - [ORM](#orm)
+  - [ORM (Object-Relational Mapping)](#orm-object-relational-mapping)
   - [Docker](#docker)
   - [Schema definition](#schema-definition)
   - [Repository](#repository)
@@ -64,7 +64,7 @@
     - [Transforming operator](#transforming-operator)
     - [Peeking operators](#peeking-operators)
     - [Filtering](#filtering)
-    - [Spliting and joinnig](#spliting-and-joinnig)
+    - [Splitting and joining](#splitting-and-joining)
     - [Collect synchronously](#collect-synchronously)
   - [Hot and Cold publishers](#hot-and-cold-publishers)
   - [Reactive I/O in Spring](#reactive-io-in-spring)
@@ -72,12 +72,12 @@
   - [Coroutines](#coroutines)
     - [Dispatchers](#dispatchers)
     - [Context Handling](#context-handling)
-    - [Synchronizaiton](#synchronizaiton)
+    - [Synchronization](#synchronization)
 - [Flows](#flows)
   - [`transform()`](#transform)
   - [Spring R2DBC](#spring-r2dbc)
 - [Authenication and Authorization](#authenication-and-authorization)
-  - [IAM repsonsibilities](#iam-repsonsibilities)
+  - [IAM responsibilities](#iam-responsibilities)
   - [OAuth 2.0 (Authorization)](#oauth-20-authorization)
   - [Authentication Flows](#authentication-flows)
   - [OpenID Connect](#openid-connect)
@@ -88,12 +88,16 @@
   - [OAuth2 Client](#oauth2-client)
   - [OAuth2 Resource Server](#oauth2-resource-server)
   - [Contact Resource Server from the Client](#contact-resource-server-from-the-client)
-  - [Accessing the principal](#accessing-the-principal)
+  - [Security at service level](#security-at-service-level)
+  - [SPA/Server interaction](#spaserver-interaction)
+  - [CSRF protection](#csrf-protection)
 - [System Integration](#system-integration)
   - [Enterprise Integration Pattern (EIP)](#enterprise-integration-pattern-eip)
     - [End-points](#end-points)
     - [Channels](#channels)
   - [Apache Camel](#apache-camel)
+    - [Google Mail Integration](#google-mail-integration)
+    - [Calling Camel from Spring](#calling-camel-from-spring)
 - [MongoDB](#mongodb)
   - [Documents](#documents)
   - [CRUD operations](#crud-operations)
@@ -1080,27 +1084,60 @@ Each coroutine has an associated `Dispatcher`, which will take care of running t
 - `runBlocking()`: this blocks the thread until all the coroutines created inside is terminated, this is usually done in tests.
 
 In spring a `CoroutineContext` contains 4 pieces:
+
 - `CoroutineDispatcher`: which set of threads can run the coroutine
-- `Job`: ...
-- `CoroutineExceptionHandler`: ...
-- `CoroutineName`: a provided string, used for dubugging
+- `Job`: state of current coroutine and maintains also a relation to all of its children
+- `CoroutineExceptionHandler`: handling the failure of *launched* children
+- `CoroutineName`: a provided string, used for debugging
+
+We create a context by specifying the Dispatcher and how we want to handle our children with the Job
+
+```kotlin
+val ctx: CoroutineContext = Dispatchers.IO + SupervisorJob()
+```
 
 ### Dispatchers
 
+There are some dispatchers provided by Kotlin to scope the execution evironment
+
 - `Main`: used in GUI application
 - `IO`: large pool of thread for long-lasting operations like: IO, network call, db query, ...
-- `Default`: used for CPU intensive operations like: encryption, json parsing, ...
+- `Default`: used for CPU intensive operations like: encryption, `json` parsing, ...
 - `Unconfined`: run by whichever thread is available, the use is discouraged
+
+By using the `withContext` function we can change the execution context, this is useful for avoiding the use of mutexes
+
+```kotlin
+fun loadImage(imageUrl: String) {
+  val job = MainScope().launch {
+    imageView.setImageResource(R.drawable.loading)
+
+    val bmp = withContext(Dispatcher.IO) {
+      loadRemoteUrl(imageUrl)
+    }
+
+    imageView.setImageDrawable(bmp)
+  }
+}
+```
 
 ### Context Handling
 
-<+>
+In the original scope where we launch something it's possible to provide some configurations, the newly created context will contain our provided configuration and a Job that will have a relationship with the parent, if this relation was not present, cancellation and error propagation would not be possible between parent and children.
 
-### Synchronizaiton
+A `Job` object remembers the state of the coroutine computation: `isActive`, `isCompleted`, `isFinished`. `Job` objects also have methods we can call on them to control the coroutine execution
 
-It's possible to have synchronizaion from different coroutines
+- `start()`: start the coroutine
+- `canel(cause)`: cancel this and its children
+- `join()`: wait for it to finish, if there is a cacellation it will throw
 
-we can use a dispatcher based on a single thread with `.limitedParallelism(1)`, in this way accessing a variable there won't be any interfernce, because we deleted the possibility of having *race-conditions*. For the other cases it's possible to use `Mutex`.
+If a children fails it will propagete the error to the parent, it can handled by using a special context with a supervisor or use `async` where the error will be in `await`
+
+### Synchronization
+
+It's possible to have synchronization from different coroutines
+
+we can use a dispatcher based on a single thread with `.limitedParallelism(1)`, in this way accessing a variable won't create any interference, because we deleted the possibility of having *race-conditions*. For the other cases it's possible to use `Mutex`.
 
 ```kotlin
 fun main() = runBlocking {
@@ -1127,7 +1164,7 @@ It's possible also to use `Semaphores` which contains a counter.
 
 # Flows
 
-Flows are capable of streaming values, those values are produces asynchronously. Flows by themselves does not produce anything unless there is a collector at the end, between the producer and consumer there can be other operations to modify the original flow. Some operations are intruduce to create concurrecy `buffer` and `flatMapMerge`. Flows can be **cold** or **hot**, a **cold** flow does not produce any value unless collected, while **hot** flows can emit values even if none is collecting.
+Flows are capable of streaming values, those values are produces asynchronously. Flows by themselves does not produce anything unless there is a collector at the end, between the producer and consumer there can be other operations to modify the original flow. Some operations are introduced to create concurrency `buffer` and `flatMapMerge`. Flows can be **cold** or **hot**, a **cold** flow does not produce any value unless collected, while **hot** flows can emit values even if none is collecting.
 
 ```kotlin
 fun stream(): Flow<Int> = flow {
@@ -1165,7 +1202,7 @@ The `transform` operator piped to a flow, allows to get the value of the flow an
 // 6
 ```
 
-A flow alows us to do **Local Reasoning**, it means that when collecting a flow we should not worry about how it was produced. **Context Preservation**: a flow has it's own context of execution, so it cannot leak informations on the outside, this means that no coroutine can be started inside of it, in fact a flow **shoud only emit from a single coroutine**.
+A flow allows us to do **Local Reasoning**, it means that when collecting a flow we should not worry about how it was produced. **Context Preservation**: a flow has its own context of execution, so it cannot leak information on the outside, this means that no coroutine can be started inside of it, in fact a flow **should only emit from a single coroutine**.
 
 ```kotlin
 flow {
@@ -1218,23 +1255,23 @@ class PeopleRepository(val operator: TransactionalOperator) {
 
 When an application needs to access some remote resource, two problems arises: authentication and authorization.
 
-These two probleams are a cross-cutting concern for everyone, this lead to some stadard way of performing those two tasks by using well-tested frameworks or libraries, two of theese standard solutions are **OAuth 2.0** and **OIDC 1.0**.
+These two problems are a cross-cutting concern for everyone, this lead to some standard way of performing those two tasks by using well-tested frameworks or libraries, two of these standard solutions are **OAuth 2.0** and **OIDC 1.0**.
 
-Other times when a user is registered to onother domain, we would like to authenticate using those other credentails, e.g. when we sign-in with Google we provide a proof of our identiy, this is called **Domain Federation**.
+Other times when a user is registered to another domain, we would like to authenticate using those other credentials, e.g. when we sign in with Google we provide a proof of our identity, this is called **Domain Federation**.
 
-In other cases providing a password is too weak, that's why we whould like to provide **multi-factor authentication**.
+In other cases providing a password is too weak, that's why we would like to provide **multifactor authentication**.
 
-Some stadard solutions exist which are compliant with the standar, they are called **Identity Access Manager** (IAM), they allow the usage of MFA, single sing-on, role-based access control, attribute-based access control. Also another important factor is that IAMs helps to comply with regulations such as the GDPR.
+Some standard solutions exist which are compliant with the standard, they are called **Identity Access Manager** (IAM), they allow the usage of MFA, single sing-on, role-based access control, attribute-based access control. Another important factor is that IAMs helps to comply with regulations such as the GDPR.
 
 One of the open-source solutions is **Keycloak**. Others are **Okta** (commercial cloud-based), **Auth0**, ...
 
-## IAM repsonsibilities
+## IAM responsibilities
 
 - **Authentication**: a IAM need to authenticate a user that wants to log in
-- **authorization**: assign a user a subset of priviledges that are required to perform their job
+- **authorization**: assign a user a subset of privileges that are required to perform their job
 - **User management**: supports the creation, deletion and modification of users and their attributes/roles
-- **access control policies**: policies may depend on roles or specific attributes (like begin labeled as admin, but you have rights only in your department)
-- **Single sign-on**: allows having a single passwords for differnt services.
+- **access control policies**: policies may depend on roles or specific attributes (like being labeled as admin, but you have rights only in your department)
+- **Single sign-on**: allows having a single password for different services.
 - **Federated identity management**: enable users to access systems across different trusted organizations using their home organization's credentials
 - **Audit and compliance reporting**: a log is created for each action performed by the users, also generated documentation to comply with privacy laws
 
@@ -1246,18 +1283,18 @@ A IAM in exchange for a log-in returns a **token**, which there are 3 types:
 
 ## OAuth 2.0 (Authorization)
 
-An IAM will emit tokens only if an application (the **Client**) requests it. The client should be preauthorized by the IAM, this are provided by the IAM which are the **clientID** (public) and a **clientSecret** (private).
+An IAM will emit tokens only if an application (the **Client**) requests it. The client should be preauthorized by the IAM, these are provided by the IAM which are the **clientID** (public) and a **clientSecret** (private).
 
 ## Authentication Flows
 
-- OAuth 2.0 resouce owner password credential flow: less used, gives a lot of restrictions, and put the responsibility in the hands of the programmer, if we want to enable other features we need to change the application. ![OAuth 2.0 passord credentials](./img/oauth2-password-credentials.png "OAuth 2.0 passord credentials")
+- OAuth 2.0 resource owner password credential flow: less used, gives a lot of restrictions, and put the responsibility in the hands of the programmer, if we want to enable other features we need to change the application. ![OAuth 2.0 passord credentials](./img/oauth2-password-credentials.png "OAuth 2.0 passord credentials")
 - OAuth 2.0 client credential flow: used when an application has to authenticate, acting on behalf of itself, using clientId and clientSecret. ![OAuth 2.0 client credentials](./img/oauth2-credentials.png "OAuth 2.0 credentials")
 - OAuth 2.0 device flow: (WhatsApp Web) principally used for IoT devices or where it is not safe to type a password. ![OAuth 2.0 device](./img/oauth2-device.png "OAuth 2.0 device")
-- OAuth 2.0 authorization code flow: a user access the client using a browser. ![OAuth 2.0 authorization code](./img/oauth2-authorization-code.png "OAuth 2.0 authorization code")
+- OAuth 2.0 authorization code flow: a user can access the client using a browser. ![OAuth 2.0 authorization code](./img/oauth2-authorization-code.png "OAuth 2.0 authorization code")
 
 ## OpenID Connect
 
-OIDC is standard built on top of oauth2, thanks to this the IAM will also provide an identidy token, which provides some inforamtion about the user, e.g. a picture, the name, the email, ...
+OIDC is standard built on top of oauth2, thanks to this the IAM will also provide an identity token, which provides some information about the user, e.g. a picture, the name, the email, ...
 
 This token should be encoded in a readable format (JWT).
 
@@ -1265,11 +1302,11 @@ This token should be encoded in a readable format (JWT).
 
 Whenever we are logging in a OIDC IAM provider, we will get a token encoded as the standard describes in `Base64`. The JWT is divided in 3 parts
 
-- **Header**: information about the token itself in json notation
-- **Payload**/**Claims**: provides information about who will use this premissions and who garanted this permission
+- **Header**: information about the token itself in `json` notation
+- **Payload**/**Claims**: provides information about who will use this permissions and who granted this permission
 - **Signature**: the signature of the **header** and **payload**.
 
-The client is able to verify that this token has been created by the IAM using the signature field, in fact by using the IAM public key it's possible to verify the signature over the the header and payload.
+The client is able to verify that this token has been created by the IAM using the signature field, in fact by using the IAM public key it's possible to verify the signature over the header and payload.
 
 Payload fields:
 
@@ -1280,13 +1317,13 @@ Payload fields:
 - `nbf`: **Not valid BeFore**: useful for preparing tokens in advance
 - `exp`: **EXPiry**: date after which the token is no more valid
 
-JWTs are by themselves the identiy proof, this is why we need to store and transfer them carefully.
+JWTs are by themselves the identity proof, this is why we need to store and transfer them carefully.
 
 When we create real applications, big systems have many server and services, and we should be able to provide access to all of those services. Other than that we still need to create some kind of protection to avoid intruders to get in.
 
 Architecting larger systems:
 
-- **business-process view**: what the company provides to it's customer
+- **business-process view**: what the company provides to its customer
 - **application view**: details on how the requirements have been translated to the actual implementation
 - **data view**: focus on how the data is stored, accessed, represented
 - **deployment view**: where and how our app is created and accessed
@@ -1298,37 +1335,37 @@ We also have many users with different needs:
 - **employees**: makes the system works
   - **devs** and **engineers**: architect the systems
   - **sales** and **marketing**: only interact with the system
-- **partners**: do some part of the job for the company, they have some rights to write inforamtion on your data
+- **partners**: do some part of the job for the company, they have some rights to write information on your data
 - **administrators**: someone who has the access to everything
 
-We saw that there are many permissions on what it's possible to do, for this reason there are audit files, which allow to check who did what on which resource.
+We saw that there are many permissions on what it's possible to do, for this reason there are audit files, which allow checking who did what on which resource.
 
-In spite of all theese complex scenarios OAuth 2.0 + OIDC allows to manage those scenarios, the standard accomodates all those things.
+In spite of all these complex scenarios OAuth 2.0 + OIDC allows managing those scenarios, the standard accommodates all those things.
 
 
 # Spring Security
 
-Common Web App vunlerability:
+Common Web App vulnerability:
 
 - **broken authentication**: password easily guessable, not renewed periodically
 - **session fixation**: steal a cookie to impersonate someone else
-- **cross-site scripting (XSS)**: js from client a site invoking js from another site
-- **cross-site request forgery (CSRF)**: making a http request from a website to another website where we already have stored cookies, e.g. amazon one-click button is just a POST request, if we are on another website we can call that endpoint and the request will be successful because the browser will already have the cookies
-- **sensitive data exposure**: committed passwords on github, sensitive information in public logs, configuration
+- **cross-site scripting (XSS)**: JS from client a site invoking JS from another site
+- **cross-site request forgery (CSRF)**: making an HTTP request from a website to another website where we already have stored cookies, e.g. Amazon one-click button is just a POST request, if we are on another website we can call that endpoint and the request will be successful because the browser will already have the cookies
+- **sensitive data exposure**: committed passwords on GitHub, sensitive information in public logs, configuration
 - **lack of method access control**: allowing code injection to be performed
-- **using dependencies with known vulnerabilities**: like `log4j` library, it's important to continously update our dependency
+- **using dependencies with known vulnerabilities**: like `log4j` library, it's important to continuously update our dependency
 
-By using the spring framework we can use **spring security**, it is a declarative framework built aroud our application. This is available both for servlet (Servlet filter) and reactor. Inspect the request bu using a method and call the next **chain** (next filter), we can also use that inspection on outgoing traffic, this is called **perimetral defence**. It's also possible aspects to wrap our service methods, and we can specify who is allowed to access those resources using `@PreAuthorize` and `@PostAuthorize`, this is what is called **volumetric defence**.
+By using the spring framework we can use **spring security**, it is a declarative framework built around our application. This is available both for servlet (Servlet filter) and reactor. Inspect the request but using a method and call the next **chain** (next filter), we can also use that inspection on outgoing traffic, this is called **perimetral defence**. It's also possible aspects to wrap our service methods, and we can specify who is allowed to access those resources using `@PreAuthorize` and `@PostAuthorize`, this is what is called **volumetric defence**.
 
-Both `Filters` and `Aspects` are governed by set of **Security Configuration**. To include security we need to add the `spring-boot-starter-security` dependency. By default this plugin renders our application unusable, because it requires a login to be used, it can be configured further. Other dependencies are `spring-boot-starter-oauth2-*`, which allows us to use **OAuth2** login methods. We can also specify some `Filters` to check what comes inside the `Controller`s and what goes out of them.
+Both `Filters` and `Aspects` are governed by set of **Security Configuration**. To include security we need to add the `spring-boot-starter-security` dependency. By default, this plugin renders our application unusable, because it requires a login to be used, it can be configured further. Other dependencies are `spring-boot-starter-oauth2-*`, which allows us to use **OAuth2** login methods. We can also specify some `Filters` to check what comes inside the `Controller`s and what goes out of them.
 
 Terminology:
 
 - `Principal`: user, system or device acting in the system
 - `Authentication`: contains information about the current logged user
-- `Credentials`: whatever is used by a `Principal` to proof it's identity
-- `Authorization`: wether or not to give access of a certain action or resource to a `Principal`
-- `Secured Resource`: urls that we want to protect using various kind of restrictions
+- `Credentials`: whatever is used by a `Principal` to proof its identity
+- `Authorization`: whether to give access of a certain action or resource to a `Principal`
+- `Secured Resource`: URLs that we want to protect using various kind of restrictions
 - `GrantedAuthority`: the set of actions that can be performed, any `Principal` can be assigned to a set of `GrantedAuthority` (like the authorizations on a Linux file).
 - `SecurityContext`: stores information of the authenticated user, in Spring this context is bound to a thread which it knows who is invoking that function.
 
@@ -1355,7 +1392,7 @@ class SecurityConfig {
 }
 ```
 
-In the application it's also possible to access to the `SecurityContext` wher all the security configuration is stored.
+In the application it's also possible to access to the `SecurityContext` where all the security configuration is stored.
 
 ```kotlin
 @GetMapping
@@ -1367,7 +1404,7 @@ fun get(principal: Principal) {
 }
 ```
 
-`SecurityFilterChains` will perform two main actions, first check wether an user is authenticated , second if the user is not authenticated try to authenticate it using the `AuthenticationManager` which uses an `AuthenticationProvider`.
+`SecurityFilterChains` will perform two main actions, first check whether a user is authenticated, second if the user is not authenticated try to authenticate it using the `AuthenticationManager` which uses an `AuthenticationProvider`.
 
 After the authentication we will go through the `Authorization Flow`.
 
@@ -1405,9 +1442,9 @@ Depending on which part of the OAuth2 chain we are we use two different provider
 
 ## OIDC Authorization Code Flow.
 
-The only two public end-poitns of our application will be the `IAM` and the `OAuth2 Client`, all our services will be **hidded** behind the `OAuth2 Client`. When a browser will perform a request on our services, it will redirect (`3xx`) the request to the `IAM`. Once the `IAM` has authenticated the user, it will respond with a `302` redirecting the browser to the `OAuth2 Client` with a **nonce** inside the request parameters, with that nonce the `OAuth2 Client` can get a **token** created by the `IAM`, then then `OAuth2 Client` create a **cookie** associated with the current session and **token** received by the `IAM`, when the browser will make a request the `OAuth2 Client` will translate the cookie to the **token** and forward the request to the `Resource Server` with **token** attached, the `OAuth2 Resource Server` will check the token for permissions with the `IAM`, and finally it will respond to the browser with a response.
+The only two public end-points of our application will be the `IAM` and the `OAuth2 Client`, all our services will be **hidden** behind the `OAuth2 Client`. When a browser will perform a request on our services, it will redirect (`3xx`) the request to the `IAM`. Once the `IAM` has authenticated the user, it will respond with a `302` redirecting the browser to the `OAuth2 Client` with a **nonce** inside the request parameters, with that nonce the `OAuth2 Client` can get a **token** created by the `IAM`, then `OAuth2 Client` create a **cookie** associated with the current session and **token** received by the `IAM`, when the browser will make a request the `OAuth2 Client` will translate the cookie to the **token** and forward the request to the `Resource Server` with **token** attached, the `OAuth2 Resource Server` will check the token for permissions with the `IAM`, and finally it will respond to the browser with a response.
 
-Still there is a problem if a browser tries to logout, the `OAuth2 Client` will delete the cookie and the token, and the browser will be redirected to the `IAM` again, but the `IAM` contain already a session with the browser, which will not be deleted, and so it will get me a new **nonce** and, immediately, redirect the browser to the `OAuth2 Client`. So we didn't really logout, to specifically do this there is a special function we can call on the `IAM` to terminate our session with him
+Still there is a problem if a browser tries to log out, the `OAuth2 Client` will delete the cookie and the token, and the browser will be redirected to the `IAM` again, but the `IAM` contain already a session with the browser, which will not be deleted, and so it will get me a new **nonce** and, immediately, redirect the browser to the `OAuth2 Client`. So we didn't really log out, to specifically do this there is a special function we can call on the `IAM` to terminate our session with him
 
 ```kotlin
 @Configuration
@@ -1431,26 +1468,46 @@ class SecurityConfig(
 
 ## OAuth2 Client
 
-A client will two impoartant end-points to perform an authorization code flow
+A client will have two important end-points to perform an authorization code flow
 
 - `/oauth2/authorization/{oidc-app-client}`: initiate login and redirect to the IAM
 - `/login/oauth2/code/{oidc-app-client}`: where the IAM redirect the browser in order to provide to the client the code it created
 
-Then client will get from the IAM a **refresh token** and an **id token**.
+Then client will get from the IAM a **refresh token** and an **ID token**.
+
+If a client becomes an API gateway for microservices, those servers can become a Resource Server, in order to access the end-points of a Resource Server we need to attach a token to the request, the API gateway is able to do this via configuration, this allows the client to communicate with the resource servers only using the cookie given by the client.
 
 ## OAuth2 Resource Server
 
-OAuth2 Resource Server provides information, it will attach a security token to each of the user request only if the token is validated.
+Provides resources behind an authentication wall.
 
-- `issuer`: address of the IAM
+A resource server can use `jwt` authentication, and the validation can of that token can be done via a `issuer-uri` of the IAM.
 
-In the security configuration the `sessionManagement` we declare it as `STATELESS` because it will be handled by the `OAuth2 Client`.
+In the security configuration the `sessionManagement` we declare it as `STATELESS` because it will be handled by the Resource Server, but the token will be kept by the client.
+
+```kotlin
+@Configuration
+class SecurityConfig {
+  @Bean
+  fun filterChain(http: HttpSecrity): SecurityFilterChain {
+    return http
+      // ...
+      .oauth2ResourceServer { it.jwt {} }
+      .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+      .csrf { it.disable() }
+      .cors { it.disable() }
+      .build()
+  }
+}
+```
+
+The token is carried via the HTTP request in the header `Authentication: bearer <JWT>`.
 
 ## Contact Resource Server from the Client
 
-The **client** must map application requests to the **resource server** (send authenticaed requests to the resource server), thus a **Gateway** function must be implemented. This can be done easily with the spring cloud gateway library.
+The **client** must map application requests to the **resource server** (send authenticated requests to the resource server), thus a **Gateway** function must be implemented. This can be done easily with the spring cloud gateway library.
 
-How do we tell the gateway (inside the client) where to send our requests?
+How do we tell the gateway (inside the client) where to send our requests? It's possible to configure the `application.yaml` of the client as follows
 
 ```yaml
 spring:
@@ -1470,49 +1527,45 @@ spring:
               # from the request
               - StripPrefix=2
               # Include in the header (which will be forwared)
-              # `authorization-beares` followed by the jwt.
+              # `Authorization: beares <JWT>`
               - TokenRelay
 ```
-`application.yaml` of the client
 
+## Security at service level
 
-## Accessing the principal
+Each method of a service can be decorated with annotations to protect the resources
 
-OAuth2 client we don't want to use sessions ...
-
-Each method of a service can annotated with
-
-- `@PreAuthorize`: evaluate **SpEL**, invoke the method if the check pass
-- `@PostAuthorize`: block if the response after the method is invoked, if there is a transaction it will be rolledback, e.g. in a bank accoutn we can say after the method is invoked the balance has to be greater than zero, doing it apriori is difficoult, in this way is way easier to check
-- `@PreFilter`: evaluate **SpEL**, expression evaluated on a collection of elements
-- `@PostFilter`:
+- `@PreAuthorize`: evaluate **SpEL**; the method can be invoked if the check passes
+- `@PostAuthorize`: block if the response after the method is invoked, if there is a transaction it will be rolled back, e.g. in a bank account we can say after the method is invoked the balance has to be greater than zero, doing it a priori is difficult, in this way is way easier to check
+- `@PreFilter`: evaluate **SpEL**, expression evaluated on a collection of elements, if some elements don't respect the check they will be discarded
+- `@PostFilter`: post case of the `@PreFilter`
 - `@Secured`: we check that who invoked this method has a certain role
 
+## SPA/Server interaction
 
-When we disign a Single Page Application, we have a problem, because IAM login and SPA don't really works togheter. The SPA has to distinguis wether the user logged in or not.
+When we design a Single Page Application, we have a problem, because IAM login and SPA don't really works together. The SPA has to distinguish whether the user is logged in or not.
 
 In the client application we need to identify that the user is not authenticated, 
 
-SPA authN flow:
+SPA authentication flow:
 
-1. request:
-1. we try to access a resource, but are not authorized
-1. the JS will replace our URL with the of the IAM authentication
-1. When we provide the credientials to the IAM
-1. we will be redirected back to the SPA, which was completely destroyed
-1. this time we have cookie
-1. the SPA will show approprieate components
+1. request performed
+1. we try to access a resource, but we are not authorized
+1. the JS will replace our URL with the of the IAM authentication page
+1. we provide the credentials to the IAM and perform the **code authentication flow**
+1. we will be redirected back to the SPA via the redirect URI, which was completely destroyed
+1. this time we have cookie got from the server
+1. the SPA will show the appropriate components
 
 When this approach is used the SPA is called **BFF** (Backend For Frontend)
 
+## CSRF protection
 
-The JS comunicating with the Server using a session is convenient, this allows for some attacks, one of this is called CSRF, where another web application can send request on the server on your behalf. This can be done because we have a valid session on the browser, we can prevent this by using some counter measures, all operations that can change something on the server we attach a `csrfToken` to the request, this can be done view the `SecurityFilterChain`.
+The JS communicating with the Server using a session stored on the browser is convenient, but this allows for some attacks, one of this is called CSRF. A CSRF is when another web application can send a request on your behalf. This can be done because we have a valid session on the browser for a specific application, we can prevent this by using some countermeasures, all operations that can change something on the server we attach a `csrfToken` to the request, this can be done using the `SecurityFilterChain`.
 
-When the JS will perform a request to change something on the server we attach a HTTP header `XSRF-TOKEN`, thanks to that the spring server will be able to validate the request, thus avoid someone else to perform request not performed by us.
+When the JS will perform a request to change something on the server we attach an HTTP header `XSRF-TOKEN`, thanks to that the spring server will be able to validate the request, thus avoid someone else to perform a request not performed by us.
 
-
-To integrate a SPA from the cloud gateway, we should add `http-client.type: autodetect`, otherwise the redirect won't work.
-
+To integrate an SPA from the cloud gateway, we should add `http-client.type: autodetect`, otherwise the redirect won't work.
 
 # System Integration
 
@@ -1521,8 +1574,8 @@ Is it possible to connect various application between each other, and **System I
 We can integrate systems at different levels:
 
 - **Data Level**: transfer data from database to database
-- **Application Login Level**: exchanging informations via API calls
-- **Presentation Level**: a user interface that collects information from differt data sources and displays them in a choherent way.
+- **Application Login Level**: exchanging information via API calls
+- **Presentation Level**: a user interface that collects information from different data sources and displays them in a coherent way.
 
 Access level:
 
@@ -1535,52 +1588,55 @@ Access level:
 
 We need to create a channel that moves data from a system to another, the two extremes are called *end-points*, which are the start or the end of an integration pipeline. A pipeline is the entity that moves messages between two end-points.
 
-We have many kind of messages that can move across pipelines:
+We have many kinds of messages that can move across pipelines:
 
 - **Command**: an operation that will happen in the future
-- **Event**: something that happend in the past, we need to subscribe to receive this message
-- **Document**: provide a set of informations relative to the message, e.g. emails can contain text, inline images, HTML, etc.
+- **Event**: something that happened in the past, we need to subscribe to receive this message
+- **Document**: provide a set of information relative to the message, e.g. emails can contain text, inline images, HTML, etc.
 
 ### End-points
 
-Messages flows along **Channels**, they allows for a relieble exchange of data from one end-point to onter, the two end-points are composed by a **producer** and a **consumer** end-points:
+Messages flows along **Channels**, they allow for a reliable exchange of data from one end-point to another, the two end-points are composed by a **producer** and a **consumer** end-points:
 
 - **Consumer**: receives data from the external world
 - **Producer**: produces some data and then sends it to a specific system
 
-End-points encapsulate the details of how the message is done, which includes: data format, protocal, data handling.
+End-points encapsulate the details of how the message is done, which includes: data format, protocol, data handling.
 
 ### Channels
 
 We can create various kind of channels:
 
-- **Point-to-Point**: retrieve a message from one source and deliber it to a destination, they are divided into *at-least-once semantics*, <+> store first and then mark the receival
+- **Point-to-Point**: retrieve a message from one source and deliver it to a destination. It's possible to deliver the message using different strategies:
+    - *at-most once*: the message once fetched will be marked as read and delivered, if it gets lost the retrieval won't be possible
+    - *at-least-once*: the message once fetched will be delivered, it will be marked read only if the system stores it correctly, if there is a failure the message will be retransmitted until success is achieved
+    - *exactly once*: this is very difficult to achieve, this implies that the message needs to be stored and guarantee some kind of persistency, as soon as the message is read it is marked as read, and if there is some failure the message is stored locally and there will be retransmission until the destination accepts the message
 - **Publish-Subscribe**: those channels allow for multiple subscribers to receive the data
 - **Datatype**: all kinds of messages can flow
 - **Dead Letter**: channel used to temporary store failures
-- **Invalid Message**: store temp when for example the destination is not available
-- **Guaranteed Chanell**: provide *exactly-onece-semantics*
+- **Invalid Message**: store message temporary when for example the destination is not available
+- **Guaranteed Chanel**: provide *exactly-once-semantics*
 
 
 ## Apache Camel
 
-Designed to perfrom system integration.
+Designed to perform system integration.
 
-- **Component**: a class packaged in their starter file, exposes the capability of creating end-points, we define system by using `uri`s
+- **Component**: a class packaged in their starter file, exposes the capability of creating end-points, we define components by using URIs
 - **End-point**: object that give a set of method for creating a **Consumer** (fetch data from the end-point), or a **Producer** (sending data to the end-point)
-- **Exchange**: messages come from an endpoint are called  **Exchange**, contains on outgoing message a reply message and exception message,
-- **Consumers**: sends messages to **<+>**
+- **Exchange**: messages created by producers and received by consumers are called **Exchange**, it contains an outgoing message a reply message and exception message.
+- **Consumers**: sends messages to **Processors** to make them suitable to reach a consumer
 
-An apache camel project is composed of **Routes**, which is made of components:
+An Apache camel project is composed of **Routes**, which is made of components:
 
 - `from`: end-point to get data from
 - `to`: send data to an end-point
 - `transform`: defines a processing step to modify the message
-- `filter`, `split`, `aggregate`: hanle the messages
+- `filter`, `split`, `aggregate`: handle the messages
 
 ```kotlin
 @Component
-class MyRouteBuilder: RouteBuilder() {
+class MyRouteBuilder : RouteBuilder() {
     override fun configure() {
         // Take all the file the input directory and move them
         // to the output directory
@@ -1593,29 +1649,100 @@ class MyRouteBuilder: RouteBuilder() {
 
 Even if we move back the files back to the `intput` folder, camel will observe the directory and move any new file that will be inserted into that directory.
 
-
-- **Channel**: connects application components
+- **Message Channel**: connects application components
+- **Content-Based Router**: can decide to which end-point send a message
 - **Splitter**: when we have to manipulate complex data, and we want to work on smaller data
 - **Aggregator**: merge small messages into a bigger one
-- **Exchange**: implements the `Message` interface which contains: `body: Any`, `timestamp`, `messageId` to distinguish messages between them, `headers` metadata that camel provides in order to understand the message. The `Exchange` wraps an `inMessage`, even and `Exchange` contains an id `exchangeId`. An `Exchange` also contains some `properties`
+- **Exchange**: it is what flows inside channels, an exchange wraps an **outbound message**, a **reply message** (in case it is required) and an **exception message**, in camel thees messages are called `in`, `out`, and `fault`, the can all be accessed inside the exchange by calling `getIn()`, `getOut()`, `getException()`. A `Message` is an interface which contains:
+    - `body`: it can be anything
+    - `timestamp`: creation time of the message
+    - `messageId`: to distinguish messages between them
+    - `headers`: metadata that camel provides in order to understand the message, e.g. the HTTP headers in case of a web request, the file name in case we are transferring files, etc.
 
-- `google-mail`: component that can access google mails, retrieve them, send emails, serach in the inbox, ect... It does an operation only once and the returns
-- `google-mail-stream`: component that is combination of a timer and a google-mail component, which periodically does checks, by default it only selects unread messages 
+An `Exchange` has also some properties:
 
+- `exchangeId`: to distinguish exchanges
+- `pattern`: `InOnly` no reply, `InOut` contains a reply
+- `exception`: error if present
+- `properties`: apply to the exchange as a whole, and do not apply to any single message but to all of them
+- `in`: request message
+- `out`: reply message
+
+### Google Mail Integration
+
+We can use two components to interact with Google Mail
+
+- `google-mail`: component that can access google mails, retrieve them, send emails, search in the inbox, etc. It does only operate on one mail
+- `google-mail-stream`: component that is the combination of a timer and a google-mail component, which periodically does checks on the inbox, by default it only selects *unread* messages, and fetches them by marking them as *read*
+
+```kotlin
+@Component
+class GoogleMailRoute() : RouteBuilder() {
+  @EndpointInject("google-mail:messages/get")
+  lateinit var ep: GoogleMailEndpoint
+
+  override fun configure() {
+    from("google-mail-stream:0?markAsRead=true&scopes=https://mail.google.com")
+      .process {
+        val id = it.getIn().getHeader(GoogleMailStreamConstants.MAIL_ID).toString()
+        val message = ep.client.users().messages().get("me", id).execute()
+        val subject = message
+          .payload
+          .headers
+          .find { it.name.equals("subject", true) }
+          ?.value
+          ?.toString()
+          ?: ""
+
+        val from = message
+          .payload
+          .headers
+          .find { it.name.equals("from", true) }
+          ?.value
+          ?.toString()
+          ?: ""
+
+        it.getIn().body = Email(from, subject, message.snippet)
+      }
+      .to("bean:emailRepository?method=save")
+  }
+}
+```
+
+### Calling Camel from Spring
+
+A bean in spring can become a producer for a camel route
+
+```kotlin
+@RestController
+class MessageController(
+  // Represent the camel runtime, need to craete an Exchange
+  val camelContext: CamelContext,
+  // Provides a set of methods for sending Exchanges along a route
+  val producerTemplate: ProducerTemplate
+) {
+  @PostMapping
+  fun send(@RequestBody message: SomeMessage) {
+    val exchange = ExchangeBuilder.anExchange(comelContext).withBody(message).build()
+    producerTemplate.send("direct:someRoute", exchange)
+    return exchange.getIn().body
+  }
+}
+```
 
 # MongoDB
 
-Traditional databases with nowadays have a lot of horizontal scalability, because data can change very quickly. This broght the creation of many NoSQL databases, where the main types are Documents, Key-Value, Wide-olumn, Graph. It's also important to note that each database suffers from the CAP theorem, each DB has to choose one of the two.
+Traditional databases with nowadays have a lot of horizontal scalability, because data can change very quickly. This brought the creation of many NoSQL databases, where the main types are Documents, Key-Value, Wide-column, Graph. It's also important to note that each database suffers from the CAP theorem, each DB has to choose one of the two.
 
 - CA: postrgres, mysql, ...
 - PA: cassandra, couchDB, ...
 - CP: redis, mongoDB, ...
 
 
-- Eventual consistency: in distributed DBs, we talk about **eventual consistency**, it's possible for a short period of time that the information will not be available on the other instances, when a change happens one of them. This is a major reduction of consistency for the system but a overall speed-up.
+- Eventual consistency: in distributed DBs, we talk about **eventual consistency**, it's possible for a short period of time that the information will not be available on the other instances, when a change happens one of them. This is a major reduction of consistency for the system but an overall speed-up.
 - Session consistency:
 - Casual consistency: we read the latest writes
-- Linearizability: strongest form of consistency, all operation are executed like they were on a single machine
+- Linearizability: strongest form of consistency, all operations are executed like they were on a single machine
 
 
 ***MongoDB is a scalable, high-performance, open source, schema free, document-oriented database***.
@@ -1624,11 +1751,11 @@ Traditional databases with nowadays have a lot of horizontal scalability, becaus
 
 ## Documents
 
-Documents in MongoDB are just plain json objects. Each document will contain an `_id` field. A single document is limited by 16MB it its bson format.
+Documents in MongoDB are just plain `json` objects. Each document will contain the `_id` field. A single document is limited by 16MB it its bson format.
 
-- Capped collecitons: collections limited in size, when we reach that limit each new element added will delete the oldest ones.
+- Capped collections: collections limited in size, when we reach that limit each new element added will delete the oldest ones.
 
-In mongo data can represent in a normalized way, with references to other documents, or in a non-normalized way wher we can used **embedded documents**.
+In mongo data can represent in a normalized way, with references to other documents, or in a non-normalized way where we can used **embedded documents**.
 
 ## CRUD operations
 
@@ -1638,7 +1765,7 @@ In mongo data can represent in a normalized way, with references to other docume
 
 This is a classical multistage functional approach when acting on collections, like filtering, mapping, etc.
 
-```js
+```javascript
 db.orders.aggregate([
   { $match: { state: "A" } },
   { $group: { _id: "$cust_id", total: { $sum: "$amount" } } },
