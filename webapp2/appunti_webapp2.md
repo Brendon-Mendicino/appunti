@@ -98,6 +98,8 @@
     - [Google Mail Integration](#google-mail-integration)
     - [Calling Camel from Spring](#calling-camel-from-spring)
 - [MongoDB](#mongodb)
+  - [MongoDB Scalability](#mongodb-scalability)
+  - [MongoDB CAP Theorem](#mongodb-cap-theorem)
   - [Documents](#documents)
   - [CRUD operations](#crud-operations)
   - [Aggregation pipelines](#aggregation-pipelines)
