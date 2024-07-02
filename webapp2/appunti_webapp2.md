@@ -74,9 +74,8 @@
     - [Context Handling](#context-handling)
     - [Synchronization](#synchronization)
 - [Flows](#flows)
-  - [`transform()`](#transform)
   - [Spring R2DBC](#spring-r2dbc)
-- [Authenication and Authorization](#authenication-and-authorization)
+- [Authentication and Authorization](#authentication-and-authorization)
   - [IAM responsibilities](#iam-responsibilities)
   - [OAuth 2.0 (Authorization)](#oauth-20-authorization)
   - [Authentication Flows](#authentication-flows)
@@ -1182,8 +1181,6 @@ fun main() = runSuspending {
 }
 ```
 
-## `transform()`
-
 The `transform` operator piped to a flow, allows to get the value of the flow and emit new values.
 
 ```kotlin
@@ -1251,7 +1248,7 @@ class PeopleRepository(val operator: TransactionalOperator) {
 }
 ```
 
-# Authenication and Authorization
+# Authentication and Authorization
 
 When an application needs to access some remote resource, two problems arises: authentication and authorization.
 
@@ -1732,38 +1729,128 @@ class MessageController(
 
 # MongoDB
 
-Traditional databases with nowadays have a lot of horizontal scalability, because data can change very quickly. This brought the creation of many NoSQL databases, where the main types are Documents, Key-Value, Wide-column, Graph. It's also important to note that each database suffers from the CAP theorem, each DB has to choose one of the two.
+MongoDB a Document-based database. To understand why MongoDB existst it's important to know the properties of relational databases. Relational databases provide a way of representing entities in tables where each column has a type, these tables can be joined together to create new data from them. Primary keys and foreign keys also gives a way to manage relations between tables. The main disadvantage is that the schema should be known a priori. Also, transactions have to maintain the ACID properties, this is very bad for scalability because in order to perform transactions locks are need.
+
+MongoDB tried to solve the problem of a highly scalable database, in fact it's a Non-Relational database.
+
+The problem of scalability brought the creation of many NoSQL databases, where the main types are Documents, Key-Value, Wide-column, Graph. It's also important to note that each database has to obey the CAP theorem (Consistency, Availability, Partition-tolerance), each DB has to choose one of the two.
+
+These are some DBs and their CAP choosing:
 
 - CA: postrgres, mysql, ...
 - PA: cassandra, couchDB, ...
 - CP: redis, mongoDB, ...
 
+When we deal with distributed system we have many levels of consistency that the DB can adopt
 
-- Eventual consistency: in distributed DBs, we talk about **eventual consistency**, it's possible for a short period of time that the information will not be available on the other instances, when a change happens one of them. This is a major reduction of consistency for the system but an overall speed-up.
-- Session consistency:
-- Casual consistency: we read the latest writes
-- Linearizability: strongest form of consistency, all operations are executed like they were on a single machine
+- **Eventual consistency**: in distributed DBs, we talk about **eventual consistency** when it's possible for a short period of time that the information will not be available on the other instances, when a change happens one of the other instances, the change needs to propagate first to be available. This is a major reduction of consistency for the system (if a change happens on instance 1, a transaction happening on the instance 2 may not see the changes), but an overall speed-up.
+- **Session consistency**: if a client of the system performs a change on one the instances, it's guaranteed that it will read the correct updated values, but for other clients this is not true because they may be routed to another instance.
+- **Causal consistency**: every client always read the latest writes that they causally depend on, writes may still happen concurrently
+- **Linearizability**: strongest form of consistency, all operations are executed like they were on a single machine
 
 
 ***MongoDB is a scalable, high-performance, open source, schema free, document-oriented database***.
 
-<+>
+## MongoDB Scalability
+
+- **Single Host**: In its smallest configuration MongoDB is reachable by contacting an end-point on a single host and some clients can make requests
+- **Replica Set**: In case the data needs to be handled more carefully it's possible to replicate the instances, where there are 3 or more, the primary one acts as a gateway and then it will replicate the data to the other instances. When the write operation is performed the client can ask for the data to be:
+    - written on the primary
+    - written on the majority of the instances
+    - written to all the instances
+
+    In case of error there is the possibility of recovery. Often read are preferred on secondary instances because they are less loaded, but the risk is to read old data.
+- **Sharding**: there are 2 or more **Mongo Routers**, they are the gateway for reaching the data. They contact the **Config Servers** (at least 3) which contain information on how data is distributed in the **Shards**, then they can contact the specific **Shard** and retrieve the data.
+
+## MongoDB CAP Theorem
+
+Mongo chooses **strong consistency**: when a query is performed, and it cannot reach the majority of replicas it will reject the query, because it cannot be sure that everything is there.
+
+Mongo is **high availability**: when a primary instance fails the others will choose another replica as the primary one (self-healing).
+
+In case of a network partition mongo chooses **consistency over availability**: if the network partition separates the primary replica from more than half of the secondary ones it will step down as a primary and become a secondary replicate, which means that it will only accept **weak reads** (only stale data and not up-to-date data) and not writes.
 
 ## Documents
 
-Documents in MongoDB are just plain `json` objects. Each document will contain the `_id` field. A single document is limited by 16MB it its bson format.
+Documents in MongoDB are just plain `json` objects. Each document will contain the `_id` field which must be unique. A single document is limited by 16 MB in its `bson` format.
 
-- Capped collections: collections limited in size, when we reach that limit each new element added will delete the oldest ones.
+Collections in Mongo are a way to group documents, they are like tables in relations DBs, but there are no constraints on the kind of data stored
 
-In mongo data can represent in a normalized way, with references to other documents, or in a non-normalized way where we can used **embedded documents**.
+Capped collections: collections limited in size, when we reach that limit each new element added will delete the oldest ones.
+
+Databases are group of collections grouped together.
+
+In mongo data can be represented in a normalized way, with references to other documents, or in a non-normalized way where we can used **embedded documents**.
+
+```javascript
+{
+  _id: 'purch123',
+  date: '2022-06-12',
+  items: [
+    {item_id: '1', q: 12, price: 23.3},
+    {item_id: '2', q: 1, price: 43.0},
+  ]
+}
+```
+
+Normalized data are discouraged in Mongo, because joins are not as performant as in relational databases, in case we still need to perform joins indexes are strongly recommended.
 
 ## CRUD operations
 
-<+>
+There are a set operation that can be used with JS, which is provided by Mongo.
+
+- `insertOne(doc)`: insert a document in the selected collection
+- `insertMany(docList, options)`: insert a list of objects
+- `updateOne()`: ...
+
+Mongo a way to find documents in a collection
+
+```javascript
+// Collection
+db.users.find(
+  // Query criteria
+  { age: { $gt: 18 } },
+  // Projection: 1 (keep it), 0 (drop it)
+  // _id need to be explicitly dropped otherwise it's icluded by default
+  { name: 1, address: 1 }
+// Cursor modifier
+).limit(5)
+```
+
+When inserting a list in a collection we have some options:
+
+- `writeConcern`: have many replicas has to receive the data before returning
+- `ordered`: if list is a set the ordered is not relevant, if shards are present the insertion will be very fast, if the order has to be kept they will be inserted sequentially and appear in that order
+
+Updating a document
+
+```javascript
+db.users.updateOne(
+  // Criteria
+  { age: { $gt: 18 } },
+  // Update action
+  { $set: { status: "A" } },
+  // Update option
+  { mutli: true }
+)
+```
+
+```javascript
+db.users.updateMany(
+  { a:  1 },
+  { $currentDate: { "c": { $type: "timestamp" } } }
+)
+```
+
+Removing documents
+
+```javascript
+db.users.removeOne({ state: "D" })
+```
 
 ## Aggregation pipelines
 
-This is a classical multistage functional approach when acting on collections, like filtering, mapping, etc.
+This is a classical multistage functional approach when acting on multiple collections, like filtering, mapping, etc.
 
 ```javascript
 db.orders.aggregate([
@@ -1774,36 +1861,47 @@ db.orders.aggregate([
 
 The various aggregation operations are:
 
-- `$match`:
-- `$addFileds/set`:
-- `$group`:
-- `$limit`:
-- `$lookup`: starting from one collection where I selected a set of documents I can a set of fileds to filter other documents from onother collection
-- `$merge`: writes the documets to act on them later
+- `$match`: matching criteria
+- `$addFileds/set`: add fields to the documents (also combination)
+- `$group`: grouping by the `_id` and perform some aggregation operation
+- `$limit`: limit number of results
+- `$lookup`: starting from one collection where I selected a set of documents I can a set of fields to filter other documents from another collection
+- `$merge`: writes the documents to act on them later
 - `$project`: takes only some fields from the document and discard the others
-- `$unwind`: when a field is an array, each array is flattened and an output list is created from all of the arrays in document with the same field name
+- `$unset`: remove props
+- `$unwind`: when a field is an array, each array is flattened and an output list is created from all the arrays in document with the same field name
+
+Some built in aggrations are already present
+
+```javascript
+db.users.count()
+db.users.estimatedDocumentCount()
+db.users.distinct("cust_id")
+```
 
 ## Indices
 
-We can build **indices** on the collections if we know the query we have to perform on the database in order to speedup those. Some of those are:
-- single field index: query on a single field
-- compund field index: query on multiple fields
-- multikey index: locate documents when they have lists inside them, and I want to know if a specific document is present inside of them
-- geospatial index: locate geospatial location using geometric properties
-- text index: locate text inside documents
-- hash index: locate documents when they are split into shards
+We can build **indices** on the collections if we know the query we have to perform on the database in order to speed up those. Some of those are:
+- **single field index**: query on a single field
+- **compound field index**: query on multiple fields
+- **multi-key index**: locate documents when they have lists inside them, and I want to know if a specific document is present inside of them
+- **geospatial index**: locate geospatial location using geometric properties
+- **text index**: locate text inside documents (full text search support)
+- **hash index**: locate documents when they are split into shards
+
+Indices must be used for complex queries, which would be $O(n^2)$ time otherwise.
 
 ## Transactions
 
-MongoDB guarantees updates on a single document to accurr atomically. 
+MongoDB guarantees updates on a single document to happen atomically. 
 
-MonogDB added the multi-document transaction, this is done by storing an optimistic lock togheter with the document, if an insertion fails or if somebody else performs an insertion or update, everything is rolled-back. This transactions are really slow <+>
+MongoDB added the multi-document transaction, this is done by storing an optimistic lock together with the document, if an insertion fails or if somebody else performs an insertion or update, everything is rolled-back. Transactions are really slow <+>
 
 Casual consistency: in each user session, it's possible to see the new updates published by us, the others may not see them.
 
 ## MongoBD in Spring
 
-Mongo dependencies are available both for servlet and webflux, it offers `MongoTemplate` and `MongoRepository<D,ID>`.
+Mongo dependencies are available both for servlet and WebFlux, it offers `MongoTemplate` and `MongoRepository<D,ID>`.
 
 ```kotlin
 @Document
