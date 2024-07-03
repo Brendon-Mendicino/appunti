@@ -1895,15 +1895,33 @@ Indices must be used for complex queries, which would be $O(n^2)$ time otherwise
 
 ## Transactions
 
-MongoDB guarantees updates on a single document to happen atomically. 
+It's important to remember that MongoDB is a highly scalable DB, this has the downside of not being able to perform transactions in the relational way, but there are some guarantees.
 
-MongoDB added the multi-document transaction, this is done by storing an optimistic lock together with the document, if an insertion fails or if somebody else performs an insertion or update, everything is rolled-back. Transactions are really slow <+>
+MongoDB guarantees updates on a single document to happen atomically, this can be done using the `findAndModify()` function which is atomic, this is not true on set of documents.
 
-Casual consistency: in each user session, it's possible to see the new updates published by us, the others may not see them.
+It's also guaranteed that the IDs are unique, and newly add document with a duplicated ID will be discarded.
 
-## MongoBD in Spring
+### Isolation
 
-Mongo dependencies are available both for servlet and WebFlux, it offers `MongoTemplate` and `MongoRepository<D,ID>`.
+How many potential replicas do we need to query? 
+
+It's possible to specify the concern of a write operation: we can accept data which has been confirmed by the majority of replicas, only wait for the gateway, etc.
+
+---
+
+MongoDB 4.2 added the **multi-document transaction**, this is done by storing an optimistic lock together with the document, if an insertion fails or if somebody else performs an insertion or update, everything is rolled-back, this guarantees the **all or nothing** semantics. Transactions are really slow, so they should be avoided at all costs.
+
+It's also possible that isolation won't happen for all the clients if a transaction is ongoing.
+
+When we perform a read/write operations it's also to get some anomalies:
+
+- **non-point-in-time read operations**: if a write operation occurs while we are reading some documents, we may see the updated documents
+- **non-serializable operation**: if a read concerning multiple documents happens while some of them are getting modified later on, a dependency loop is created, thus leading to non serializability
+- **missing reads**: some read documents that where read may be missing if some of them where updated.
+
+## MongoDB in Spring
+
+MongoDB's dependencies are available both for Servlet and WebFlux, it offers `MongoTemplate` and `MongoRepository<D,ID>`.
 
 ```kotlin
 @Document
@@ -1920,16 +1938,20 @@ data class Patient(
 
 Each collection of documents will be stored in collections with their respective name.
 
-To refer to other documents we can use:
-- We add the type of the document we want to reference and we annotate it with `@DBRef`, spring will convert this in an object: `$db`: name of the database, `$ref`: name of the collection, `$id`: id the referenced object. We always must take into condideration that two read operations are happening and those wont be transactionals.
-- We can only store the id of the document we want to reference, but need to remember what kind of document we are referencing.
-- We can use the `@DocumentReference` to only store the id of the document, and we get a type safe retrieval. It's also possible to mark it as `lazy`, in this way we will only retrieve it if we access to it.
+To refer to other documents it's possible to:
+
+- Add the type of the document we want to reference and annotate it with `$DBRef`, spring will convert this in an object: `$db`: name of the database, `$ref`: name of the collection, `$id`: ID of the referenced object. It must be taken into consideration that if two read operations are happening (one for the document and one the referenced one) those won't be transactional.
+- Only store the ID of the document we want to reference, but the need to remember what kind of document is referenced is on the burden of the programmer (**manual referencing**).
+- Use the `@DocumentReference` to only store the ID of the referenced document, and a type safe retrieval is possible. It's also possible to mark it as `lazy`, in this way the retrieval is performed only if the field is accessed.
+
+By using a `@DocumentReference` it's possible to create ownership between data
 
 ```kotlin
 @Document
 data class Publisher(
   @Id
   val id: ObjectId,
+  // Automatically fetched
   @DocumentReference
   val books: List<Book>
 )
@@ -1943,83 +1965,244 @@ data class Book(
 )
 ```
 
-If we switch the ownership, we can just create a `books` property wich will only trieve the `Publisher`s that reference it.
+If the ownership is switched, we can just create a `books` property which will only retrieve the `Publisher`s that reference it.
 
 ```kotlin
 @Document
+data class Book
+  @Id
+  val id: ObjectId,
+  // ...
+  @DocumentReference
+  val publisher: Publisher,
+)
+
+@Document
 data class Publisher(/* ... */) {
   @ReadonlyProperty
-  @DocumentReference(lookup = "{'publisher':?#{'self'._id}}")
+  // This corresponds to an aggregation operation
+  @DocumentReference(lookup = "{'publisher':?#{#self._id}}")
   lateinit var books = List<Book>
 }
 ```
 
 By using repositories we can use custom queries and custom aggregates.
 
+```kotlin
+@Query(value = "{'lastname': ?0 }", fields = "{'name': 1, 'address': 1}")
+fun findByQueryWithExpression(p0: string): List<Person>
+```
+
+It's also possible to create aggregations
+
+```kotlin
+@Repository
+interface SudentRepository : MongoRepository<Student, ObjectId> {
+  @Aggregation(pipeline = [
+    "{ '\$unwind': '\$course' }",
+    "{ '\$lookup': { 'from' : 'course', 'localField' : 'courses', 'foreignField' : '_id', 'as' : 'c' } }",
+    "{ '\$match': { 'c.name': ?0 } }",
+  ])
+  fun findStudentInCourse(courseName: String): List<Student>
+}
+```
+
+When creating aggregations it's important (especially when using `$lookup`) to create an index on the `foreignField`.
+
+## Custom Query
+
+The way of creating update templates is by calling them `findAnd...ByCondition`, where the `...` are the operation performed. If methods also update they need to have the `@Update` annotation, the return value of an update method can a number or `Unit`.
+
+Removing elements can be done via `delete...ByCondition` or `remove...ByCondition`. Declaring the return type with `List<...>` returns all the deleted documents, if it's `Optional<...>` *at most* one document is removed.
+
+## Atomic operations support
+
+Some operations need to be performed in an atomic way, one of those operators is `$inc`. Similarly, Mongo has `$min` and `$max`, `$addToSet` pushing inside array like it were an array, `$push` append to an array, `$pull` remove based on a criterion, `$pullAll` takes out all the specified documents, `$bit` treat a numerical field as a bit field.
+
+`findAndModify()` can help to update atomically a document.
+
+In Spring, a set of operations may need to be transactional, the `@Transactional` can perform such actions, but a transaction may fail and won't be executed again, `@Retriable` can be added if the transaction fails and repeat for 3 times (default value, can be changed), an exponential back-off is also available.
+
+```kotlin
+// Enable retry and enable transaction manager
+@Configuration
+@EnalbeRetry
+class MongoConfig {
+  @Bean
+  fun transactionManager(factory: MongoDatabaseFactory): MongoTransactionManager {
+    return MongoTransactionManager(factory)
+  }
+}
+
+@Service
+class SomeService(private val repo: SomeRepository) {
+  @Transactional
+  @Retryable(
+    retryFor = [UncategorizedMongoDbException::class],
+    maxAttemptsExpression = "10",
+    backoff = Backoff(),
+  )
+  fun swapDataInDocuments(id1: ObjectId, id2: OjcejctId): Int {
+    val d1 = repo.findById(id1).get();
+    val d2 = repo.findById(id2).get();
+    repo.save(d1.copy(data = d2.data));
+    repo.save(d2.copy(data = d1.data));
+    return d1.data + d2.data
+  }
+}
+```
+
+## MongoDB Connection
+
+It's possible to use the `application.yaml` file
+
+```yaml
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/my_db
+# or
+spring:
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: my_db
+```
+
+Or it's also possible to define a `MongoClient` as a `@Bean`.
 
 
 # Message Brokers
 
-In many cases it's possible that two are applications have to communicate between each others, it's in this occasion that shines **event driven architecture**. E.g. we have an application that retrieves some data from the Gmail and sends it to another service, what happens if the service goes down? The message will be just lost. It's why we use some kind pipe abstraction.
+In many cases it's possible that two are applications have to communicate between each others, it's in this occasion that shines **event driven architecture**. E.g. we have an application that retrieves some data from the Gmail and sends it to another service, what happens if the service goes down? The message will be just lost. For this reason Message Brokers exists.
 
-Putting a channell between two services makes the living time of the two services irrelevant.
+With an event driven design some pipes are put between services, offering a way to communicate between them, this idea is different from the HTTP request, where data is posted. Putting a channel between two services makes the living time of the two services irrelevant, provided that the channel interface is available. Message brokers provide such channels.
 
-There are 3 kinds of messages:
+The data that can be sent and received from channels are **Messages**. There are 3 kinds of messages:
 
-- Event: an information originated by somebody describing an event happened in the past, usually an event contains a timestamp of when it happened, events are only emitted and can subscribed and unsuscribed
-- Command: need to targat a system that need to do something specific, commands are sent to a destination 
-- Document: those messages that don't represent Events nor Commands
+- **Event**: an information originated by somebody describing an event happened in the past, usually an event contains a timestamp of when it happened, events are only emitted and can be subscribed and unsubscribed to them
+- **Command**: need to target a system that need to do something specific, commands are sent to a destination 
+- **Document**: those messages that don't represent Events nor Commands
 
 The main difference between the Command driven and Event driven approaches:
-- Command: the receiver of the command has to store an interval value which will be updated on each command received
-- Event: the receiver just record events, those have a creation timestamp, the actions can just be applied by following the chain of events, and no state has to be stored, we only store the events a logs and then reduced later.
 
-A **Message Broker** is responsible of handling queues of messages, ***is an infrastractural component responsible of validating, transforming, and routing masseges among applications***.
+- **Command**: the receiver of the command has to store an internal value which will be updated on each command received
+- **Event**: the receiver just record events, those have a creation timestamp, the actions can just be applied by following the chain of events, and no state has to be stored, we only store the events as logs and then **reduce** them later (reducing is operation that consumes the logs). The main problem with **Commands** is that they may arrive late, out of order, or lost, in practice the communication is much more reliable with **Events**.
 
-There two
+Events can be replayed, some condition may cause the server to crash, if this happens the events are stored, but the service can start reading them back where it stopped.
 
-- Publish/Subscribe: the broker is responsible of remembering who is interested in those messages and is responsible for routing
-- Event Streaming: the broker is just responsible of storing messages in an append-only log, the reader is responsible for reading the whole chain to reconstruct the state, the publisher simply appends messages
-- Push: brokers actively forwards messages to listeners
-- Pull: the borker provides an end-point for polling
+A **Message Broker** is responsible for handling queues of messages, ***is an infrastructural component responsible for validating, transforming, and routing messages among applications***.
+
+A message broker can perform validation of events, transform data in other representation and also routing the events, making it available to everybody who is interested to that kind of messages.
+
+There are two main approaches in handling messages in the broker's category:
+
+- **Publish/Subscribe**: the broker is responsible for remembering who is interested in those messages and is responsible for routing, the messages are delivered to client interested in those messages. Messages may not be available after the publishing
+- **Event Streaming**: the broker is just responsible for storing messages in an append-only log, the reader is responsible for reading the whole chain and to reconstruct the state, the publisher simply appends messages
+
+Brokers can operate in two strategies:
+
+- **Push**: brokers actively forwards messages to listeners
+- **Pull**: the broker provides an end-point for polling
 
 Consuming strategy:
 
-- Cooperating: everybody shared the same message
-- Point-to-Point: the faster will take the massage and hide it from the others
+- **Cooperating**: everybody shares the same message
+- **Point-to-Point**: the faster will take the massage and hide it from the others
 
-- Commands should have only one consumer
-- Event may have 0 or more consumers
-
+In a message broker **Commands should have only one consumer** and **Events may have 0 or more consumers**.
 
 ## RabbitMQ
 
-Uses Publish/Subscribe and Push strategy
+Uses Publish/Subscribe and Push strategy, uses Advanced Message Queuing Protocol (AMQP) to communicate, or MQTT, STOMP. RabbitMQ has two internal structures:
 
-- Exchange: reception point for incoming messages, publishers delivers messages to an exchange
-- Queues: an exchange delivers messages to many queues based on different conditions
+- **Exchange**: reception point for incoming messages, publishers delivers messages to an exchange, which can also have additional information attached
+- **Queues**: an exchange delivers messages to many queues based on different conditions
 
-The broker only looks at headers to understand how it should handle the message, the body is opaque (mostly), when the message arrived at the final destination and it acknowledges rabbitMQ will delete the message from it's storage.
+The broker only looks at headers to understand how it should handle the message, the body is opaque (mostly).
 
-<+>
-- Direct: one destination
-- Topic: by queue names
-- Fanout: ...
-- Heasers exchange: <+>
+When the message is arrived at the final destination, and it is acknowledged by the receiver, RabbitMQ will delete the message from its storage.
 
+An Exchange can be of different kinds:
+
+- **Direct**: messages are delivered to an exchange with a specific ID
+- **Fanout**: the message is duplicated as many times as the fanout cardinality
+- **Topic**: the exchange forwards the message to queues using a list of dot-separated tags, wildcards can also be used (like `*` or `#`)
+- **Headers**: match some of the keys in the metadata part
+
+### RabbitMQ in Spring
+
+RabbitMQ queues can be created using the `Queue` class providing:
+
+- `name`
+- `durable`: messages can be lost or need to be stored
+- `exclusive`: exclusive to this connection or shared with other clients
+- `autoDelete`: if the current process ends the queue will be removed when it terminates
+
+`AmpqTemplate` allows getting or producing some messages.
+
+Producer example
+
+```kotlin
+@Component
+class Producer(val queue: Queue, val template: AmqpTtemplate) {
+  fun send(message: String) {
+    template.converAndSend(queue.name, message)
+  }
+}
+
+@Configuration
+class RabbitConfig {
+  @Bean
+  fun connectionFactory(): CachingConnectionFactory {
+    return CachginConnectionFactory("localhost")
+  }
+
+  @Bean
+  fun simpleQueue(): Queue {
+    return Queue("wa2")
+  }
+}
+```
+
+Consumer example
+
+```kotlin
+@Component
+@RabbitListener(queues=["wa2"])
+class Consumer {
+  @RabbitHandler
+  fun consume(message: String) {
+    println("Consumer got $message")
+  }
+}
+
+@Configuration
+class RabbitConfig {
+  @Bean
+  fun connectionFactory(): CachingConnectionFactory {
+    return CachingConnectionFactory("localhost")
+  }
+
+  @Bean
+  fun simpleQueue(): Queue {
+    return Queue("wa2")
+  }
+}
+```
 
 ## Apache Kafka
 
-Fault tolerant, event streaming platform. Kafka is transactional, gurantees storing and retrieving with ACID properties.
+Fault-tolerant, event streaming platform. Kafka is transactional, guarantees storing and retrieving with ACID properties.
 
 Topic: append-only file
 
-Producers append data to topics, Readers read the topic from the begenning to the end. Kafka can be hosted on multiple machines, we can decide to duplicate the topic on all the machines, thus allowing fault-tolerance.
+Producers append data to topics, Readers read the topic from the beginning to the end. Kafka can be hosted on multiple machines, we can decide to duplicate the topic on all the machines, thus allowing fault-tolerance.
 
-A Topic can have 0 or more consumers, each consumer knows the last position that it read on the topic, this can also be stored on kafka.
+A Topic can have 0 or more consumers, each consumer knows the last position that it read on the topic, this can also be stored on Kafka.
 
-Event publication occures in a transaction.
-
+Event publication occurres in a transaction.
 
 Kafka provides:
 
@@ -2034,7 +2217,7 @@ Kafka clusters provides a set of APIs:
 
 Architecture:
 
-SQRES: security -> insertion/deletion are operated on the dbms, that information is then extratcted and formated in such a way to be queried, this happens when a huge number of reading are performed, and insertions are very rare, the data is sent to another db that will only be used for reding, all the insertions are redirected to the transactional database.
+SQRES: security -> insertion/deletion are operated on the DB, that information is then extracted and formatted in such a way to be queried, this happens when a huge number of reading are performed, and insertions are very rare, the data is sent to another db that will only be used for reading, all the insertions are redirected to the transactional database.
 
 Streams API: read from a topic, process, and produce events. ktables: inforamtions where informations are inserted and collected at the same time, it provides an observability window.
 
