@@ -105,9 +105,14 @@
   - [Aggregation pipelines](#aggregation-pipelines)
   - [Indices](#indices)
   - [Transactions](#transactions)
-  - [MongoBD in Spring](#mongobd-in-spring)
+    - [Isolation](#isolation)
+  - [MongoDB in Spring](#mongodb-in-spring)
+  - [Custom Query](#custom-query)
+  - [Atomic operations support](#atomic-operations-support)
+  - [MongoDB Connection](#mongodb-connection)
 - [Message Brokers](#message-brokers)
   - [RabbitMQ](#rabbitmq)
+    - [RabbitMQ in Spring](#rabbitmq-in-spring)
   - [Apache Kafka](#apache-kafka)
     - [Producer and Consumers](#producer-and-consumers)
     - [Topics](#topics)
@@ -2194,48 +2199,67 @@ class RabbitConfig {
 
 ## Apache Kafka
 
-Fault-tolerant, event streaming platform. Kafka is transactional, guarantees storing and retrieving with ACID properties.
+Fault-tolerant, event streaming platform. Kafka is transactional, guarantees storing and retrieving messages with ACID properties. Kafka embraces the **Event streaming** / **Pull** approach contrary to [RabbitMQ](#rabbitmq), Kafka it's able to replicate on many instances providing very high scalability.
 
-Topic: append-only file
+The building block of Kafka are **Topics**, topics are like append-only files. Producers append data to topics, Readers read the topic from the beginning to the end sequentially, there are additional metadata 
 
-Producers append data to topics, Readers read the topic from the beginning to the end. Kafka can be hosted on multiple machines, we can decide to duplicate the topic on all the machines, thus allowing fault-tolerance.
+Messages in Kafka can be replicated on more machines, this provides redundancy in case of failure.
+
+Kafka can be hosted on multiple machines, we can decide to duplicate the topic on all the machines, thus allowing fault-tolerance.
 
 A Topic can have 0 or more consumers, each consumer knows the last position that it read on the topic, this can also be stored on Kafka.
 
-Event publication occurres in a transaction.
+Event publication occurs in a transaction.
 
 Kafka provides:
 
-- storing messages in a durable manner: the level of durability can be configured
-- fault tolerance: topics can be replicated with many replicas
-- horizontal scalability: machines can all partecipate in providing events
+- **Storing messages in a durable manner**: the level of durability can be configured, also the amount of time the message remains stored can be configured.
+- **Fault tolerance**: topics can be replicated with many replicas.
+- **Horizontal scalability**: Kafka was designed to handle high throughput, the data by being stored in append-only mode makes this task possible. It's also designed in a scalable way, when defining a topic the number of replication can be specified (typically the number of nodes), where machines can all take part in providing events, the load can be split among the different nodes, and one of them fails it retrieve the missing messages from the other nodes.
 
+A Kafka cluster provides a set of APIs exposed on a port:
 
-Kafka clusters provides a set of APIs:
-- Streams: move data from one topic to another by processing the data
-<+>
+- Producer commands: add a new message on a topic
+- Consumer commands: retrieve a message on a topic
+- Streams: a node acts as consumer by fetching some messages, then a streaming functions are applied on those messages and then write them to a new topic, this can be done using `KsqlDB` which is a streaming database, which allows to be queried using SQL-like syntax.
 
-Architecture:
+A **Kafka cluster** is composed by a set of processes, called **brokers**, which knows each others. Internally they manage how to distribute the load.
 
-SQRES: security -> insertion/deletion are operated on the DB, that information is then extracted and formatted in such a way to be queried, this happens when a huge number of reading are performed, and insertions are very rare, the data is sent to another db that will only be used for reading, all the insertions are redirected to the transactional database.
+With Kafka, we can:
 
-Streams API: read from a topic, process, and produce events. ktables: inforamtions where informations are inserted and collected at the same time, it provides an observability window.
+- Have an application which acts as a producer whose produces data and inserts them in a topic
+- Have an application which acts as a consumer, it listens to a specific topic and whenever there is a new message it will be fetched
+- It's possible to have a backup of a database, how can it be done? With Kafka whenever there is a change, a message is stored, a consumer will be listening on that topic, and whenever there is a change it will be duplicated on the backup database. This is possible with **Kafka Streams with Connectors**. It's also possible to fetch data from one database (Postgres) and write to a new database (MongoDB). This give raise to the **SQRES** pattern.
+- SQRES: provides some kind of security, when there are very few writing operations and a many number of reading from a database in an aggregated format, we can design our application in order to talk to two databases, when reading the application connects to the first database, when it writes it connects to the second database. The *read-only* database will be connected via a Kafka Connector, which will transform the data from the relational database to a more suitable format to be read (usually in a non-relational database), since they are connected via a connector it's possible to create many instances of the non-relational DB, put in different places and all of them are linked to the Kafka Connector, this allows to scale massively.
+- Streaming application are interested in performing some aggregation, where the data produced is massive, this is possible by using **K-Tables** where the information is continuously inserted and deleted (it's like a circular buffer) and it'possible to specify a view window, where SQL-like queries can be performed.
 
 ### Producer and Consumers
 
-A consumer reads data in order, each consumer is identified.
-<+>
+Any application can write on a topic, and any consumer can read from a topic, when a consumer reads from a topic it presents itself as **Consumer Group**, only when the consumer commits the data that it read from the topic, Kafka will advance its offset, this is because read operations are transactionals. A **Consumer Group** can reset its offset if some bugs where present in the software and there is the need of reconstructing the data.
+
+Producers and consumers does not know about each others, this means that they should be programmed such that there is no dependency between them.
 
 ### Topics
 
+A Kafka topic is like an ever-growing file, each message in a topic is a triplet, it contains:
 
+- Body: considered opaque, Kafka does not read what is inside
+- Header: can convey a key which is used to define in which partition to be stored the message, and other information
+- Timestamp
 
-### Generic consumer
+Every consumer knows its offset position, when there are too many messages a topic can be split into multiple lanes to sustain the high traffic, to decide in which lane to send the message the key contained in the header is hashed, and by computing the remainder by the number of partitions give the lane for that message. Kafka allows for a partitioned topic, to have multiple threads (at most as the number of lanes).
+
+Consumers can be part of the same **consumer group** and to each consumer group a set of partitions will be assigned.
+
+### Kafka examples
+
+Creating a producer
 
 ```kotlin
 fun createConsumer(): Consumer<String, String> {
   val props = Properties()
   props[ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG] = "localhost:9092"
+  props[ConsumerConfig.GROUP_ID_CONFIG] = "org.example"
   // ...
 
   return KafkaConsumer(props)
@@ -2243,33 +2267,243 @@ fun createConsumer(): Consumer<String, String> {
 
 fun main() {
   val consumer = createConsumer()
-  // ...
+  consumer.subscribe(listOf("Topic1"))
+  while (true) {
+    val records =consumer.poll(Duration.ofSeconds(1))
+    pritln("Consumed ${records.count()} records")
+    records.iterator().forEach {
+      val message = it.value()
+      println("Message: $message")
+    }
+  }
 }
 ```
 
+Creating a producer
 
-development -> `PLAINTEXT_HOST://:9092`
-deployment in docker -> `...://:29092`
+```kotlin
+fun createProducer(): Producer<String, String> {
+  val props = Properties()
+  props[ProducerConfig.BoOTSTRAP_SERVER_CONFIG] = "localhost:9092"
+  // ...
+}
 
-To debug the appliaction we can use `kafka-ui`.
+fun main() {
+  val producer = createProducer()
+  for (i in 0..4) {
+    producer.send(ProducerRecord("Topic1", i.toString(), "Message $i"))
+      // send() return a future, by calling get() the code waits for the completion
+      .get()
+  }
+}
+```
 
-<+>
+### Kafka with Spring
 
+It's possible to a `KafkaTemplate` which provides high level function to send messages, this is capable of serializing the classes by using Jackson (using `json` serializer plugin). While `@KafkaListener` is able to create a consumer by providing the **Consumer Group** (`id`) and the list of topics to poll from.
+
+```kotlin
+@Configuration
+class KafkaConsumer {
+  // Creates a new topic if it doesn't exist (usually used for testing)
+  @Bean                 // name, partitions, replicas
+  fun topic() = NewTopic("topic1", 10, 1)
+
+  @KafkaListener(id = "myId", topics = ["topic1"])
+  fun listen(value: String?) {
+    println(value)
+  }
+}
+```
+
+```kotlin
+@Component
+class KafkaProducer(
+  private val template: KafkaTemplate<String?, String?>,
+) {
+  fun send() {
+    template.send("topic1", "test")
+  }
+}
+```
+
+### Kafka with Docker
+
+Script to deploy Kafka without **`Zookeeper`**.
+
+```yaml
+version: '2'
+services:
+  kafka:
+    image: 'bitnami/kafka:3.7'
+    hostname: kafka
+    ports:
+      - "9092:9092"
+    volumes:
+      - 'kafka_data:/bitnami'
+    environment:
+      # ID of each replica if more than one is present
+      - KAFKA_CFG_NODE_ID=0
+      # Tells Kakfa to act as a controller (no zookeeper)
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      # Find out when a transaction is ready
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
+      # PLAINTEXT: port on which other processes in docker can reach Kafka
+      # CONTROLLER: port for coordination
+      # HOST: port used when Kafka is deployed on the host
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:29092,CONTROLLER://:9093,PLAINTEXT_HOST://:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+    networks:
+      - kfk-net
+
+  # UI to view Kafka topics and consumers
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - 9090:8080
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      DYNAMIC_CONFIG_ENABLED: 'true'
+    networks:
+      - kfk-net
+
+volumes:
+  kafka_data:
+    driver: local
+
+networks:
+  kfk-net:
+    driver: bridge`
+```
+
+### Kafka Connect
+
+Is a tool for system integration (very similar to Apache Camel). Very convenient to operate between different services, or to integrate different organizations of internal data, e.g. get all the modification of a transactional relational database, and perform higher order operation (only propagate the changes).
+
+To create be able to achieve this, first **Kafka connect workers** need to be created, these are clusters with jobs waiting for changes on the DB logs, inside of them there will be a **Kafka Connector** driver, which transform the data into an internal representation, this can be acted upon, and then the messages will be stored into a Kafka topic. 
+
+The same strategy is true for when the messages need to be read from the topic and then sent to another database.
+
+The job of Kafka Connect look trivial, but it's not, because Kafka Connect guarantees the transactionality of every action, and also provides scalability out of the box.
+
+Example of Kafka Connect set up
+
+```yaml
+services:
+  #   … other services like postgres, kafka, kafka-ui
+  kafka-connect:
+    image: confluentinc/cp-kafka-connect:latest
+    depends_on:
+      - kafka
+      - postgres
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: kafka:29092
+      CONNECT_REST_PORT: 8083
+      CONNECT_GROUP_ID: "connect1"
+      CONNECT_CONFIG_STORAGE_TOPIC: "connect1_config"
+      CONNECT_OFFSET_STORAGE_TOPIC: "connect1_offset"
+      CONNECT_STATUS_STORAGE_TOPIC: "connect1_status"
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: "1"
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: "1"
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: "1"
+      CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_INTERNAL_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_REST_ADVERTISED_HOST_NAME: "localhost"
+      CONNECT_PLUGIN_PATH: '/usr/share/java,/etc/kafka-connect/jars,/usr/share/confluent-hub-components'
+    ports:
+      - "8083:8083"
+    networks:
+      - kfk-net
+    command:
+      - bash
+      - -c
+      - |
+        echo "Installing Connector"
+        confluent-hub install --no-prompt debezium/debezium-connector-postgresql:2.2.1
+        confluent-hub install --no-prompt confluentinc/kafka-connect-datagen:0.4.0 confluent-hub install --no-prompt neo4j/kafka-connect-neo4j:2.0.0
+        #
+        echo "Launching Kafka Connect worker"
+        /etc/confluent/docker/run &
+        #
+        sleep infinity
+
+networks:
+  kfk-net:
+    driver: bridge
+```
+
+### Kafka Streams
+
+Kafka Streams is very useful to create live data processing of large streams, it can also be used to further process data on a topic by performing transformations (happening on the client-side and not in the Kafka process), and inserting them in a new topic, another stream or an external service.
+
+**Processors** can be created and liked together, **source processor** get data from a topic while **sink processors** store data in topics. Thanks to processors large graphs of computation can be created.
+
+All the processed events contains
+
+- Timestamp: there can be different times `event time`, `ingestion time`, `processing time`. Those timestamps can be retrieved by using the `TimestampExtractor`
+
+Kafka Connect con act on the single messages (derived records), while Kafka Streams provides a way to process multiple messages (configure a time window), and provides lots of functions to further process data, using a SQL-like language, in this way operations such as `join`, `group by` are possible to be performed.
+
+```kotlin
+@Configuration
+@EnableKafkaStreams
+class KafkaStreams {
+  @Value("\${event.topic}")
+  private lateinit var eventTopic: String
+
+  @Bean
+  fun kStream(streamsBuilder: StreamsBuilder): KStream<String, EventDTO> {
+    val s: KStream<String, EventDTO> = streamsBuilder.stream("inputTopic")
+    s
+      .mapValues { v -> EventDTO("Processed: ${v.body}") }
+      .to("outpuTopic")
+
+    return s
+  }
+}
+```
+
+Kafka Streams allows for reactivity to be introduced into Microservices.
 
 # Microservices
 
-<+>
+Problems of monolith application:
 
+- if one piece of the application is compromised, everything is compromised
+- operate any change is very difficult if components are tightly coupled
+- if the application crashes everything is unavailable
+
+Handling increasing complexity in the application can be very difficult, on top of that customers want new features to be delivered rapidly, frequently, reliably.
+
+It's very important that a **Centralized Telemetry Store** is created, otherwise understanding what is happening in system will be unfeasible.
+
+At this point when we want to deliver many services `docker compose` is no more an option, something more complicated needs to be used, like **Kubernetes** which will handle the lifecycle of the services.
+
+Service features:
+
+- highly maintainable and testable
+- loosely coupled with other services
+- independently deployable
+- capable of being developed alone
+
+The hexagonal architecture (the onion architecture), the core of the application is the business logic, which contains a public part, directed to the client (creates APIs), and a private part, directed to other services (consumes APIs). The application can also be an event subscriber, or an event publisher.
 
 # OpenAPI
 
-When project starts to get really big, the need of documenting those codebases araises. One very useful tool that helps to generate the documentation for the `RestControllers` is called **OpenAPI**. To begin using this tool in spring we need to include it as a dependency in the `build.gradle.kts`
+When project starts to get really huge, the need of documenting those codebases arises. One very useful tool that helps to generate the documentation for the `RestControllers` is called **OpenAPI**. To begin using this tool in spring we need to include it as a dependency in the `build.gradle.kts`
 
 ```kotlin
 implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0")
 ```
 
-This by default will expose on our server on the path `/swagger-ui/index.html`, a page that contains a list of all our endpoints, by deafault all the endpoints will have a request body/parameters and a response which will be automatically inferred from the controller types. This allows to browser the documentation and also make request to the endpoint if we want.
+This by default will expose on our server on the path `/swagger-ui/index.html`, a page that contains a list of all our endpoints, by default all the endpoints will have a request body/parameters and a response which will be automatically inferred from the controller types. This allows to browser the documentation and also make request to the endpoint if we want.
 
 This is possible because the server will generate a **specification** in json format at the `/v3/api-docs`, which represents the OpenAPI representation of the API.
 
@@ -2281,7 +2515,7 @@ plugins {
 }
 ```
 
-which is able to fetch the documentation at the specified url and download it. By using the `generateOpenApiDocs` gradle task it's possible to do further customization, the following example configuration fetches the documentation from a set of services which are behind an *API Gateway* which respectively expose their path to the `/v3/api-docs`.
+Which is able to fetch the documentation at the specified url and download it. By using the `generateOpenApiDocs` `gradle` task it's possible to do further customization, the following example configuration fetches the documentation from a set of services which are behind an *API Gateway* which respectively expose their path to the `/v3/api-docs`.
 
 ```kotlin
 tasks.generateOpenApiDocs {
