@@ -116,7 +116,11 @@
   - [Apache Kafka](#apache-kafka)
     - [Producer and Consumers](#producer-and-consumers)
     - [Topics](#topics)
-    - [Generic consumer](#generic-consumer)
+    - [Kafka examples](#kafka-examples)
+    - [Kafka with Spring](#kafka-with-spring)
+    - [Kafka with Docker](#kafka-with-docker)
+    - [Kafka Connect](#kafka-connect)
+    - [Kafka Streams](#kafka-streams)
 - [Microservices](#microservices)
 - [OpenAPI](#openapi)
 <!--toc:end-->
@@ -529,7 +533,7 @@ Many objects are instantiated when the program is run, for example in the defaul
 
 ### Lifecycle
 
-Every component has a specific lifetime, in spring we can specify how long a `Bean` should live, for example it's possible to bound a lifetime the life of the application, it's possible to be bound only during the handling of a request, when the handling of a request terminates the associated `Bean`s will be removed, it's possible to bound the lifetime to a request from a specific user, spring will not destroy that `Bean` for 10 minutes if no new requests come from that user. We can specify the lifetime using the `@Scope` annotation (which is not specified is `Singleton` by default), we can also specify a method that will be called when the `Bean` is created or destroyed with `@Bean(initMethod="...", destroyMethod = "...")`.
+Every component has a specific lifetime, in spring we can specify how long a `Bean` should live, for example it's possible to bound a lifetime to the life of the application, it's possible to be bound only during the handling of a request, when the handling of a request terminates the associated `Bean`s will be removed, it's possible to bound the lifetime to a request from a specific user, spring will not destroy that `Bean` for 10 minutes if no new requests come from that user. We can specify the lifetime using the `@Scope` annotation (which is not specified is `Singleton` by default), we can also specify a method that will be called when the `Bean` is created or destroyed with `@Bean(initMethod="...", destroyMethod = "...")`.
 
 ### Autowiring by constructor
 
