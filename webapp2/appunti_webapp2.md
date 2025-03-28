@@ -1628,7 +1628,7 @@ We can create various kind of channels:
 
 ## Apache Camel
 
-Designed to perform system integration.
+Apache Camel is a tool designed to perfrom system integration.
 
 - **Component**: a class packaged in their starter file, exposes the capability of creating end-points, we define components by using URIs
 - **End-point**: object that give a set of method for creating a **Consumer** (fetch data from the end-point), or a **Producer** (sending data to the end-point)
@@ -1640,6 +1640,7 @@ An Apache camel project is composed of **Routes**, which is made of components:
 - `from`: end-point to get data from
 - `to`: send data to an end-point
 - `transform`: defines a processing step to modify the message
+- `process`: takes a lambda as paramter allowing to modify the exchange
 - `filter`, `split`, `aggregate`: handle the messages
 
 ```kotlin
